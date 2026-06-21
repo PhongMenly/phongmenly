@@ -286,6 +286,20 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 footer{background:#050505;border-top:1px solid var(--bdr-s);padding:30px 20px;text-align:center}
 footer p{font-size:12px;color:var(--dim)}
 
+/* ── LANG TOGGLE ── */
+#lang-toggle{
+  display:flex;align-items:center;gap:3px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:50px;padding:5px 12px;cursor:pointer;
+  font-size:11px;font-weight:700;color:var(--muted);
+  transition:.2s;white-space:nowrap;flex-shrink:0;font-family:inherit;
+}
+#lang-toggle:hover{background:rgba(255,255,255,.1);color:var(--txt)}
+#lang-toggle .lt-vi,#lang-toggle .lt-en{transition:color .2s}
+#lang-toggle[data-lang="vi"] .lt-vi{color:var(--gold)}
+#lang-toggle[data-lang="en"] .lt-en{color:var(--gold)}
+#lang-toggle .lt-sep{color:rgba(255,255,255,.2);margin:0 1px}
+
 /* ── AUTH NAV ── */
 .nav-auth{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .btn-glogin{display:flex;align-items:center;gap:8px;background:var(--gold);color:#000;border:none;padding:9px 18px;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;white-space:nowrap;font-family:inherit}
@@ -385,7 +399,7 @@ footer p{font-size:12px;color:var(--dim)}
 <div class="ann">
   <span class="ann-title" id="ann-title">MẬT MÃ TỰ DO — Affiliate x AI</span>
   <span class="ann-dot">·</span>
-  <span id="ann-label">Kết thúc sau:</span>
+  <span id="ann-label" data-i18n="ann.ends">Kết thúc sau:</span>
   <span class="ann-timer">
     <span id="ann-d-wrap"><span class="ann-unit" id="an-d">--</span> <span id="ann-d-lbl">ngày</span></span>
     <span class="ann-unit" id="an-h">--</span>:<span class="ann-unit" id="an-m">--</span>:<span class="ann-unit" id="an-s">--</span>
@@ -400,27 +414,32 @@ footer p{font-size:12px;color:var(--dim)}
       <div class="logo-author">Tác Giả: Phong Menly</div>
     </div>
     <div class="nav-tabs">
-      <a href="khoa-hoc.html" class="nav-tab">Khóa Học</a>
-      <a href="#pricing" class="nav-tab">Sản Phẩm</a>
+      <a href="khoa-hoc.html" class="nav-tab" data-i18n="nav.courses">Khóa Học</a>
+      <a href="#pricing" class="nav-tab" data-i18n="nav.products">Sản Phẩm</a>
     </div>
-    <!-- AUTH -->
-    <div class="nav-auth" id="nav-auth">
-      <div class="auth-skel" id="auth-loading"></div>
-      <button class="btn-glogin" id="btn-glogin" style="display:none" onclick="pmOpenModal()">
-        Đăng ký / Đăng nhập
+    <!-- LANG + AUTH -->
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <button id="lang-toggle" data-lang="vi" onclick="toggleLang()" title="Switch language">
+        <span class="lt-vi">VI</span><span class="lt-sep">|</span><span class="lt-en">EN</span>
       </button>
-      <div class="u-profile" id="u-profile" style="display:none" onclick="pmToggleDrop(event)">
-        <img class="u-av" id="u-av" src="" alt="">
-        <div class="u-av-ph" id="u-av-ph" style="display:none"></div>
-        <div class="u-info">
-          <span class="u-name" id="u-name"></span>
-          <span class="u-badge" id="u-badge"></span>
-        </div>
-        <div class="u-drop" id="u-drop">
-          <div class="u-drop-info">
-            <div class="u-drop-email" id="u-drop-email"></div>
+      <div class="nav-auth" id="nav-auth">
+        <div class="auth-skel" id="auth-loading"></div>
+        <button class="btn-glogin" id="btn-glogin" style="display:none" onclick="pmOpenModal()">
+          <span data-i18n="nav.auth">Đăng ký / Đăng nhập</span>
+        </button>
+        <div class="u-profile" id="u-profile" style="display:none" onclick="pmToggleDrop(event)">
+          <img class="u-av" id="u-av" src="" alt="">
+          <div class="u-av-ph" id="u-av-ph" style="display:none"></div>
+          <div class="u-info">
+            <span class="u-name" id="u-name"></span>
+            <span class="u-badge" id="u-badge"></span>
           </div>
-          <button class="drop-item red" onclick="pmSignOut();event.stopPropagation()">🚪 Đăng xuất</button>
+          <div class="u-drop" id="u-drop">
+            <div class="u-drop-info">
+              <div class="u-drop-email" id="u-drop-email"></div>
+            </div>
+            <button class="drop-item red" onclick="pmSignOut();event.stopPropagation()" data-i18n="nav.signout">🚪 Đăng xuất</button>
+          </div>
         </div>
       </div>
     </div>
@@ -433,9 +452,9 @@ footer p{font-size:12px;color:var(--dim)}
     <div class="badge" id="hero-badge">✦ MẬT MÃ TỰ DO — Affiliate x AI</div>
 
     <div class="h1-cycle">
-      <h1 class="h1-item">5 Cánh Cửa <span class="hl">Định Mệnh</span></h1>
-      <h1 class="h1-item">Làm Chủ Hệ Thống <span class="hl">Affiliate x AI</span></h1>
-      <h1 class="h1-item">Mở Ra <span class="hl">Cánh Cửa Tự Do</span></h1>
+      <h1 class="h1-item" data-i18n="hero.h1.1">5 Cánh Cửa <span class="hl">Định Mệnh</span></h1>
+      <h1 class="h1-item" data-i18n="hero.h1.2">Làm Chủ Hệ Thống <span class="hl">Affiliate x AI</span></h1>
+      <h1 class="h1-item" data-i18n="hero.h1.3">Mở Ra <span class="hl">Cánh Cửa Tự Do</span></h1>
     </div>
 
 
@@ -453,8 +472,8 @@ footer p{font-size:12px;color:var(--dim)}
     </div>
 
     <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center">
-      <a href="#pricing" class="btn-p">Mở Khóa Ngay</a>
-      <a href="doc-thu.html" class="btn-p" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none">📖 Đọc Thử Miễn Phí</a>
+      <a href="#pricing" class="btn-p" data-i18n="hero.cta1">Mở Khóa Ngay</a>
+      <a href="doc-thu.html" class="btn-p" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none" data-i18n="hero.cta2">📖 Đọc Thử Miễn Phí</a>
     </div>
     <div class="hero-author">
       <div class="hero-author-av">PM</div>
@@ -466,7 +485,7 @@ footer p{font-size:12px;color:var(--dim)}
 <!-- BRAND MARQUEE -->
 <div class="brand-sec">
   <div class="brand-sec-hd">
-    <h2 class="sec-h">Đại Sứ Thương Hiệu của các <span class="tgold">AI</span> tại Việt Nam</h2>
+    <h2 class="sec-h" data-i18n="brand.h">Đại Sứ Thương Hiệu của các <span class="tgold">AI</span> tại Việt Nam</h2>
   </div>
   <div class="brand-overflow">
     <div class="brand-track" id="brand-track">
@@ -522,8 +541,8 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="cs-sec">
   <div class="container">
     <div class="fade-up">
-      <div class="sec-lbl">Được Ghi Nhận</div>
-      <h2 class="sec-h">Brand AI <span class="tgold">TOP VIEW</span> viết về Phong Menly</h2>
+      <div class="sec-lbl" data-i18n="cs.lbl">Được Ghi Nhận</div>
+      <h2 class="sec-h" data-i18n="cs.h">Brand AI <span class="tgold">TOP VIEW</span> viết về Phong Menly</h2>
     </div>
     <div class="fade-up" style="display:flex;justify-content:center">
       <div class="cs-wrap">
@@ -553,25 +572,25 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec sec-alt">
   <div class="container">
     <div class="fade-up">
-      <div class="sec-lbl">Vấn Đề</div>
-      <h2 class="sec-h">Bạn đang mắc kẹt ở đây không?</h2>
-      <p class="sec-sub">Nếu bạn đang trải qua bất kỳ điều nào dưới đây — cuốn sách này được viết đúng cho bạn.</p>
+      <div class="sec-lbl" data-i18n="pain.lbl">Vấn Đề</div>
+      <h2 class="sec-h" data-i18n="pain.h">Bạn đang mắc kẹt ở đây không?</h2>
+      <p class="sec-sub" data-i18n="pain.sub">Nếu bạn đang trải qua bất kỳ điều nào dưới đây — cuốn sách này được viết đúng cho bạn.</p>
     </div>
     <div class="pain-grid fade-up">
       <div class="pain-card">
         <div class="pain-icon">😤</div>
-        <h3>Làm affiliate mãi không ra đơn</h3>
-        <p>Đăng bài, review sản phẩm, thử đủ cách — nhưng đơn hàng vẫn nhỏ giọt hoặc không có. Mà không biết mình đang sai ở đâu.</p>
+        <h3 data-i18n="pain.1.h">Làm affiliate mãi không ra đơn</h3>
+        <p data-i18n="pain.1.p">Đăng bài, review sản phẩm, thử đủ cách — nhưng đơn hàng vẫn nhỏ giọt hoặc không có. Mà không biết mình đang sai ở đâu.</p>
       </div>
       <div class="pain-card">
         <div class="pain-icon">🤖</div>
-        <h3>Dùng AI nhưng không hiệu quả</h3>
-        <p>Bạn biết AI có thể giúp ích, nhưng prompt không đúng chỗ — kết quả ra thì chung chung, không bán được hàng.</p>
+        <h3 data-i18n="pain.2.h">Dùng AI nhưng không hiệu quả</h3>
+        <p data-i18n="pain.2.p">Bạn biết AI có thể giúp ích, nhưng prompt không đúng chỗ — kết quả ra thì chung chung, không bán được hàng.</p>
       </div>
       <div class="pain-card">
         <div class="pain-icon">⏱️</div>
-        <h3>Tốn thời gian, thu về ít tiền</h3>
-        <p>Làm content thủ công mệt mỏi, không có hệ thống, không thể nhân rộng — khi ngừng làm thì tiền cũng ngừng về.</p>
+        <h3 data-i18n="pain.3.h">Tốn thời gian, thu về ít tiền</h3>
+        <p data-i18n="pain.3.p">Làm content thủ công mệt mỏi, không có hệ thống, không thể nhân rộng — khi ngừng làm thì tiền cũng ngừng về.</p>
       </div>
     </div>
   </div>
@@ -581,11 +600,11 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="bridge">
   <div class="container">
     <div class="fade-up">
-      <p class="bridge-q">
+      <p class="bridge-q" data-i18n="bridge.q">
         "Vấn đề không phải bạn chưa đủ cố gắng.<br>
         Vấn đề là bạn chưa có <em>đúng hệ thống</em>."
       </p>
-      <p class="sec-sub" style="margin:0 auto;text-align:center">
+      <p class="sec-sub" style="margin:0 auto;text-align:center" data-i18n="bridge.p">
         Khi bạn có hệ thống đúng, AI sẽ làm phần lớn công việc — từ chọn sản phẩm, viết content, đến nuôi khách hàng tự động.
       </p>
     </div>
@@ -596,45 +615,45 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec sec-alt">
   <div class="container-wide">
     <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl">Nội Dung Sách</div>
-      <h2 class="sec-h">5 Mật Mã Trong Cuốn Sách</h2>
-      <p class="sec-sub" style="margin:0 auto">Mỗi chương là một "mật mã" — bí quyết cụ thể để xây hệ thống affiliate AI của riêng bạn.</p>
+      <div class="sec-lbl" data-i18n="mm.lbl">Nội Dung Sách</div>
+      <h2 class="sec-h" data-i18n="mm.h">5 Mật Mã Trong Cuốn Sách</h2>
+      <p class="sec-sub" style="margin:0 auto" data-i18n="mm.sub">Mỗi chương là một "mật mã" — bí quyết cụ thể để xây hệ thống affiliate AI của riêng bạn.</p>
     </div>
     <div class="mm-grid fade-up">
       <div class="mm-card">
         <div class="mm-num">01</div>
         <div class="mm-icon">🧠</div>
-        <div class="mm-tag">Chương 1</div>
-        <h3>Mật Mã Tư Duy</h3>
-        <p>Tại sao 95% người làm affiliate thất bại không phải vì thiếu công cụ — mà vì sai tư duy. Chương này reset toàn bộ cách bạn nhìn nhận affiliate.</p>
+        <div class="mm-tag" data-i18n="mm.1.tag">Chương 1</div>
+        <h3 data-i18n="mm.1.h">Mật Mã Tư Duy</h3>
+        <p data-i18n="mm.1.p">Tại sao 95% người làm affiliate thất bại không phải vì thiếu công cụ — mà vì sai tư duy. Chương này reset toàn bộ cách bạn nhìn nhận affiliate.</p>
       </div>
       <div class="mm-card">
         <div class="mm-num">02</div>
         <div class="mm-icon">🎯</div>
-        <div class="mm-tag">Chương 2</div>
-        <h3>Mật Mã Ngách</h3>
-        <p>Công thức 3 bước để AI phân tích và chọn ra ngách có lợi nhuận trong 10 phút. Biết chọn đúng sản phẩm là nền tảng của mọi thứ.</p>
+        <div class="mm-tag" data-i18n="mm.2.tag">Chương 2</div>
+        <h3 data-i18n="mm.2.h">Mật Mã Ngách</h3>
+        <p data-i18n="mm.2.p">Công thức 3 bước để AI phân tích và chọn ra ngách có lợi nhuận trong 10 phút. Biết chọn đúng sản phẩm là nền tảng của mọi thứ.</p>
       </div>
       <div class="mm-card">
         <div class="mm-num">03</div>
         <div class="mm-icon">⚡</div>
-        <div class="mm-tag">Chương 3</div>
-        <h3>Mật Mã Content</h3>
-        <p>Bộ prompt độc quyền để AI tạo 30 bài content affiliate chỉ trong 1 giờ — đúng tone, đúng platform, đúng tâm lý người mua.</p>
+        <div class="mm-tag" data-i18n="mm.3.tag">Chương 3</div>
+        <h3 data-i18n="mm.3.h">Mật Mã Content</h3>
+        <p data-i18n="mm.3.p">Bộ prompt độc quyền để AI tạo 30 bài content affiliate chỉ trong 1 giờ — đúng tone, đúng platform, đúng tâm lý người mua.</p>
       </div>
       <div class="mm-card">
         <div class="mm-num">04</div>
         <div class="mm-icon">🔄</div>
-        <div class="mm-tag">Chương 4</div>
-        <h3>Mật Mã Phễu</h3>
-        <p>Xây phễu bán hàng tự động nuôi lead 24/7 — không cần chạy ads tốn kém, không cần nhắn tin thủ công từng người.</p>
+        <div class="mm-tag" data-i18n="mm.4.tag">Chương 4</div>
+        <h3 data-i18n="mm.4.h">Mật Mã Phễu</h3>
+        <p data-i18n="mm.4.p">Xây phễu bán hàng tự động nuôi lead 24/7 — không cần chạy ads tốn kém, không cần nhắn tin thủ công từng người.</p>
       </div>
       <div class="mm-card">
         <div class="mm-num">05</div>
         <div class="mm-icon">🌅</div>
-        <div class="mm-tag">Chương 5</div>
-        <h3>Mật Mã Tự Do</h3>
-        <p>Scale từ 1 lên nhiều sản phẩm, tự động hóa toàn bộ — để bạn có thể sống ở đâu, làm gì, mà thu nhập affiliate vẫn chạy.</p>
+        <div class="mm-tag" data-i18n="mm.5.tag">Chương 5</div>
+        <h3 data-i18n="mm.5.h">Mật Mã Tự Do</h3>
+        <p data-i18n="mm.5.p">Scale từ 1 lên nhiều sản phẩm, tự động hóa toàn bộ — để bạn có thể sống ở đâu, làm gì, mà thu nhập affiliate vẫn chạy.</p>
       </div>
     </div>
   </div>
@@ -644,15 +663,15 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec">
   <div class="container">
     <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl">Chi Tiết</div>
-      <h2 class="sec-h">Bạn Sẽ Học Được Gì?</h2>
+      <div class="sec-lbl" data-i18n="det.lbl">Chi Tiết</div>
+      <h2 class="sec-h" data-i18n="det.h">Bạn Sẽ Học Được Gì?</h2>
     </div>
     <div class="ch-list fade-up">
 
       <div class="ch-item">
         <div class="ch-hd">
           <div class="ch-num">1</div>
-          <div class="ch-title">Chương 1: Tư Duy Affiliate AI — Hiểu Đúng Để Không Đi Sai Đường</div>
+          <div class="ch-title" data-i18n="det.ch1">Chương 1: Tư Duy Affiliate AI — Hiểu Đúng Để Không Đi Sai Đường</div>
           <div class="ch-arr">▾</div>
         </div>
         <div class="ch-body"><div class="ch-body-i">
@@ -668,7 +687,7 @@ footer p{font-size:12px;color:var(--dim)}
       <div class="ch-item">
         <div class="ch-hd">
           <div class="ch-num">2</div>
-          <div class="ch-title">Chương 2: Chọn Ngách & Sản Phẩm — Để AI Làm Trong 10 Phút</div>
+          <div class="ch-title" data-i18n="det.ch2">Chương 2: Chọn Ngách & Sản Phẩm — Để AI Làm Trong 10 Phút</div>
           <div class="ch-arr">▾</div>
         </div>
         <div class="ch-body"><div class="ch-body-i">
@@ -685,7 +704,7 @@ footer p{font-size:12px;color:var(--dim)}
       <div class="ch-item">
         <div class="ch-hd">
           <div class="ch-num">3</div>
-          <div class="ch-title">Chương 3: Hệ Thống Content Tự Động Bằng AI</div>
+          <div class="ch-title" data-i18n="det.ch3">Chương 3: Hệ Thống Content Tự Động Bằng AI</div>
           <div class="ch-arr">▾</div>
         </div>
         <div class="ch-body"><div class="ch-body-i">
@@ -702,7 +721,7 @@ footer p{font-size:12px;color:var(--dim)}
       <div class="ch-item">
         <div class="ch-hd">
           <div class="ch-num">4</div>
-          <div class="ch-title">Chương 4: Phễu Bán Hàng & Traffic Thụ Động</div>
+          <div class="ch-title" data-i18n="det.ch4">Chương 4: Phễu Bán Hàng & Traffic Thụ Động</div>
           <div class="ch-arr">▾</div>
         </div>
         <div class="ch-body"><div class="ch-body-i">
@@ -719,7 +738,7 @@ footer p{font-size:12px;color:var(--dim)}
       <div class="ch-item">
         <div class="ch-hd">
           <div class="ch-num">5</div>
-          <div class="ch-title">Chương 5: Scale & Sống Tự Do — Hệ Thống Chạy Khi Bạn Ngủ</div>
+          <div class="ch-title" data-i18n="det.ch5">Chương 5: Scale & Sống Tự Do — Hệ Thống Chạy Khi Bạn Ngủ</div>
           <div class="ch-arr">▾</div>
         </div>
         <div class="ch-body"><div class="ch-body-i">
@@ -758,14 +777,14 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec">
   <div class="container-wide">
     <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl">Phản Hồi</div>
-      <h2 class="sec-h">Họ Đã Áp Dụng & Chia Sẻ</h2>
-      <p class="sec-sub" style="margin:0 auto">Những người đọc beta đã thử nghiệm hệ thống trước khi sách chính thức ra mắt.</p>
+      <div class="sec-lbl" data-i18n="ts.lbl">Phản Hồi</div>
+      <h2 class="sec-h" data-i18n="ts.h">Họ Đã Áp Dụng & Chia Sẻ</h2>
+      <p class="sec-sub" style="margin:0 auto" data-i18n="ts.sub">Những người đọc beta đã thử nghiệm hệ thống trước khi sách chính thức ra mắt.</p>
     </div>
     <div class="testi-grid fade-up">
       <div class="t-card">
         <div class="t-stars">★★★★★</div>
-        <p class="t-text">"Trước đây tôi cứ nghĩ affiliate phải làm review dài, quay video công phu. Đọc xong chương 3 mới hiểu mình đang làm sai từ đầu. Bộ prompt trong sách cứu cả hệ thống content của tôi."</p>
+        <p class="t-text" data-i18n="ts.1.p">"Trước đây tôi cứ nghĩ affiliate phải làm review dài, quay video công phu. Đọc xong chương 3 mới hiểu mình đang làm sai từ đầu. Bộ prompt trong sách cứu cả hệ thống content của tôi."</p>
         <div class="t-author">
           <div class="t-av">👩</div>
           <div>
@@ -776,7 +795,7 @@ footer p{font-size:12px;color:var(--dim)}
       </div>
       <div class="t-card">
         <div class="t-stars">★★★★★</div>
-        <p class="t-text">"Chương 4 về phễu bán hàng tự động là phần tôi đọc đi đọc lại nhiều nhất. Setup mất 2 ngày nhưng giờ phễu chạy hoàn toàn tự động — không cần nhắn tin từng người nữa."</p>
+        <p class="t-text" data-i18n="ts.2.p">"Chương 4 về phễu bán hàng tự động là phần tôi đọc đi đọc lại nhiều nhất. Setup mất 2 ngày nhưng giờ phễu chạy hoàn toàn tự động — không cần nhắn tin từng người nữa."</p>
         <div class="t-author">
           <div class="t-av">👨</div>
           <div>
@@ -787,7 +806,7 @@ footer p{font-size:12px;color:var(--dim)}
       </div>
       <div class="t-card">
         <div class="t-stars">★★★★★</div>
-        <p class="t-text">"Làm affiliate được 6 tháng nhưng cứ chật vật. Đọc xong cuốn này mới nhận ra mình thiếu cả tư duy lẫn hệ thống. Phần chọn ngách bằng AI thật sự là game-changer."</p>
+        <p class="t-text" data-i18n="ts.3.p">"Làm affiliate được 6 tháng nhưng cứ chật vật. Đọc xong cuốn này mới nhận ra mình thiếu cả tư duy lẫn hệ thống. Phần chọn ngách bằng AI thật sự là game-changer."</p>
         <div class="t-author">
           <div class="t-av">👩</div>
           <div>
@@ -804,40 +823,40 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec sec-alt">
   <div class="container">
     <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl">Quà Tặng Kèm</div>
-      <h2 class="sec-h">Đặt Sách Hôm Nay — Nhận Thêm 4 Bonus Này</h2>
-      <p class="sec-sub" style="margin:0 auto">Chỉ dành cho người đặt trong đợt ra mắt. Sau đợt này các bonus sẽ bán riêng lẻ.</p>
+      <div class="sec-lbl" data-i18n="bns.lbl">Quà Tặng Kèm</div>
+      <h2 class="sec-h" data-i18n="bns.h">Đặt Sách Hôm Nay — Nhận Thêm 4 Bonus Này</h2>
+      <p class="sec-sub" style="margin:0 auto" data-i18n="bns.sub">Chỉ dành cho người đặt trong đợt ra mắt. Sau đợt này các bonus sẽ bán riêng lẻ.</p>
     </div>
     <div class="bonus-list fade-up">
       <div class="b-card">
         <div class="b-n">01</div>
         <div class="b-cont">
-          <h4>Bộ 50 Prompt AI Affiliate Độc Quyền</h4>
-          <p>50 prompt tối ưu sẵn cho từng mục đích: chọn sản phẩm, viết review, tạo email, phân tích đối thủ. Copy — paste — dùng ngay.</p>
+          <h4 data-i18n="bns.1.h">Bộ 50 Prompt AI Affiliate Độc Quyền</h4>
+          <p data-i18n="bns.1.p">50 prompt tối ưu sẵn cho từng mục đích: chọn sản phẩm, viết review, tạo email, phân tích đối thủ. Copy — paste — dùng ngay.</p>
         </div>
         <div class="b-val"><div class="was">397.000đ</div><div class="free">MIỄN PHÍ</div></div>
       </div>
       <div class="b-card">
         <div class="b-n">02</div>
         <div class="b-cont">
-          <h4>Checklist "30 Ngày Đầu Affiliate AI"</h4>
-          <p>Lộ trình hành động từng ngày trong 30 ngày đầu — biết chính xác ngày nào làm gì, không cần đoán mò hay tự mày mò.</p>
+          <h4 data-i18n="bns.2.h">Checklist "30 Ngày Đầu Affiliate AI"</h4>
+          <p data-i18n="bns.2.p">Lộ trình hành động từng ngày trong 30 ngày đầu — biết chính xác ngày nào làm gì, không cần đoán mò hay tự mày mò.</p>
         </div>
         <div class="b-val"><div class="was">197.000đ</div><div class="free">MIỄN PHÍ</div></div>
       </div>
       <div class="b-card">
         <div class="b-n">03</div>
         <div class="b-cont">
-          <h4>Quyền Vào Nhóm Kín Affiliate AI — 6 Tháng</h4>
-          <p>Cộng đồng riêng để hỏi đáp, chia sẻ kết quả và cập nhật prompt mới nhất. Phong Menly trả lời trực tiếp trong nhóm.</p>
+          <h4 data-i18n="bns.3.h">Quyền Vào Nhóm Kín Affiliate AI — 6 Tháng</h4>
+          <p data-i18n="bns.3.p">Cộng đồng riêng để hỏi đáp, chia sẻ kết quả và cập nhật prompt mới nhất. Phong Menly trả lời trực tiếp trong nhóm.</p>
         </div>
         <div class="b-val"><div class="was">500.000đ</div><div class="free">MIỄN PHÍ</div></div>
       </div>
       <div class="b-card">
         <div class="b-n">04</div>
         <div class="b-cont">
-          <h4>5 Template Landing Page Affiliate Sẵn Dùng</h4>
-          <p>5 template thiết kế sẵn cho các ngách phổ biến. Chỉnh nội dung, thêm link affiliate — xong, không cần biết code.</p>
+          <h4 data-i18n="bns.4.h">5 Template Landing Page Affiliate Sẵn Dùng</h4>
+          <p data-i18n="bns.4.p">5 template thiết kế sẵn cho các ngách phổ biến. Chỉnh nội dung, thêm link affiliate — xong, không cần biết code.</p>
         </div>
         <div class="b-val"><div class="was">297.000đ</div><div class="free">MIỄN PHÍ</div></div>
       </div>
@@ -853,17 +872,17 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec" id="pricing">
   <div class="container">
     <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl">Đặt Sách</div>
-      <h2 class="sec-h">Nhận Sách + Toàn Bộ Bonus</h2>
+      <div class="sec-lbl" data-i18n="pr.lbl">Đặt Sách</div>
+      <h2 class="sec-h" data-i18n="pr.h">Nhận Sách + Toàn Bộ Bonus</h2>
     </div>
     <div class="pricing-box fade-up">
       <div class="p-head">
-        <div class="p-book-t">📘 Mật Mã Tự Do — Affiliate AI</div>
-        <div class="p-desc">Ebook · 5 chương đầy đủ · Cập nhật vĩnh viễn + 4 Bonus kèm theo</div>
+        <div class="p-book-t" data-i18n="pr.book">📘 Mật Mã Tự Do — Affiliate AI</div>
+        <div class="p-desc" data-i18n="pr.desc">Ebook · 5 chương đầy đủ · Cập nhật vĩnh viễn + 4 Bonus kèm theo</div>
       </div>
       <div class="p-body">
         <div class="p-cd">
-          <div class="p-cd-lbl">⏰ Giá ưu đãi ra mắt kết thúc sau</div>
+          <div class="p-cd-lbl" data-i18n="pr.timer">⏰ Giá ưu đãi ra mắt kết thúc sau</div>
           <div class="cd-boxes">
             <div class="cd-unit"><span class="cd-num" id="cd-d">05</span><div class="cd-lbl">NGÀY</div></div>
             <div class="cd-sep">:</div>
@@ -879,7 +898,7 @@ footer p{font-size:12px;color:var(--dim)}
           <span class="p-curr">đ</span>
           <span class="p-amt">686.000</span>
         </div>
-        <div class="p-save">✓ Tiết kiệm 313.000đ so với giá gốc</div>
+        <div class="p-save" data-i18n="pr.save">✓ Tiết kiệm 313.000đ so với giá gốc</div>
         <ul class="feat-l">
           <li><span class="ck">✓</span> Ebook "Mật Mã Tự Do" — 5 chương đầy đủ</li>
           <li><span class="ck">✓</span> Cập nhật nội dung vĩnh viễn khi sách có phiên bản mới</li>
@@ -888,10 +907,10 @@ footer p{font-size:12px;color:var(--dim)}
           <li><span class="ck">✓</span> BONUS 3: Nhóm kín 6 tháng với Phong Menly (trị giá 500.000đ)</li>
           <li><span class="ck">✓</span> BONUS 4: 5 Template Landing Page (trị giá 297.000đ)</li>
         </ul>
-        <a href="#" class="btn-buy">MỞ KHÓA NGAY</a>
+        <a href="#" class="btn-buy" data-i18n="pr.btn">MỞ KHÓA NGAY</a>
         <div class="guar">
           <div class="guar-icon">🛡️</div>
-          <p><strong>Cam kết hoàn tiền 100% trong 7 ngày</strong> — đọc xong mà thấy không xứng đáng, tôi hoàn lại toàn bộ tiền, không hỏi lý do.</p>
+          <p data-i18n="pr.guar"><strong>Cam kết hoàn tiền 100% trong 7 ngày</strong> — đọc xong mà thấy không xứng đáng, tôi hoàn lại toàn bộ tiền, không hỏi lý do.</p>
         </div>
       </div>
     </div>
@@ -902,39 +921,39 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec sec-alt">
   <div class="container">
     <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl">Câu Hỏi Thường Gặp</div>
-      <h2 class="sec-h">Bạn Đang Thắc Mắc?</h2>
+      <div class="sec-lbl" data-i18n="faq.lbl">Câu Hỏi Thường Gặp</div>
+      <h2 class="sec-h" data-i18n="faq.h">Bạn Đang Thắc Mắc?</h2>
     </div>
     <div class="faq-list fade-up">
 
       <div class="faq-item">
-        <div class="faq-q">Tôi chưa biết gì về affiliate, có đọc được không?<span class="faq-arr">▾</span></div>
-        <div class="faq-a"><div class="faq-ai"><p>Hoàn toàn được. Sách được viết từ nền tảng — chương 1 giải thích tư duy từ đầu, không giả định bạn đã biết gì. Chỉ cần có máy tính và kết nối internet là đủ.</p></div></div>
+        <div class="faq-q" data-i18n="faq.1.q">Tôi chưa biết gì về affiliate, có đọc được không?<span class="faq-arr">▾</span></div>
+        <div class="faq-a"><div class="faq-ai" data-i18n="faq.1.a"><p>Hoàn toàn được. Sách được viết từ nền tảng — chương 1 giải thích tư duy từ đầu, không giả định bạn đã biết gì. Chỉ cần có máy tính và kết nối internet là đủ.</p></div></div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Tôi cần bao nhiêu vốn để bắt đầu?<span class="faq-arr">▾</span></div>
-        <div class="faq-a"><div class="faq-ai"><p>Mô hình trong sách được thiết kế để bắt đầu với vốn tối thiểu. ChatGPT free tier đủ dùng cho giai đoạn đầu. Các nền tảng affiliate đều miễn phí đăng ký. Bạn không cần mua hàng tồn kho hay đầu tư ads lớn.</p></div></div>
+        <div class="faq-q" data-i18n="faq.2.q">Tôi cần bao nhiêu vốn để bắt đầu?<span class="faq-arr">▾</span></div>
+        <div class="faq-a"><div class="faq-ai" data-i18n="faq.2.a"><p>Mô hình trong sách được thiết kế để bắt đầu với vốn tối thiểu. ChatGPT free tier đủ dùng cho giai đoạn đầu. Các nền tảng affiliate đều miễn phí đăng ký. Bạn không cần mua hàng tồn kho hay đầu tư ads lớn.</p></div></div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Sách được giao như thế nào?<span class="faq-arr">▾</span></div>
-        <div class="faq-a"><div class="faq-ai"><p>Đây là ebook (file PDF). Sau khi đặt và xác nhận thanh toán, bạn sẽ nhận email chứa link tải sách và toàn bộ bonus trong vòng 24 giờ.</p></div></div>
+        <div class="faq-q" data-i18n="faq.3.q">Sách được giao như thế nào?<span class="faq-arr">▾</span></div>
+        <div class="faq-a"><div class="faq-ai" data-i18n="faq.3.a"><p>Đây là ebook (file PDF). Sau khi đặt và xác nhận thanh toán, bạn sẽ nhận email chứa link tải sách và toàn bộ bonus trong vòng 24 giờ.</p></div></div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Chính sách hoàn tiền như thế nào?<span class="faq-arr">▾</span></div>
-        <div class="faq-a"><div class="faq-ai"><p>Cam kết hoàn tiền 100% trong 7 ngày kể từ ngày đặt. Nếu đọc xong mà thấy không xứng đáng với số tiền bỏ ra, liên hệ trực tiếp và sẽ hoàn lại toàn bộ — không đặt câu hỏi.</p></div></div>
+        <div class="faq-q" data-i18n="faq.4.q">Chính sách hoàn tiền như thế nào?<span class="faq-arr">▾</span></div>
+        <div class="faq-a"><div class="faq-ai" data-i18n="faq.4.a"><p>Cam kết hoàn tiền 100% trong 7 ngày kể từ ngày đặt. Nếu đọc xong mà thấy không xứng đáng với số tiền bỏ ra, liên hệ trực tiếp và sẽ hoàn lại toàn bộ — không đặt câu hỏi.</p></div></div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Cần dùng AI nào để áp dụng hệ thống trong sách?<span class="faq-arr">▾</span></div>
-        <div class="faq-a"><div class="faq-ai"><p>Phần lớn ví dụ dùng ChatGPT (free tier) và Claude. Tuy nhiên các prompt được thiết kế để hoạt động tốt với bất kỳ AI nào — Gemini, Copilot, hay các tool AI Việt Nam. Bạn không bị khóa vào một nền tảng cụ thể.</p></div></div>
+        <div class="faq-q" data-i18n="faq.5.q">Cần dùng AI nào để áp dụng hệ thống trong sách?<span class="faq-arr">▾</span></div>
+        <div class="faq-a"><div class="faq-ai" data-i18n="faq.5.a"><p>Phần lớn ví dụ dùng ChatGPT (free tier) và Claude. Tuy nhiên các prompt được thiết kế để hoạt động tốt với bất kỳ AI nào — Gemini, Copilot, hay các tool AI Việt Nam. Bạn không bị khóa vào một nền tảng cụ thể.</p></div></div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Bonus có hạn thời gian không?<span class="faq-arr">▾</span></div>
-        <div class="faq-a"><div class="faq-ai"><p>Bộ prompt, checklist và template: vĩnh viễn. Nhóm kín: 6 tháng tính từ ngày được thêm vào. Lưu ý: toàn bộ bonus chỉ dành cho người đặt sách trong đợt ra mắt này.</p></div></div>
+        <div class="faq-q" data-i18n="faq.6.q">Bonus có hạn thời gian không?<span class="faq-arr">▾</span></div>
+        <div class="faq-a"><div class="faq-ai" data-i18n="faq.6.a"><p>Bộ prompt, checklist và template: vĩnh viễn. Nhóm kín: 6 tháng tính từ ngày được thêm vào. Lưu ý: toàn bộ bonus chỉ dành cho người đặt sách trong đợt ra mắt này.</p></div></div>
       </div>
 
     </div>
@@ -945,16 +964,16 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="final-cta">
   <div class="container">
     <div class="fade-up">
-      <h2 class="sec-h" style="text-align:center;margin-bottom:14px">
+      <h2 class="sec-h" style="text-align:center;margin-bottom:14px" data-i18n="cta.h">
         Bắt Đầu Xây Hệ Thống<br>
         <span class="tgold">Affiliate AI Của Bạn Hôm Nay</span>
       </h2>
-      <p class="sec-sub" style="text-align:center;margin:0 auto 30px">
+      <p class="sec-sub" style="text-align:center;margin:0 auto 30px" data-i18n="cta.sub">
         Mỗi ngày không có hệ thống là một ngày bạn đang làm việc thay vì để hệ thống làm việc cho bạn.
       </p>
       <div style="text-align:center">
-        <a href="#pricing" class="btn-p">Mở Khóa Ngay</a>
-        <p class="tmuted" style="margin-top:12px;font-size:13px">🛡️ Hoàn tiền 100% trong 7 ngày · Nhận ngay sau khi đặt</p>
+        <a href="#pricing" class="btn-p" data-i18n="cta.btn">Mở Khóa Ngay</a>
+        <p class="tmuted" style="margin-top:12px;font-size:13px" data-i18n="cta.note">🛡️ Hoàn tiền 100% trong 7 ngày · Nhận ngay sau khi đặt</p>
       </div>
     </div>
   </div>
@@ -962,8 +981,8 @@ footer p{font-size:12px;color:var(--dim)}
 
 <!-- FOOTER -->
 <footer>
-  <p>© 2026 Phong Menly — Mật Mã Tự Do | Affiliate AI</p>
-  <p style="margin-top:7px">Liên hệ: <a href="mailto:phongconson@gmail.com" style="color:var(--gold);text-decoration:none">phongconson@gmail.com</a></p>
+  <p data-i18n="ft.main">© 2026 Phong Menly — Mật Mã Tự Do | Affiliate AI</p>
+  <p style="margin-top:7px" data-i18n="ft.contact">Liên hệ: <a href="mailto:phongconson@gmail.com" style="color:var(--gold);text-decoration:none">phongconson@gmail.com</a></p>
 </footer>
 
 <script>
@@ -1284,6 +1303,228 @@ if (bt) {
     };
   });
 }
+
+/* ══════════════════════════════
+   LANGUAGE SWITCHER (VI / EN)
+══════════════════════════════ */
+const PM_TRANS = {
+  vi: {
+    'ann.ends':'Kết thúc sau:',
+    'nav.courses':'Khóa Học','nav.products':'Sản Phẩm',
+    'nav.auth':'Đăng ký / Đăng nhập','nav.signout':'🚪 Đăng xuất',
+    'hero.h1.1':'5 Cánh Cửa <span class="hl">Định Mệnh</span>',
+    'hero.h1.2':'Làm Chủ Hệ Thống <span class="hl">Affiliate x AI</span>',
+    'hero.h1.3':'Mở Ra <span class="hl">Cánh Cửa Tự Do</span>',
+    'hero.cta1':'Mở Khóa Ngay','hero.cta2':'📖 Đọc Thử Miễn Phí',
+    'brand.h':'Đại Sứ Thương Hiệu của các <span class="tgold">AI</span> tại Việt Nam',
+    'cs.lbl':'Được Ghi Nhận','cs.h':'Brand AI <span class="tgold">TOP VIEW</span> viết về Phong Menly',
+    'pain.lbl':'Vấn Đề','pain.h':'Bạn đang mắc kẹt ở đây không?',
+    'pain.sub':'Nếu bạn đang trải qua bất kỳ điều nào dưới đây — cuốn sách này được viết đúng cho bạn.',
+    'pain.1.h':'Làm affiliate mãi không ra đơn',
+    'pain.1.p':'Đăng bài, review sản phẩm, thử đủ cách — nhưng đơn hàng vẫn nhỏ giọt hoặc không có. Mà không biết mình đang sai ở đâu.',
+    'pain.2.h':'Dùng AI nhưng không hiệu quả',
+    'pain.2.p':'Bạn biết AI có thể giúp ích, nhưng prompt không đúng chỗ — kết quả ra thì chung chung, không bán được hàng.',
+    'pain.3.h':'Tốn thời gian, thu về ít tiền',
+    'pain.3.p':'Làm content thủ công mệt mỏi, không có hệ thống, không thể nhân rộng — khi ngừng làm thì tiền cũng ngừng về.',
+    'bridge.q':'"Vấn đề không phải bạn chưa đủ cố gắng.<br>Vấn đề là bạn chưa có <em>đúng hệ thống</em>."',
+    'bridge.p':'Khi bạn có hệ thống đúng, AI sẽ làm phần lớn công việc — từ chọn sản phẩm, viết content, đến nuôi khách hàng tự động.',
+    'mm.lbl':'Nội Dung Sách','mm.h':'5 Mật Mã Trong Cuốn Sách',
+    'mm.sub':'Mỗi chương là một "mật mã" — bí quyết cụ thể để xây hệ thống affiliate AI của riêng bạn.',
+    'mm.1.tag':'Chương 1','mm.1.h':'Mật Mã Tư Duy',
+    'mm.1.p':'Tại sao 95% người làm affiliate thất bại không phải vì thiếu công cụ — mà vì sai tư duy. Chương này reset toàn bộ cách bạn nhìn nhận affiliate.',
+    'mm.2.tag':'Chương 2','mm.2.h':'Mật Mã Ngách',
+    'mm.2.p':'Công thức 3 bước để AI phân tích và chọn ra ngách có lợi nhuận trong 10 phút. Biết chọn đúng sản phẩm là nền tảng của mọi thứ.',
+    'mm.3.tag':'Chương 3','mm.3.h':'Mật Mã Content',
+    'mm.3.p':'Bộ prompt độc quyền để AI tạo 30 bài content affiliate chỉ trong 1 giờ — đúng tone, đúng platform, đúng tâm lý người mua.',
+    'mm.4.tag':'Chương 4','mm.4.h':'Mật Mã Phễu',
+    'mm.4.p':'Xây phễu bán hàng tự động nuôi lead 24/7 — không cần chạy ads tốn kém, không cần nhắn tin thủ công từng người.',
+    'mm.5.tag':'Chương 5','mm.5.h':'Mật Mã Tự Do',
+    'mm.5.p':'Scale từ 1 lên nhiều sản phẩm, tự động hóa toàn bộ — để bạn có thể sống ở đâu, làm gì, mà thu nhập affiliate vẫn chạy.',
+    'det.lbl':'Chi Tiết','det.h':'Bạn Sẽ Học Được Gì?',
+    'det.ch1':'Chương 1: Tư Duy Affiliate AI — Hiểu Đúng Để Không Đi Sai Đường',
+    'det.ch2':'Chương 2: Chọn Ngách & Sản Phẩm — Để AI Làm Trong 10 Phút',
+    'det.ch3':'Chương 3: Hệ Thống Content Tự Động Bằng AI',
+    'det.ch4':'Chương 4: Phễu Bán Hàng & Traffic Thụ Động',
+    'det.ch5':'Chương 5: Scale & Sống Tự Do — Hệ Thống Chạy Khi Bạn Ngủ',
+    'ts.lbl':'Phản Hồi','ts.h':'Họ Đã Áp Dụng & Chia Sẻ',
+    'ts.sub':'Những người đọc beta đã thử nghiệm hệ thống trước khi sách chính thức ra mắt.',
+    'ts.1.p':'"Trước đây tôi cứ nghĩ affiliate phải làm review dài, quay video công phu. Đọc xong chương 3 mới hiểu mình đang làm sai từ đầu. Bộ prompt trong sách cứu cả hệ thống content của tôi."',
+    'ts.2.p':'"Chương 4 về phễu bán hàng tự động là phần tôi đọc đi đọc lại nhiều nhất. Setup mất 2 ngày nhưng giờ phễu chạy hoàn toàn tự động — không cần nhắn tin từng người nữa."',
+    'ts.3.p':'"Làm affiliate được 6 tháng nhưng cứ chật vật. Đọc xong cuốn này mới nhận ra mình thiếu cả tư duy lẫn hệ thống. Phần chọn ngách bằng AI thật sự là game-changer."',
+    'bns.lbl':'Quà Tặng Kèm','bns.h':'Đặt Sách Hôm Nay — Nhận Thêm 4 Bonus Này',
+    'bns.sub':'Chỉ dành cho người đặt trong đợt ra mắt. Sau đợt này các bonus sẽ bán riêng lẻ.',
+    'bns.1.h':'Bộ 50 Prompt AI Affiliate Độc Quyền',
+    'bns.1.p':'50 prompt tối ưu sẵn cho từng mục đích: chọn sản phẩm, viết review, tạo email, phân tích đối thủ. Copy — paste — dùng ngay.',
+    'bns.2.h':'Checklist "30 Ngày Đầu Affiliate AI"',
+    'bns.2.p':'Lộ trình hành động từng ngày trong 30 ngày đầu — biết chính xác ngày nào làm gì, không cần đoán mò hay tự mày mò.',
+    'bns.3.h':'Quyền Vào Nhóm Kín Affiliate AI — 6 Tháng',
+    'bns.3.p':'Cộng đồng riêng để hỏi đáp, chia sẻ kết quả và cập nhật prompt mới nhất. Phong Menly trả lời trực tiếp trong nhóm.',
+    'bns.4.h':'5 Template Landing Page Affiliate Sẵn Dùng',
+    'bns.4.p':'5 template thiết kế sẵn cho các ngách phổ biến. Chỉnh nội dung, thêm link affiliate — xong, không cần biết code.',
+    'pr.lbl':'Đặt Sách','pr.h':'Nhận Sách + Toàn Bộ Bonus',
+    'pr.book':'📘 Mật Mã Tự Do — Affiliate AI',
+    'pr.desc':'Ebook · 5 chương đầy đủ · Cập nhật vĩnh viễn + 4 Bonus kèm theo',
+    'pr.timer':'⏰ Giá ưu đãi ra mắt kết thúc sau',
+    'pr.save':'✓ Tiết kiệm 313.000đ so với giá gốc',
+    'pr.btn':'MỞ KHÓA NGAY',
+    'pr.guar':'<strong>Cam kết hoàn tiền 100% trong 7 ngày</strong> — đọc xong mà thấy không xứng đáng, tôi hoàn lại toàn bộ tiền, không hỏi lý do.',
+    'faq.lbl':'Câu Hỏi Thường Gặp','faq.h':'Bạn Đang Thắc Mắc?',
+    'faq.1.q':'Tôi chưa biết gì về affiliate, có đọc được không?<span class="faq-arr">▾</span>',
+    'faq.1.a':'<p>Hoàn toàn được. Sách được viết từ nền tảng — chương 1 giải thích tư duy từ đầu, không giả định bạn đã biết gì. Chỉ cần có máy tính và kết nối internet là đủ.</p>',
+    'faq.2.q':'Tôi cần bao nhiêu vốn để bắt đầu?<span class="faq-arr">▾</span>',
+    'faq.2.a':'<p>Mô hình trong sách được thiết kế để bắt đầu với vốn tối thiểu. ChatGPT free tier đủ dùng cho giai đoạn đầu. Các nền tảng affiliate đều miễn phí đăng ký. Bạn không cần mua hàng tồn kho hay đầu tư ads lớn.</p>',
+    'faq.3.q':'Sách được giao như thế nào?<span class="faq-arr">▾</span>',
+    'faq.3.a':'<p>Đây là ebook (file PDF). Sau khi đặt và xác nhận thanh toán, bạn sẽ nhận email chứa link tải sách và toàn bộ bonus trong vòng 24 giờ.</p>',
+    'faq.4.q':'Chính sách hoàn tiền như thế nào?<span class="faq-arr">▾</span>',
+    'faq.4.a':'<p>Cam kết hoàn tiền 100% trong 7 ngày kể từ ngày đặt. Nếu đọc xong mà thấy không xứng đáng với số tiền bỏ ra, liên hệ trực tiếp và sẽ hoàn lại toàn bộ — không đặt câu hỏi.</p>',
+    'faq.5.q':'Cần dùng AI nào để áp dụng hệ thống trong sách?<span class="faq-arr">▾</span>',
+    'faq.5.a':'<p>Phần lớn ví dụ dùng ChatGPT (free tier) và Claude. Tuy nhiên các prompt được thiết kế để hoạt động tốt với bất kỳ AI nào — Gemini, Copilot, hay các tool AI Việt Nam. Bạn không bị khóa vào một nền tảng cụ thể.</p>',
+    'faq.6.q':'Bonus có hạn thời gian không?<span class="faq-arr">▾</span>',
+    'faq.6.a':'<p>Bộ prompt, checklist và template: vĩnh viễn. Nhóm kín: 6 tháng tính từ ngày được thêm vào. Lưu ý: toàn bộ bonus chỉ dành cho người đặt sách trong đợt ra mắt này.</p>',
+    'cta.h':'Bắt Đầu Xây Hệ Thống<br><span class="tgold">Affiliate AI Của Bạn Hôm Nay</span>',
+    'cta.sub':'Mỗi ngày không có hệ thống là một ngày bạn đang làm việc thay vì để hệ thống làm việc cho bạn.',
+    'cta.btn':'Mở Khóa Ngay',
+    'cta.note':'🛡️ Hoàn tiền 100% trong 7 ngày · Nhận ngay sau khi đặt',
+    'ft.main':'© 2026 Phong Menly — Mật Mã Tự Do | Affiliate AI',
+    'ft.contact':'Liên hệ: <a href="mailto:phongconson@gmail.com" style="color:var(--gold);text-decoration:none">phongconson@gmail.com</a>',
+    'mod.w.title':'Chào mừng đến với<br>Mật Mã Tự Do','mod.w.sub':'Đăng ký hoặc đăng nhập để tiếp tục',
+    'mod.w.google':'Tiếp tục với Google','mod.or':'hoặc',
+    'mod.w.email':'✉ Đăng ký bằng Email',
+    'mod.w.switch':'Đã có tài khoản? <span onclick="pmShowStep(\'login\')">Đăng nhập</span>',
+    'mod.back':'← Quay lại',
+    'mod.r.title':'Tạo tài khoản','mod.r.sub':'Điền thông tin để bắt đầu',
+    'mod.r.name':'Họ và tên...','mod.r.pass':'Mật khẩu (ít nhất 6 ký tự)...',
+    'mod.r.btn':'Đăng ký',
+    'mod.r.switch':'Đã có tài khoản? <span onclick="pmShowStep(\'login\')">Đăng nhập</span>',
+    'mod.l.title':'Đăng nhập','mod.l.sub':'Chào mừng bạn quay lại',
+    'mod.l.pass':'Mật khẩu...','mod.l.btn':'Đăng nhập',
+    'mod.l.switch':'Chưa có tài khoản? <span onclick="pmShowStep(\'register\')">Đăng ký ngay</span>',
+  },
+  en: {
+    'ann.ends':'Ends in:',
+    'nav.courses':'Courses','nav.products':'Products',
+    'nav.auth':'Sign Up / Log In','nav.signout':'🚪 Sign Out',
+    'hero.h1.1':'5 Destiny <span class="hl">Doors</span>',
+    'hero.h1.2':'Master the <span class="hl">Affiliate x AI</span> System',
+    'hero.h1.3':'Unlock Your <span class="hl">Door to Freedom</span>',
+    'hero.cta1':'Unlock Now','hero.cta2':'📖 Read Free Preview',
+    'brand.h':'AI Brand Ambassador <span class="tgold">in Vietnam</span>',
+    'cs.lbl':'Featured In','cs.h':'AI Brand <span class="tgold">TOP VIEW</span> Featured Phong Menly',
+    'pain.lbl':'The Problem','pain.h':'Are You Stuck Here?',
+    'pain.sub':'If you\'re experiencing any of this — this book was written specifically for you.',
+    'pain.1.h':'Doing affiliate but getting no sales',
+    'pain.1.p':'Posting content, reviewing products, trying everything — but sales barely trickle in. And you don\'t know what you\'re doing wrong.',
+    'pain.2.h':'Using AI but getting no results',
+    'pain.2.p':'You know AI can help, but your prompts aren\'t landing — the output is generic and doesn\'t convert.',
+    'pain.3.h':'Spending hours, earning little',
+    'pain.3.p':'Manual content creation burns you out. No system, can\'t scale — when you stop working, the income stops too.',
+    'bridge.q':'"The problem isn\'t that you\'re not trying hard enough.<br>The problem is you don\'t have the <em>right system</em>."',
+    'bridge.p':'With the right system, AI handles most of the work — from product selection, to content creation, to automatically nurturing customers.',
+    'mm.lbl':'Book Contents','mm.h':'5 Codes Inside The Book',
+    'mm.sub':'Each chapter is a "code" — a specific secret to build your own Affiliate AI system.',
+    'mm.1.tag':'Chapter 1','mm.1.h':'Mindset Code',
+    'mm.1.p':'Why 95% of affiliates fail isn\'t the tools — it\'s the mindset. This chapter resets how you see affiliate entirely.',
+    'mm.2.tag':'Chapter 2','mm.2.h':'Niche Code',
+    'mm.2.p':'A 3-step formula for AI to analyze and find a profitable niche in 10 minutes. Choosing the right product is the foundation of everything.',
+    'mm.3.tag':'Chapter 3','mm.3.h':'Content Code',
+    'mm.3.p':'Exclusive prompts to generate 30 affiliate content pieces in 1 hour — right tone, right platform, right buyer psychology.',
+    'mm.4.tag':'Chapter 4','mm.4.h':'Funnel Code',
+    'mm.4.p':'Build automated sales funnels that nurture leads 24/7 — no expensive ads, no manual DMs to everyone.',
+    'mm.5.tag':'Chapter 5','mm.5.h':'Freedom Code',
+    'mm.5.p':'Scale from 1 to many products, fully automated — so you can live anywhere, do anything, while affiliate income keeps flowing.',
+    'det.lbl':'Details','det.h':'What Will You Learn?',
+    'det.ch1':'Chapter 1: Affiliate AI Mindset — Think Right, Go Right',
+    'det.ch2':'Chapter 2: Choose Your Niche & Product — Let AI Do It in 10 Minutes',
+    'det.ch3':'Chapter 3: Automated Content System With AI',
+    'det.ch4':'Chapter 4: Sales Funnel & Passive Traffic',
+    'det.ch5':'Chapter 5: Scale & Live Free — Systems Run While You Sleep',
+    'ts.lbl':'Testimonials','ts.h':'They Applied It & Shared',
+    'ts.sub':'Beta readers who tested the system before the official launch.',
+    'ts.1.p':'"I used to think affiliate meant long reviews and elaborate videos. Reading chapter 3 made me realize I\'d been doing it wrong from the start. The prompts in this book saved my entire content system."',
+    'ts.2.p':'"Chapter 4 on automated sales funnels is what I re-read most. Took 2 days to set up but now it runs completely on autopilot — no more manually messaging everyone."',
+    'ts.3.p':'"I\'d been doing affiliate for 6 months but kept struggling. Reading this made me realize I lacked both the mindset and the system. The AI niche selection was a real game-changer."',
+    'bns.lbl':'Bonuses','bns.h':'Order Today — Get These 4 Bonuses',
+    'bns.sub':'Exclusively for launch orders. After this, bonuses will be sold separately.',
+    'bns.1.h':'50 Exclusive AI Affiliate Prompts',
+    'bns.1.p':'50 optimized prompts for every purpose: product selection, reviews, emails, competitor analysis. Copy — paste — use immediately.',
+    'bns.2.h':'"First 30 Days of Affiliate AI" Checklist',
+    'bns.2.p':'Day-by-day action plan for your first 30 days — know exactly what to do each day, no guesswork.',
+    'bns.3.h':'Private Affiliate AI Community — 6 Months',
+    'bns.3.p':'Private community for Q&A, sharing results and the latest prompt updates. Phong Menly answers directly in the group.',
+    'bns.4.h':'5 Ready-to-Use Affiliate Landing Page Templates',
+    'bns.4.p':'5 pre-designed templates for popular niches. Edit the content, add your affiliate link — done, no coding needed.',
+    'pr.lbl':'Order','pr.h':'Get the Book + All Bonuses',
+    'pr.book':'📘 The Code to Freedom — Affiliate AI',
+    'pr.desc':'Ebook · 5 complete chapters · Lifetime updates + 4 Bonuses included',
+    'pr.timer':'⏰ Launch discount ends in',
+    'pr.save':'✓ Save 313,000đ off the original price',
+    'pr.btn':'UNLOCK NOW',
+    'pr.guar':'<strong>100% money-back guarantee within 7 days</strong> — if after reading you don\'t feel it\'s worth it, I\'ll refund every penny, no questions asked.',
+    'faq.lbl':'FAQ','faq.h':'Have Questions?',
+    'faq.1.q':'I know nothing about affiliate — can I still read this?<span class="faq-arr">▾</span>',
+    'faq.1.a':'<p>Absolutely. The book is written from the ground up — Chapter 1 explains the mindset from scratch, assuming no prior knowledge. All you need is a computer and internet connection.</p>',
+    'faq.2.q':'How much capital do I need to start?<span class="faq-arr">▾</span>',
+    'faq.2.a':'<p>The model in this book is designed to start with minimal capital. The free tier of ChatGPT is enough for early stages. Affiliate platforms are free to join. No inventory or large ad spend required.</p>',
+    'faq.3.q':'How is the book delivered?<span class="faq-arr">▾</span>',
+    'faq.3.a':'<p>This is an ebook (PDF file). After ordering and confirming payment, you\'ll receive an email with the download link for the book and all bonuses within 24 hours.</p>',
+    'faq.4.q':'What\'s the refund policy?<span class="faq-arr">▾</span>',
+    'faq.4.a':'<p>100% money-back guarantee within 7 days from your order date. If you read it and don\'t feel it was worth the money, contact me directly and I\'ll refund everything — no questions asked.</p>',
+    'faq.5.q':'Which AI tools do I need?<span class="faq-arr">▾</span>',
+    'faq.5.a':'<p>Most examples use ChatGPT (free tier) and Claude. However, the prompts are designed to work well with any AI — Gemini, Copilot, or Vietnamese AI tools. You\'re not locked into any specific platform.</p>',
+    'faq.6.q':'Do the bonuses expire?<span class="faq-arr">▾</span>',
+    'faq.6.a':'<p>Prompt pack, checklist and templates: lifetime. Private group: 6 months from when you\'re added. Note: all bonuses are only for launch-period orders.</p>',
+    'cta.h':'Start Building Your<br><span class="tgold">Affiliate AI System Today</span>',
+    'cta.sub':'Every day without a system is a day you\'re working instead of letting the system work for you.',
+    'cta.btn':'Unlock Now',
+    'cta.note':'🛡️ 100% refund within 7 days · Delivered immediately after order',
+    'ft.main':'© 2026 Phong Menly — The Code to Freedom | Affiliate AI',
+    'ft.contact':'Contact: <a href="mailto:phongconson@gmail.com" style="color:var(--gold);text-decoration:none">phongconson@gmail.com</a>',
+    'mod.w.title':'Welcome to<br>The Code to Freedom','mod.w.sub':'Sign up or log in to continue',
+    'mod.w.google':'Continue with Google','mod.or':'or',
+    'mod.w.email':'✉ Sign Up with Email',
+    'mod.w.switch':'Already have an account? <span onclick="pmShowStep(\'login\')">Log in</span>',
+    'mod.back':'← Back',
+    'mod.r.title':'Create Account','mod.r.sub':'Fill in your details to get started',
+    'mod.r.name':'Full name...','mod.r.pass':'Password (at least 6 characters)...',
+    'mod.r.btn':'Sign Up',
+    'mod.r.switch':'Already have an account? <span onclick="pmShowStep(\'login\')">Log in</span>',
+    'mod.l.title':'Log In','mod.l.sub':'Welcome back',
+    'mod.l.pass':'Password...','mod.l.btn':'Log In',
+    'mod.l.switch':'Don\'t have an account? <span onclick="pmShowStep(\'register\')">Sign up</span>',
+  }
+};
+
+function detectLang(){
+  const s=localStorage.getItem('pm_lang');
+  if(s) return s;
+  return (navigator.language||'vi').toLowerCase().startsWith('vi')?'vi':'en';
+}
+
+function applyLang(lang){
+  document.documentElement.lang=lang;
+  localStorage.setItem('pm_lang',lang);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const t=PM_TRANS[lang]?.[el.dataset.i18n];
+    if(t!=null) el.innerHTML=t;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const t=PM_TRANS[lang]?.[el.dataset.i18nPh];
+    if(t!=null) el.placeholder=t;
+  });
+  const tog=document.getElementById('lang-toggle');
+  if(tog) tog.dataset.lang=lang;
+}
+
+function toggleLang(){
+  applyLang((localStorage.getItem('pm_lang')||detectLang())==='vi'?'en':'vi');
+}
+
+// Init on load
+(function(){
+  const lang=detectLang();
+  if(lang==='en') applyLang('en');
+  else { const t=document.getElementById('lang-toggle'); if(t) t.dataset.lang='vi'; }
+})();
 </script>
 
 <!-- AUTH MODAL -->
@@ -1294,40 +1535,40 @@ if (bt) {
     <!-- STEP: WELCOME -->
     <div class="pm-step active" id="pm-step-welcome">
       <div class="pm-modal-icon">M²</div>
-      <h3 class="pm-modal-title">Chào mừng đến với<br>Mật Mã Tự Do</h3>
-      <p class="pm-modal-sub">Đăng ký hoặc đăng nhập để tiếp tục</p>
+      <h3 class="pm-modal-title" data-i18n="mod.w.title">Chào mừng đến với<br>Mật Mã Tự Do</h3>
+      <p class="pm-modal-sub" data-i18n="mod.w.sub">Đăng ký hoặc đăng nhập để tiếp tục</p>
       <button class="pm-btn-google" onclick="pmSignInGoogle()">
         <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Tiếp tục với Google
+        <span data-i18n="mod.w.google">Tiếp tục với Google</span>
       </button>
-      <div class="pm-divider"><span>hoặc</span></div>
-      <button class="pm-btn-email-opt" onclick="pmShowStep('register')">✉ Đăng ký bằng Email</button>
-      <div class="pm-switch-link">Đã có tài khoản? <span onclick="pmShowStep('login')">Đăng nhập</span></div>
+      <div class="pm-divider"><span data-i18n="mod.or">hoặc</span></div>
+      <button class="pm-btn-email-opt" onclick="pmShowStep('register')" data-i18n="mod.w.email">✉ Đăng ký bằng Email</button>
+      <div class="pm-switch-link" data-i18n="mod.w.switch">Đã có tài khoản? <span onclick="pmShowStep('login')">Đăng nhập</span></div>
     </div>
 
     <!-- STEP: REGISTER -->
     <div class="pm-step" id="pm-step-register">
-      <button class="pm-back-btn" onclick="pmShowStep('welcome')">← Quay lại</button>
-      <h3 class="pm-modal-title">Tạo tài khoản</h3>
-      <p class="pm-modal-sub">Điền thông tin để bắt đầu</p>
-      <input class="pm-input" type="text" id="pm-name-input" placeholder="Họ và tên...">
+      <button class="pm-back-btn" onclick="pmShowStep('welcome')" data-i18n="mod.back">← Quay lại</button>
+      <h3 class="pm-modal-title" data-i18n="mod.r.title">Tạo tài khoản</h3>
+      <p class="pm-modal-sub" data-i18n="mod.r.sub">Điền thông tin để bắt đầu</p>
+      <input class="pm-input" type="text" id="pm-name-input" placeholder="Họ và tên..." data-i18n-ph="mod.r.name">
       <input class="pm-input" type="email" id="pm-reg-email" placeholder="Email...">
-      <input class="pm-input" type="password" id="pm-reg-pass" placeholder="Mật khẩu (ít nhất 6 ký tự)..." onkeydown="if(event.key==='Enter')pmRegister()">
+      <input class="pm-input" type="password" id="pm-reg-pass" placeholder="Mật khẩu (ít nhất 6 ký tự)..." onkeydown="if(event.key==='Enter')pmRegister()" data-i18n-ph="mod.r.pass">
       <div class="pm-error" id="pm-reg-error"></div>
-      <button class="pm-btn-submit" onclick="pmRegister()">Đăng ký</button>
-      <div class="pm-switch-link">Đã có tài khoản? <span onclick="pmShowStep('login')">Đăng nhập</span></div>
+      <button class="pm-btn-submit" onclick="pmRegister()" data-i18n="mod.r.btn">Đăng ký</button>
+      <div class="pm-switch-link" data-i18n="mod.r.switch">Đã có tài khoản? <span onclick="pmShowStep('login')">Đăng nhập</span></div>
     </div>
 
     <!-- STEP: LOGIN -->
     <div class="pm-step" id="pm-step-login">
-      <button class="pm-back-btn" onclick="pmShowStep('welcome')">← Quay lại</button>
-      <h3 class="pm-modal-title">Đăng nhập</h3>
-      <p class="pm-modal-sub">Chào mừng bạn quay lại</p>
+      <button class="pm-back-btn" onclick="pmShowStep('welcome')" data-i18n="mod.back">← Quay lại</button>
+      <h3 class="pm-modal-title" data-i18n="mod.l.title">Đăng nhập</h3>
+      <p class="pm-modal-sub" data-i18n="mod.l.sub">Chào mừng bạn quay lại</p>
       <input class="pm-input" type="email" id="pm-login-email" placeholder="Email...">
-      <input class="pm-input" type="password" id="pm-login-pass" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')pmLogin()">
+      <input class="pm-input" type="password" id="pm-login-pass" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')pmLogin()" data-i18n-ph="mod.l.pass">
       <div class="pm-error" id="pm-login-error"></div>
-      <button class="pm-btn-submit" onclick="pmLogin()">Đăng nhập</button>
-      <div class="pm-switch-link">Chưa có tài khoản? <span onclick="pmShowStep('register')">Đăng ký ngay</span></div>
+      <button class="pm-btn-submit" onclick="pmLogin()" data-i18n="mod.l.btn">Đăng nhập</button>
+      <div class="pm-switch-link" data-i18n="mod.l.switch">Chưa có tài khoản? <span onclick="pmShowStep('register')">Đăng ký ngay</span></div>
     </div>
   </div>
 </div>
