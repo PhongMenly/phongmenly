@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khóa Học — Phong Menly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--bg-s:#0d0d0d;--bg-c:#111;--bg-ch:#171717;
+  --gold:#FFD700;--gold-l:#FFE566;--gold-d:rgba(255,215,0,.12);
+  --org:#FF7B00;--red:#E53E3E;--grn:#4ADE80;
+  --txt:#FFF;--muted:#A1A1AA;--dim:#52525B;
+  --bdr:rgba(255,215,0,.2);--bdr-s:rgba(255,255,255,.06);
+  --r:12px;--mw:900px;--mww:1160px
+}
+html{scroll-behavior:smooth}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;overflow-x:hidden}
+img{max-width:100%;display:block}
+.tgold{color:var(--gold)}
+
+/* ── NAV ── */
+nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr-s);padding:12px 20px;position:sticky;top:0;z-index:999}
+.nav-i{max-width:var(--mww);margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:20px}
+.logo-wrap{display:flex;flex-direction:column;gap:1px;flex-shrink:0}
+.logo{font-family:'Dancing Script',cursive;font-size:32px;font-weight:700;color:var(--txt);letter-spacing:.5px;line-height:1;text-decoration:none;display:block}
+.logo-author{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.5px}
+.nav-tabs{display:flex;align-items:center;gap:6px;flex:1;justify-content:center}
+.nav-tab{color:var(--muted);font-size:13px;font-weight:600;text-decoration:none;padding:6px 14px;border-radius:6px;transition:.2s;white-space:nowrap;letter-spacing:.3px}
+.nav-tab:hover,.nav-tab.active{color:var(--txt);background:rgba(255,255,255,.06)}
+.nav-tab.active{color:var(--gold)}
+.btn-nav{background:var(--gold);color:#000;border:none;padding:10px 22px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;transition:.2s;white-space:nowrap;flex-shrink:0}
+.btn-nav:hover{background:var(--gold-l);transform:translateY(-1px)}
+
+/* ── PAGE HERO ── */
+.pg-hero{background:radial-gradient(ellipse at top,rgba(255,215,0,.06) 0%,transparent 55%),var(--bg-s);padding:64px 20px 52px;text-align:center;border-bottom:1px solid var(--bdr-s)}
+.pg-hero h1{font-size:clamp(26px,4vw,44px);font-weight:900;letter-spacing:-1px;line-height:1.2;margin-bottom:14px}
+.pg-hero p{font-size:15px;color:var(--muted);max-width:520px;margin:0 auto 24px}
+.pg-social{display:inline-flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.pg-avatars{display:flex}
+.pg-avatars span{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));border:2px solid var(--bg-s);margin-left:-9px;font-size:13px;display:flex;align-items:center;justify-content:center}
+.pg-avatars span:first-child{margin-left:0}
+
+/* ── FILTER TABS ── */
+.filter-bar{padding:28px 20px 0;max-width:var(--mww);margin:0 auto;display:flex;gap:8px;flex-wrap:wrap}
+.f-tab{background:var(--bg-c);border:1px solid var(--bdr-s);color:var(--muted);font-size:13px;font-weight:600;padding:7px 18px;border-radius:50px;cursor:pointer;transition:.2s;text-decoration:none;white-space:nowrap}
+.f-tab:hover,.f-tab.active{background:var(--gold-d);border-color:var(--bdr);color:var(--gold)}
+
+/* ── COURSE GRID ── */
+.kh-wrap{padding:32px 20px 80px;max-width:var(--mww);margin:0 auto}
+.kh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+
+/* ── CARD ── */
+.kh-card{background:#12192a;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;transition:.3s;display:flex;flex-direction:column}
+.kh-card:hover{border-color:rgba(255,255,255,.2);transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,.7)}
+.kh-thumb{width:100%;aspect-ratio:4/3;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.kh-thumb-bg{position:absolute;inset:0}
+.kh-thumb-icon{position:relative;font-size:72px;z-index:1;filter:drop-shadow(0 6px 20px rgba(0,0,0,.7))}
+.kh-badge{position:absolute;top:12px;left:12px;font-size:11px;font-weight:800;padding:5px 12px;border-radius:6px;letter-spacing:.8px;z-index:2;text-transform:uppercase}
+.kh-body{padding:20px 20px 0;flex:1;display:flex;flex-direction:column}
+.kh-cat{font-size:10px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.kh-title{font-size:18px;font-weight:800;color:var(--txt);line-height:1.4;margin-bottom:12px}
+.kh-desc{font-size:13px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:14px;flex:1}
+.kh-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.kh-stars{color:#f59e0b;font-size:14px;letter-spacing:2px}
+.kh-rating-txt{font-size:12px;color:rgba(255,255,255,.4);font-weight:600}
+.kh-price{font-size:28px;font-weight:900;color:var(--txt);margin-bottom:20px;letter-spacing:-0.5px}
+.kh-price-old{font-size:13px;color:rgba(255,255,255,.3);text-decoration:line-through;margin-left:8px;font-weight:400}
+.kh-btn{display:block;text-align:center;background:#e91e8c;color:#fff;border:none;padding:14px 20px;margin:0 0 0 0;font-size:15px;font-weight:700;cursor:pointer;text-decoration:none;transition:.2s;letter-spacing:.3px;border-radius:0 0 16px 16px}
+.kh-btn:hover{background:#d4187f;transform:none;filter:brightness(1.1)}
+
+/* ── BRAND MARQUEE ── */
+.brand-sec{padding:36px 0 28px;border-top:1px solid var(--bdr-s);border-bottom:1px solid var(--bdr-s)}
+.brand-sec-hd{text-align:center;padding:0 20px;margin-bottom:16px}
+.brand-sec-hd .sec-h{font-size:clamp(16px,2.5vw,22px);font-weight:700;color:var(--txt);margin:0}
+.brand-overflow{overflow:hidden;position:relative}
+.brand-overflow::before,.brand-overflow::after{content:'';position:absolute;top:0;bottom:0;width:90px;z-index:2;pointer-events:none}
+.brand-overflow::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.brand-overflow::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+.brand-track{display:flex;align-items:center;width:max-content;animation:brand-scroll 44s linear infinite}
+.brand-track:hover{animation-play-state:paused}
+@keyframes brand-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.brand-item{display:flex;flex-direction:row;align-items:center;gap:11px;background:var(--bg-c);border:1px solid var(--bdr-s);border-radius:50px;padding:8px 22px 8px 8px;margin:0 10px;transition:border-color .25s,box-shadow .25s;flex-shrink:0}
+.brand-item:hover{border-color:rgba(255,215,0,.45);box-shadow:0 0 20px rgba(255,215,0,.1)}
+.b-logo{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--bdr-s);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.b-logo img{width:28px;height:28px;object-fit:contain}
+.b-name{font-size:14px;font-weight:700;color:var(--txt);white-space:nowrap}
+.brand-item:hover .b-name{color:var(--gold)}
+/* ── AUTH NAV ── */
+.nav-auth{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.btn-glogin{display:flex;align-items:center;gap:8px;background:var(--gold);color:#000;border:none;padding:9px 18px;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;white-space:nowrap;font-family:inherit}
+.btn-glogin:hover{background:var(--gold-l);transform:translateY(-1px)}
+.btn-glogin svg{width:16px;height:16px;flex-shrink:0}
+.auth-skel{width:130px;height:38px;background:rgba(255,255,255,.05);border-radius:50px;animation:auth-pulse 1.5s ease infinite}
+@keyframes auth-pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+.u-profile{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:5px 14px 5px 5px;cursor:pointer;position:relative;transition:border-color .2s}
+.u-profile:hover{border-color:rgba(255,255,255,.2)}
+.u-av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.u-av-ph{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#000;flex-shrink:0}
+.u-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.u-name{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.u-badge{font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:50px;line-height:1.4;display:inline-block}
+.u-badge.free{background:rgba(161,161,170,.15);color:#A1A1AA}
+.u-badge.vip{background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,123,0,.15));color:var(--gold);border:1px solid rgba(255,215,0,.3)}
+.u-drop{position:absolute;top:calc(100% + 8px);right:0;background:#1c1c1c;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px;min-width:190px;z-index:200;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .2s,transform .2s;box-shadow:0 12px 40px rgba(0,0,0,.7)}
+.u-profile.open .u-drop{opacity:1;pointer-events:all;transform:translateY(0)}
+.u-drop-info{padding:10px 12px 8px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px}
+.u-drop-email{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drop-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.drop-item:hover{background:rgba(255,255,255,.06);color:var(--txt)}
+.drop-item.red:hover{background:rgba(229,62,62,.1);color:#E53E3E}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){.kh-grid{grid-template-columns:1fr 1fr;gap:18px}}
+@media(max-width:580px){.kh-grid{grid-template-columns:1fr;gap:16px}.pg-hero{padding:48px 16px 36px}.kh-wrap{padding:24px 16px 60px}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-i">
+    <div class="logo-wrap">
+      <a href="index.html" class="logo">Phong Menly</a>
+    </div>
+    <div class="nav-tabs">
+      <a href="khoa-hoc.html" class="nav-tab active">Khóa Học</a>
+      <a href="index.html#pricing" class="nav-tab">Sản Phẩm</a>
+    </div>
+    <!-- AUTH -->
+    <div class="nav-auth" id="nav-auth">
+      <div class="auth-skel" id="auth-loading"></div>
+      <button class="btn-glogin" id="btn-glogin" style="display:none" onclick="pmSignIn()">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Đăng nhập
+      </button>
+      <div class="u-profile" id="u-profile" style="display:none" onclick="pmToggleDrop(event)">
+        <img class="u-av" id="u-av" src="" alt="">
+        <div class="u-av-ph" id="u-av-ph" style="display:none"></div>
+        <div class="u-info">
+          <span class="u-name" id="u-name"></span>
+          <span class="u-badge" id="u-badge"></span>
+        </div>
+        <div class="u-drop" id="u-drop">
+          <div class="u-drop-info">
+            <div class="u-drop-email" id="u-drop-email"></div>
+          </div>
+          <button class="drop-item red" onclick="pmSignOut();event.stopPropagation()">🚪 Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="pg-hero">
+  <h1>Bắt Đầu Hành Trình <span class="tgold">AI</span> Của Bạn</h1>
+  <p>Hệ thống khóa học thực chiến — từ xây KOL AI, tự động hóa bán hàng đến tạo video TVC chuyên nghiệp bằng AI.</p>
+  <div class="pg-social">
+    <div class="pg-avatars">
+      <span>🧑</span><span>👩</span><span>🧑</span><span>👨</span><span>👩</span>
+    </div>
+    Được tin tưởng bởi 3.600+ học viên
+  </div>
+</div>
+
+<!-- FILTER TABS -->
+<div class="filter-bar">
+  <a href="#" class="f-tab active">Tất Cả</a>
+  <a href="#" class="f-tab">AI Automation</a>
+  <a href="#" class="f-tab">KOL & Brand</a>
+  <a href="#" class="f-tab">Sales & Marketing</a>
+  <a href="#" class="f-tab">Video AI</a>
+</div>
+
+<!-- COURSE GRID -->
+<div class="kh-wrap">
+  <div class="kh-grid">
+
+    <!-- 1. AI AGENT -->
+    <div class="kh-card">
+      <div class="kh-thumb">
+        <div class="kh-thumb-bg" style="background:linear-gradient(135deg,#050d1f,#0d2a5c)"></div>
+        <div class="kh-thumb-icon">🤖</div>
+        <div class="kh-badge" style="background:#E53E3E;color:#fff">HOT</div>
+      </div>
+      <div class="kh-body">
+        <div class="kh-title">AI AGENT — Hệ Thống Tự Động Hóa Bằng AI</div>
+        <div class="kh-desc">Xây dựng AI Agent cá nhân hoạt động 24/7 — tự động xử lý công việc, tạo content, nuôi khách hàng mà không cần bạn can thiệp.</div>
+        <div class="kh-meta">
+          <span class="kh-stars">★★★★★</span>
+          <span class="kh-rating-txt">99+ Đánh giá</span>
+        </div>
+        <div class="kh-price">996.000đ <span class="kh-price-old">1.500.000đ</span></div>
+      </div>
+      <a href="index.html#pricing" class="kh-btn">Mua ngay</a>
+    </div>
+
+    <!-- 2. BUILD KOL AI -->
+    <div class="kh-card">
+      <div class="kh-thumb">
+        <div class="kh-thumb-bg" style="background:linear-gradient(135deg,#12052e,#3d1a8a)"></div>
+        <div class="kh-thumb-icon">⭐</div>
+        <div class="kh-badge" style="background:#7c3aed;color:#fff">MỚI</div>
+      </div>
+      <div class="kh-body">
+        <div class="kh-title">Build KOL AI — Xây Dựng Thương Hiệu Cá Nhân Bằng AI</div>
+        <div class="kh-desc">Tạo hình ảnh KOL chuyên nghiệp, sản xuất nội dung viral và xây dựng cộng đồng trung thành với sự hỗ trợ toàn diện của AI.</div>
+        <div class="kh-meta">
+          <span class="kh-stars">★★★★★</span>
+          <span class="kh-rating-txt">10+ Đánh giá</span>
+        </div>
+        <div class="kh-price">1.599.000đ <span class="kh-price-old">2.200.000đ</span></div>
+      </div>
+      <a href="index.html#pricing" class="kh-btn">Mua ngay</a>
+    </div>
+
+    <!-- 3. MASTER SALE AI -->
+    <div class="kh-card">
+      <div class="kh-thumb">
+        <div class="kh-thumb-bg" style="background:linear-gradient(135deg,#1a0800,#5c2a00)"></div>
+        <div class="kh-thumb-icon">💰</div>
+        <div class="kh-badge" style="background:#d97706;color:#fff">BEST</div>
+      </div>
+      <div class="kh-body">
+        <div class="kh-title">Master Sale AI — Đỉnh Cao Bán Hàng Với AI</div>
+        <div class="kh-desc">Hệ thống bán hàng AI tự động từ kéo traffic đến chốt đơn — viết script, làm quảng cáo, chăm sóc khách hàng bằng AI.</div>
+        <div class="kh-meta">
+          <span class="kh-stars">★★★★★</span>
+          <span class="kh-rating-txt">99+ Đánh giá</span>
+        </div>
+        <div class="kh-price">2.996.000đ <span class="kh-price-old">4.500.000đ</span></div>
+      </div>
+      <a href="index.html#pricing" class="kh-btn">Mua ngay</a>
+    </div>
+
+    <!-- 4. SEEDANCE 2 -->
+    <div class="kh-card">
+      <div class="kh-thumb">
+        <div class="kh-thumb-bg" style="background:linear-gradient(135deg,#021a0a,#074d30)"></div>
+        <div class="kh-thumb-icon">🎬</div>
+        <div class="kh-badge" style="background:#059669;color:#fff">VIDEO</div>
+      </div>
+      <div class="kh-body">
+        <div class="kh-title">Tạo Video TVC Seedance 2 — Quảng Cáo Đẳng Cấp</div>
+        <div class="kh-desc">Sản xuất TVC chuyên nghiệp bằng Seedance 2 — từ kịch bản, hình ảnh, âm thanh đến thành phẩm hoàn chỉnh trong vài giờ.</div>
+        <div class="kh-meta">
+          <span class="kh-stars">★★★★★</span>
+          <span class="kh-rating-txt">10+ Đánh giá</span>
+        </div>
+        <div class="kh-price">1.868.000đ <span class="kh-price-old">2.800.000đ</span></div>
+      </div>
+      <a href="index.html#pricing" class="kh-btn">Mua ngay</a>
+    </div>
+
+    <!-- 5. KOL AI SYSTEM -->
+    <div class="kh-card">
+      <div class="kh-thumb">
+        <div class="kh-thumb-bg" style="background:linear-gradient(135deg,#14100a,#453400)"></div>
+        <div class="kh-thumb-icon">👑</div>
+        <div class="kh-badge" style="background:linear-gradient(135deg,#b7791f,#d4a017);color:#000">VIP</div>
+      </div>
+      <div class="kh-body">
+        <div class="kh-title">KOL AI SYSTEM — Hệ Thống KOL AI Hoàn Chỉnh</div>
+        <div class="kh-desc">Combo đầy đủ nhất: xây dựng hệ thống KOL AI từ A đến Z, tích hợp tất cả công cụ, tự động hóa toàn bộ quy trình kiếm tiền online.</div>
+        <div class="kh-meta">
+          <span class="kh-stars">★★★★★</span>
+          <span class="kh-rating-txt">Đánh giá</span>
+        </div>
+        <div class="kh-price">2.868.000đ <span class="kh-price-old">4.200.000đ</span></div>
+      </div>
+      <a href="index.html#pricing" class="kh-btn">Mua ngay</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BRAND MARQUEE -->
+<div class="brand-sec">
+  <div class="brand-sec-hd">
+    <h2 class="sec-h">Đại Sứ Thương Hiệu của các <span style="color:var(--gold)">AI</span> tại Việt Nam</h2>
+  </div>
+  <div class="brand-overflow">
+    <div class="brand-track" id="brand-track">
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/higgsfield.ai" data-fb="https://www.google.com/s2/favicons?domain=higgsfield.ai&sz=64" alt="Higgsfield AI" loading="lazy"></div>
+        <span class="b-name">Higgsfield AI</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/topview.ai" data-fb="https://www.google.com/s2/favicons?domain=topview.ai&sz=64" alt="TopView AI" loading="lazy"></div>
+        <span class="b-name">TopView AI</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/focusee.imobie.com" data-fb="https://www.google.com/s2/favicons?domain=focusee.imobie.com&sz=64" alt="Focusee AI" loading="lazy"></div>
+        <span class="b-name">Focusee AI</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/lovable.dev" data-fb="https://www.google.com/s2/favicons?domain=lovable.dev&sz=64" alt="Lovable AI" loading="lazy"></div>
+        <span class="b-name">Lovable AI</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/anthropic.com" data-fb="https://www.google.com/s2/favicons?domain=anthropic.com&sz=64" alt="Claude AI" loading="lazy"></div>
+        <span class="b-name">Claude AI</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/openai.com" data-fb="https://www.google.com/s2/favicons?domain=openai.com&sz=64" alt="GPT Image 2" loading="lazy"></div>
+        <span class="b-name">GPT Image 2</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/google.com" data-fb="https://www.google.com/s2/favicons?domain=gemini.google.com&sz=64" alt="Gemini Omni" loading="lazy"></div>
+        <span class="b-name">Gemini Omni</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/affitor.com" data-fb="https://www.google.com/s2/favicons?domain=affitor.com&sz=64" alt="Affitor" loading="lazy"></div>
+        <span class="b-name">Affitor</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/lumeflow.ai" data-fb="https://www.google.com/s2/favicons?domain=lumeflow.ai&sz=64" alt="Lumeflow AI" loading="lazy"></div>
+        <span class="b-name">Lumeflow AI</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/minimax.io" data-fb="https://www.google.com/s2/favicons?domain=minimax.io&sz=64" alt="Minimax Audio" loading="lazy"></div>
+        <span class="b-name">Minimax Audio</span>
+      </div>
+      <div class="brand-item">
+        <div class="b-logo"><img src="https://logo.clearbit.com/seedance2.ai" data-fb="https://www.google.com/s2/favicons?domain=seedance2.ai&sz=64" alt="Seedance 2" loading="lazy"></div>
+        <span class="b-name">Seedance 2</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── GOOGLE AUTH ──
+// ⚠️ Thay YOUR_GOOGLE_CLIENT_ID bằng Client ID thật từ Google Cloud Console
+const PM_CLIENT_ID = '920925434890-podt0rdpsm7vhdog4kagt1i08tg9idas.apps.googleusercontent.com';
+const PM_VIP_EMAILS = [];
+
+function pmIsVIP(email) {
+  return PM_VIP_EMAILS.includes(email) || localStorage.getItem('pm_vip_' + email) === 'true';
+}
+
+function pmInitAuth() {
+  try {
+    const raw = localStorage.getItem('pm_user');
+    if (raw) { pmShowProfile(JSON.parse(raw)); return; }
+  } catch(e) {}
+  pmShowLogin();
+}
+
+function pmShowLogin() {
+  document.getElementById('auth-loading').style.display = 'none';
+  document.getElementById('btn-glogin').style.display = 'flex';
+}
+
+function pmShowProfile(user) {
+  document.getElementById('auth-loading').style.display = 'none';
+  document.getElementById('btn-glogin').style.display = 'none';
+  const el = document.getElementById('u-profile');
+  el.style.display = 'flex';
+  const av = document.getElementById('u-av');
+  const avPh = document.getElementById('u-av-ph');
+  if (user.picture) {
+    av.src = user.picture;
+    av.style.display = 'block';
+    avPh.style.display = 'none';
+    av.onerror = () => { av.style.display='none'; avPh.style.display='flex'; avPh.textContent=(user.given_name||user.name||'?')[0].toUpperCase(); };
+  } else {
+    av.style.display = 'none';
+    avPh.style.display = 'flex';
+    avPh.textContent = (user.given_name || user.name || '?')[0].toUpperCase();
+  }
+  document.getElementById('u-name').textContent = user.given_name || user.name || user.email;
+  document.getElementById('u-drop-email').textContent = user.email || '';
+  const badge = document.getElementById('u-badge');
+  const vip = pmIsVIP(user.email);
+  badge.textContent = vip ? '⭐ VIP' : 'Free';
+  badge.className = 'u-badge ' + (vip ? 'vip' : 'free');
+}
+
+function pmSignIn() {
+  if (typeof google === 'undefined') { alert('Đang tải... thử lại sau giây lát.'); return; }
+  google.accounts.id.initialize({ client_id: PM_CLIENT_ID, callback: pmHandleCredential, auto_select: false });
+  google.accounts.id.prompt(n => {
+    if (n.isNotDisplayed() || n.isSkippedMoment()) {
+      const tmp = document.createElement('div');
+      tmp.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999';
+      document.body.appendChild(tmp);
+      google.accounts.id.renderButton(tmp, { theme:'filled_black', size:'large', text:'signin_with', locale:'vi' });
+      tmp.querySelector('div[role=button]')?.click();
+    }
+  });
+}
+
+function pmHandleCredential(resp) {
+  try {
+    const b64 = resp.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    const payload = JSON.parse(atob(b64 + '=='.slice((b64.length%4)||4)));
+    localStorage.setItem('pm_user', JSON.stringify(payload));
+    pmShowProfile(payload);
+  } catch(e) { console.error('Auth error', e); }
+}
+
+function pmSignOut() {
+  localStorage.removeItem('pm_user');
+  if (typeof google !== 'undefined') google.accounts.id.disableAutoSelect();
+  document.getElementById('u-profile').style.display = 'none';
+  document.getElementById('btn-glogin').style.display = 'flex';
+}
+
+function pmToggleDrop(e) {
+  e.stopPropagation();
+  document.getElementById('u-profile').classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+  const p = document.getElementById('u-profile');
+  if (p) p.classList.remove('open');
+});
+
+document.addEventListener('DOMContentLoaded', pmInitAuth);
+
+const bt = document.getElementById('brand-track');
+if (bt) {
+  bt.innerHTML += bt.innerHTML;
+  bt.querySelectorAll('img[data-fb]').forEach(img => {
+    img.onerror = function() {
+      const fb = this.dataset.fb;
+      this.src = fb;
+      this.onerror = function() {
+        const s = document.createElement('span');
+        s.textContent = '🤖';
+        s.style.fontSize = '22px';
+        this.replaceWith(s);
+      };
+    };
+  });
+}
+</script>
+</body>
+</html>
