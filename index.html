@@ -263,6 +263,8 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .feat-l li .ck{color:var(--grn);flex-shrink:0;margin-top:1px}
 .btn-buy{display:block;width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;font-size:17px;font-weight:800;padding:17px;border-radius:50px;border:none;cursor:pointer;text-decoration:none;transition:.25s;box-shadow:0 4px 30px rgba(255,215,0,.25);text-align:center;margin-top:22px}
 .btn-buy:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(255,215,0,.4)}
+.btn-free-read{display:block;width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#A1A1AA;font-size:14px;font-weight:600;padding:12px;border-radius:50px;text-decoration:none;transition:.2s;text-align:center;margin-top:10px}
+.btn-free-read:hover{background:rgba(255,255,255,.09);color:#fff}
 .guar{display:flex;align-items:center;gap:12px;margin-top:18px;padding:14px;background:rgba(255,255,255,.02);border-radius:var(--r)}
 .guar-icon{font-size:26px;flex-shrink:0}
 .guar p{font-size:12px;color:var(--muted);line-height:1.55}
@@ -907,7 +909,8 @@ footer p{font-size:12px;color:var(--dim)}
           <li><span class="ck">✓</span> BONUS 3: Nhóm kín 6 tháng với Phong Menly (trị giá 500.000đ)</li>
           <li><span class="ck">✓</span> BONUS 4: 5 Template Landing Page (trị giá 297.000đ)</li>
         </ul>
-        <a href="#" class="btn-buy" onclick="mmtdOpenCheckout();return false;" data-i18n="pr.btn">MỞ KHÓA NGAY</a>
+        <a href="#" class="btn-buy" id="btn-buy-main" onclick="mmtdOpenCheckout();return false;" data-i18n="pr.btn">MỞ KHÓA NGAY</a>
+        <a href="doc-thu.html" class="btn-free-read">📖 Đọc sách miễn phí</a>
         <div class="guar">
           <div class="guar-icon">🛡️</div>
           <p data-i18n="pr.guar"><strong>Cam kết hoàn tiền 100% trong 7 ngày</strong> — đọc xong mà thấy không xứng đáng, tôi hoàn lại toàn bộ tiền, không hỏi lý do.</p>
@@ -1153,6 +1156,10 @@ function pmInitFirebase() {
           picture: user.photoURL || null
         };
         pmShowProfile(u);
+        fetch(MMTD_WEBHOOK, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'reader_login', email: user.email, name: u.name })
+        }).catch(() => {});
       } else {
         pmShowLogin();
       }
@@ -1624,6 +1631,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   const ov=document.getElementById('mmtd-ov');
   if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) mmtdClose(); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') mmtdClose(); });
+
+  // Ẩn giá trước ngày ra mắt 1/7/2026
+  if (new Date() < new Date('2026-07-01T00:00:00+07:00')) {
+    const pb = document.getElementById('mmtd-price-box');
+    if (pb) pb.style.display = 'none';
+  }
 });
 </script>
 
@@ -1691,7 +1704,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <label style="display:block;font-size:.72rem;font-weight:700;color:#A1A1AA;margin-bottom:6px;letter-spacing:.4px">SỐ ĐIỆN THOẠI</label>
           <input id="mmtd-phone" type="tel" placeholder="0912 345 678" style="width:100%;background:#1c1c1c;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:.9rem;outline:none;font-family:inherit;transition:border-color .2s" onfocus="this.style.borderColor='rgba(255,215,0,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
         </div>
-        <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:.82rem;color:#A1A1AA">
+        <div id="mmtd-price-box" style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:.82rem;color:#A1A1AA">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
             <span>Giá ra mắt</span>
             <strong style="color:#FFD700;font-size:1.05rem">686.000đ</strong>
@@ -1720,16 +1733,8 @@ document.addEventListener('DOMContentLoaded',()=>{
           <button id="mmtd-copy-ref" onclick="mmtdCopyRef()" style="background:none;border:1px solid rgba(255,215,0,.3);border-radius:6px;padding:3px 10px;color:#FFD700;font-size:.74rem;cursor:pointer;font-family:inherit">Copy</button>
         </div>
       </div>
-      <div style="font-size:.75rem;color:#52525B;margin-bottom:20px;line-height:1.7">
-        Hệ thống tự động xác nhận sau khi nhận được tiền.<br>
-        Thông tin sách sẽ gửi về email trong <strong style="color:#A1A1AA">24 giờ</strong>.
-      </div>
-      <div id="mmtd-pulse" style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:.8rem;color:#A1A1AA;margin-bottom:16px">
-        <span style="display:inline-flex;gap:4px">
-          <span style="width:6px;height:6px;border-radius:50%;background:#FFD700;animation:pulse-dot 1.2s ease-in-out infinite"></span>
-          <span style="width:6px;height:6px;border-radius:50%;background:#FFD700;animation:pulse-dot 1.2s ease-in-out .3s infinite"></span>
-          <span style="width:6px;height:6px;border-radius:50%;background:#FFD700;animation:pulse-dot 1.2s ease-in-out .6s infinite"></span>
-        </span>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:.8rem;color:#A1A1AA;margin-bottom:16px">
+        <div style="width:8px;height:8px;background:#FFD700;border-radius:50%;animation:pulse-dot 1.2s ease infinite"></div>
         Đang chờ xác nhận thanh toán...
       </div>
       <button onclick="mmtdClose()" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 24px;color:#A1A1AA;font-size:.82rem;cursor:pointer;font-family:inherit">Quay lại sau</button>

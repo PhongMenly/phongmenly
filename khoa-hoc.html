@@ -216,9 +216,40 @@ nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px soli
   <a href="#" class="f-tab">Video AI</a>
 </div>
 
+<!-- LAUNCH BANNER -->
+<div id="launch-banner" style="display:none;max-width:1160px;margin:20px auto 0;padding:0 20px">
+  <div style="background:linear-gradient(135deg,rgba(255,215,0,.06),rgba(255,165,0,.04));border:1px solid rgba(255,215,0,.2);border-radius:16px;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <div style="font-size:.7rem;font-weight:700;color:#FFD700;letter-spacing:.8px;margin-bottom:4px">RA MẮT NGÀY 1/7/2026</div>
+      <div style="font-size:1rem;font-weight:800;color:#fff">Khóa học đang được hoàn thiện</div>
+      <div style="font-size:.82rem;color:#A1A1AA;margin-top:3px">Đọc sách Mật Mã Tự Do và học thử miễn phí trong lúc chờ</div>
+    </div>
+    <div id="kh-countdown" style="display:flex;gap:8px"></div>
+    <a href="doc-thu.html" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border-radius:12px;padding:11px 22px;font-size:.88rem;font-weight:800;cursor:pointer;text-decoration:none;white-space:nowrap;flex-shrink:0">📖 Học thử miễn phí</a>
+  </div>
+</div>
+
 <!-- COURSE GRID -->
 <div class="kh-wrap">
   <div class="kh-grid">
+
+    <!-- HỌC THỬ — free card, visible before launch -->
+    <div class="kh-card" id="hoc-thu-card" style="display:none;border-color:rgba(255,215,0,.3);background:linear-gradient(135deg,#12100a,#1a1500)">
+      <div class="kh-thumb">
+        <div class="kh-thumb-bg" style="background:linear-gradient(135deg,#1a1200,#3d2e00)"></div>
+        <div class="kh-thumb-icon">📖</div>
+        <div class="kh-badge" style="background:#FFD700;color:#000">MIỄN PHÍ</div>
+      </div>
+      <div class="kh-body">
+        <div class="kh-title" style="color:#FFD700">Đọc Sách Mật Mã Tự Do</div>
+        <div class="kh-desc">Đọc toàn bộ nội dung sách và thực hành các bài tập AI ngay hôm nay — hoàn toàn miễn phí cho đến ngày ra mắt khóa học.</div>
+        <div class="kh-meta">
+          <span class="kh-stars">★★★★★</span>
+          <span class="kh-rating-txt">Mới ra mắt</span>
+        </div>
+      </div>
+      <a href="doc-thu.html" class="kh-btn" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000">📖 Đọc &amp; Học thử ngay</a>
+    </div>
 
     <!-- 1. AI AGENT -->
     <div class="kh-card">
@@ -419,6 +450,10 @@ function pmInitFirebase() {
           picture: user.photoURL || null
         };
         pmShowProfile(u);
+        fetch(KH_WEBHOOK, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'reader_login', email: user.email, name: u.name })
+        }).catch(() => {});
       } else {
         pmShowLogin();
       }
@@ -546,9 +581,44 @@ document.addEventListener('click', () => {
   if (p) p.classList.remove('open');
 });
 
+const KH_WEBHOOK = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+const KH_LAUNCH  = new Date('2026-07-01T00:00:00+07:00');
+
 document.addEventListener('DOMContentLoaded', () => {
   pmInitFirebase();
   document.addEventListener('keydown', e => { if (e.key === 'Escape') pmCloseModal({ target: document.getElementById('pm-modal') }); });
+
+  if (new Date() < KH_LAUNCH) {
+    // Hiện banner + card học thử
+    document.getElementById('launch-banner').style.display = 'block';
+    document.getElementById('hoc-thu-card').style.display  = 'flex';
+
+    // Ẩn giá, khóa nút mua
+    document.querySelectorAll('.kh-price').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.kh-btn').forEach(el => {
+      if (el.closest('#hoc-thu-card')) return;
+      el.textContent = '🔒 Ra mắt 1/7/2026';
+      el.style.cssText += ';background:rgba(255,255,255,.06);color:#A1A1AA;pointer-events:none';
+    });
+
+    // Đếm ngược
+    function tick() {
+      const ms = KH_LAUNCH - new Date();
+      if (ms <= 0) return location.reload();
+      const d = Math.floor(ms / 86400000);
+      const h = Math.floor((ms % 86400000) / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      document.getElementById('kh-countdown').innerHTML =
+        [['Ngày',d],['Giờ',h],['Phút',m],['Giây',s]].map(([l,v]) =>
+          `<div style="text-align:center;background:rgba(0,0,0,.35);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:8px 12px;min-width:52px">
+            <div style="font-size:1.3rem;font-weight:900;color:#FFD700;line-height:1">${String(v).padStart(2,'0')}</div>
+            <div style="font-size:.6rem;color:#A1A1AA;font-weight:700;letter-spacing:.5px;margin-top:2px">${l.toUpperCase()}</div>
+          </div>`
+        ).join('');
+    }
+    tick(); setInterval(tick, 1000);
+  }
 });
 
 const bt = document.getElementById('brand-track');
