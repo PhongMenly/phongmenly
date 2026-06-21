@@ -907,7 +907,7 @@ footer p{font-size:12px;color:var(--dim)}
           <li><span class="ck">✓</span> BONUS 3: Nhóm kín 6 tháng với Phong Menly (trị giá 500.000đ)</li>
           <li><span class="ck">✓</span> BONUS 4: 5 Template Landing Page (trị giá 297.000đ)</li>
         </ul>
-        <a href="#" class="btn-buy" data-i18n="pr.btn">MỞ KHÓA NGAY</a>
+        <a href="#" class="btn-buy" onclick="mmtdOpenCheckout();return false;" data-i18n="pr.btn">MỞ KHÓA NGAY</a>
         <div class="guar">
           <div class="guar-icon">🛡️</div>
           <p data-i18n="pr.guar"><strong>Cam kết hoàn tiền 100% trong 7 ngày</strong> — đọc xong mà thấy không xứng đáng, tôi hoàn lại toàn bộ tiền, không hỏi lý do.</p>
@@ -1525,6 +1525,106 @@ function toggleLang(){
   if(lang==='en') applyLang('en');
   else { const t=document.getElementById('lang-toggle'); if(t) t.dataset.lang='vi'; }
 })();
+
+/* ══════════════════════════════════════════════════════
+   CHECKOUT — Mật Mã Tự Do
+   Webhook chung với KOL AI (cùng Supabase project)
+══════════════════════════════════════════════════════ */
+const MMTD_WEBHOOK  = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+const MMTD_PRICE    = 686000;
+const MMTD_BANK     = 'MB';
+const MMTD_ACC      = '0978076936';
+const MMTD_HOLDER   = 'LE DANG PHUONG';
+let mmtdRef = '';
+let mmtdPoll = null;
+
+// Đọc ?ref= từ URL, lưu vào localStorage, hiện badge
+(function(){
+  const p = new URLSearchParams(window.location.search);
+  const raw = p.get('ref') || p.get('aff') || '';
+  if (!raw) return;
+  const code = raw.replace(/[^a-z0-9_-]/gi,'').slice(0,32).toLowerCase();
+  if (!code) return;
+  localStorage.setItem('mmtd_ref', code);
+  const b = document.createElement('div');
+  b.style.cssText = 'position:fixed;bottom:20px;left:20px;background:rgba(8,8,8,.93);border:1px solid rgba(255,215,0,.45);border-radius:10px;padding:10px 14px;font-size:.78rem;color:#FFD700;z-index:1500;max-width:220px;line-height:1.6;transition:opacity .4s';
+  b.innerHTML = '✦ Affiliate: <strong>' + code + '</strong><br><span style="color:#A1A1AA;font-size:.72rem">Link đã được ghi nhận</span>';
+  document.body.appendChild(b);
+  setTimeout(()=>{ b.style.opacity='0'; setTimeout(()=>b.remove(),400); }, 6000);
+})();
+
+function mmtdGetAff(){ return localStorage.getItem('mmtd_ref') || ''; }
+
+function mmtdGenCode(name){
+  const ts  = Date.now().toString(36).toUpperCase().slice(-4);
+  const nm  = name.trim().split(' ').pop().toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);
+  return 'BOOK' + nm + ts;
+}
+
+function mmtdOpenCheckout(){
+  const ov = document.getElementById('mmtd-ov');
+  if (!ov) return;
+  ov.style.display = 'flex';
+  document.getElementById('mmtd-step-form').style.display = 'block';
+  document.getElementById('mmtd-step-qr').style.display   = 'none';
+  document.getElementById('mmtd-step-ok').style.display   = 'none';
+  document.body.style.overflow = 'hidden';
+}
+
+function mmtdClose(){
+  document.getElementById('mmtd-ov').style.display = 'none';
+  document.body.style.overflow = '';
+  if (mmtdPoll){ clearInterval(mmtdPoll); mmtdPoll = null; }
+}
+
+function mmtdSubmit(e){
+  e.preventDefault();
+  const name  = document.getElementById('mmtd-name').value.trim();
+  const phone = document.getElementById('mmtd-phone').value.trim();
+  const errEl = document.getElementById('mmtd-err');
+  if (!name){ errEl.textContent = 'Vui lòng nhập họ và tên.'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+  const btn = document.getElementById('mmtd-btn');
+  btn.textContent = 'Đang tạo...'; btn.disabled = true;
+
+  mmtdRef = mmtdGenCode(name);
+  const qr = `https://img.vietqr.io/image/${MMTD_BANK}-${MMTD_ACC}-compact2.png?amount=${MMTD_PRICE}&addInfo=${encodeURIComponent(mmtdRef)}&accountName=${encodeURIComponent(MMTD_HOLDER)}`;
+  document.getElementById('mmtd-qr').src = qr;
+  document.getElementById('mmtd-ref').textContent = mmtdRef;
+
+  document.getElementById('mmtd-step-form').style.display = 'none';
+  document.getElementById('mmtd-step-qr').style.display   = 'block';
+  btn.textContent = '🚀 Xem QR Thanh Toán'; btn.disabled = false;
+
+  fetch(MMTD_WEBHOOK,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action:'register', ref:mmtdRef, aff:mmtdGetAff(),
+      product:'Mật Mã Tự Do', pkg:'book', name, phone, price:MMTD_PRICE, referrer:document.referrer||'' })
+  }).catch(()=>{});
+
+  mmtdPoll = setInterval(async()=>{
+    try{
+      const r = await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(mmtdRef)}`);
+      if(r.ok){ const d=await r.json(); if(d?.paid){
+        clearInterval(mmtdPoll); mmtdPoll=null;
+        document.getElementById('mmtd-step-qr').style.display='none';
+        document.getElementById('mmtd-step-ok').style.display='block';
+      }}
+    }catch(e){}
+  }, 4000);
+}
+
+function mmtdCopyRef(){
+  navigator.clipboard?.writeText(mmtdRef).catch(()=>{});
+  const b=document.getElementById('mmtd-copy-ref');
+  if(b){ b.textContent='✓'; setTimeout(()=>b.textContent='Copy',1500); }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const ov=document.getElementById('mmtd-ov');
+  if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) mmtdClose(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') mmtdClose(); });
+});
 </script>
 
 <!-- AUTH MODAL -->
@@ -1572,5 +1672,81 @@ function toggleLang(){
     </div>
   </div>
 </div>
+<!-- CHECKOUT MODAL — Mật Mã Tự Do -->
+<div id="mmtd-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3000;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#111;border:1px solid rgba(255,215,0,.22);border-radius:20px;width:100%;max-width:430px;padding:32px;position:relative;max-height:92vh;overflow-y:auto">
+    <button onclick="mmtdClose()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#A1A1AA;font-size:1.4rem;cursor:pointer;line-height:1">✕</button>
+
+    <!-- BƯỚC 1: Form -->
+    <div id="mmtd-step-form">
+      <p style="font-size:.72rem;font-weight:700;color:#FFD700;letter-spacing:.8px;margin-bottom:6px">📘 ĐẶT SÁCH</p>
+      <h2 style="font-size:1.1rem;font-weight:900;margin-bottom:4px;color:#fff">Mật Mã Tự Do — Affiliate AI</h2>
+      <p style="font-size:.8rem;color:#A1A1AA;margin-bottom:20px">5 chương + 4 bonus · Cập nhật vĩnh viễn</p>
+      <form id="mmtd-form" onsubmit="mmtdSubmit(event)">
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:.72rem;font-weight:700;color:#A1A1AA;margin-bottom:6px;letter-spacing:.4px">HỌ VÀ TÊN *</label>
+          <input id="mmtd-name" type="text" required placeholder="Nguyễn Văn A" style="width:100%;background:#1c1c1c;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:.9rem;outline:none;font-family:inherit;transition:border-color .2s" onfocus="this.style.borderColor='rgba(255,215,0,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="display:block;font-size:.72rem;font-weight:700;color:#A1A1AA;margin-bottom:6px;letter-spacing:.4px">SỐ ĐIỆN THOẠI</label>
+          <input id="mmtd-phone" type="tel" placeholder="0912 345 678" style="width:100%;background:#1c1c1c;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;color:#fff;font-size:.9rem;outline:none;font-family:inherit;transition:border-color .2s" onfocus="this.style.borderColor='rgba(255,215,0,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+        </div>
+        <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.15);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:.82rem;color:#A1A1AA">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span>Giá ra mắt</span>
+            <strong style="color:#FFD700;font-size:1.05rem">686.000đ</strong>
+          </div>
+          <div style="font-size:.74rem;text-decoration:line-through;color:#52525B">Giá gốc: 999.000đ</div>
+          <div style="font-size:.74rem;margin-top:6px;color:#4ADE80">🛡️ Hoàn tiền 100% trong 7 ngày nếu không hài lòng</div>
+        </div>
+        <div id="mmtd-err" style="display:none;color:#E53E3E;font-size:.82rem;margin-bottom:10px"></div>
+        <button id="mmtd-btn" type="submit" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:800;cursor:pointer;font-family:inherit;transition:opacity .2s">🚀 Xem QR Thanh Toán</button>
+      </form>
+    </div>
+
+    <!-- BƯỚC 2: QR -->
+    <div id="mmtd-step-qr" style="display:none;text-align:center">
+      <p style="font-size:.72rem;font-weight:700;color:#FFD700;letter-spacing:.8px;margin-bottom:6px">THANH TOÁN CHUYỂN KHOẢN</p>
+      <h3 style="font-size:1rem;font-weight:800;margin-bottom:14px;color:#fff">Quét QR hoặc chuyển khoản thủ công</h3>
+      <img id="mmtd-qr" src="" alt="QR thanh toán" style="width:200px;height:200px;border-radius:12px;border:3px solid #FFD700;margin:0 auto 16px;display:block;background:#fff">
+      <div style="background:#1c1c1c;border-radius:12px;padding:14px;text-align:left;font-size:.82rem;color:#A1A1AA;margin-bottom:14px">
+        <div style="margin-bottom:6px">Ngân hàng: <strong style="color:#fff">MB Bank</strong></div>
+        <div style="margin-bottom:6px">Số tài khoản: <strong style="color:#fff">0978076936</strong></div>
+        <div style="margin-bottom:6px">Chủ TK: <strong style="color:#fff">LE DANG PHUONG</strong></div>
+        <div style="margin-bottom:6px">Số tiền: <strong style="color:#FFD700">686.000đ</strong></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <span>Nội dung CK:</span>
+          <strong id="mmtd-ref" style="color:#FFD700;letter-spacing:.5px;font-family:monospace"></strong>
+          <button id="mmtd-copy-ref" onclick="mmtdCopyRef()" style="background:none;border:1px solid rgba(255,215,0,.3);border-radius:6px;padding:3px 10px;color:#FFD700;font-size:.74rem;cursor:pointer;font-family:inherit">Copy</button>
+        </div>
+      </div>
+      <div style="font-size:.75rem;color:#52525B;margin-bottom:20px;line-height:1.7">
+        Hệ thống tự động xác nhận sau khi nhận được tiền.<br>
+        Thông tin sách sẽ gửi về email trong <strong style="color:#A1A1AA">24 giờ</strong>.
+      </div>
+      <div id="mmtd-pulse" style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:.8rem;color:#A1A1AA;margin-bottom:16px">
+        <span style="display:inline-flex;gap:4px">
+          <span style="width:6px;height:6px;border-radius:50%;background:#FFD700;animation:pulse-dot 1.2s ease-in-out infinite"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:#FFD700;animation:pulse-dot 1.2s ease-in-out .3s infinite"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:#FFD700;animation:pulse-dot 1.2s ease-in-out .6s infinite"></span>
+        </span>
+        Đang chờ xác nhận thanh toán...
+      </div>
+      <button onclick="mmtdClose()" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 24px;color:#A1A1AA;font-size:.82rem;cursor:pointer;font-family:inherit">Quay lại sau</button>
+    </div>
+
+    <!-- BƯỚC 3: Thành công -->
+    <div id="mmtd-step-ok" style="display:none;text-align:center">
+      <div style="font-size:3.5rem;margin-bottom:16px">🎉</div>
+      <h2 style="font-size:1.2rem;font-weight:900;margin-bottom:10px;color:#fff">Thanh toán thành công!</h2>
+      <p style="font-size:.88rem;color:#A1A1AA;margin-bottom:8px;line-height:1.7">Sách + toàn bộ bonus sẽ được gửi về email của bạn <strong style="color:#fff">trong 24 giờ</strong>.</p>
+      <p style="font-size:.8rem;color:#52525B;margin-bottom:24px">Nhớ kiểm tra hòm thư spam nếu không thấy nhé!</p>
+      <button onclick="mmtdClose()" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:12px 28px;font-size:.92rem;font-weight:800;cursor:pointer;font-family:inherit">Đóng</button>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes pulse-dot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+</style>
 </body>
 </html>
