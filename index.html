@@ -185,22 +185,13 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .mm-card h3{font-size:17px;font-weight:800;margin-bottom:9px}
 .mm-card p{font-size:13px;color:var(--muted);line-height:1.65}
 
-/* ── CHAPTERS ── */
-.ch-list{margin-top:36px}
-.ch-item{border:1px solid var(--bdr-s);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:border-color .2s}
-.ch-item.open{border-color:var(--bdr)}
-.ch-hd{display:flex;align-items:center;gap:14px;padding:18px 22px;cursor:pointer;user-select:none;background:var(--bg-c);transition:background .2s}
-.ch-hd:hover{background:var(--bg-ch)}
-.ch-num{width:34px;height:34px;border-radius:50%;background:var(--gold-d);border:1px solid var(--bdr);color:var(--gold);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ch-title{flex:1;font-size:15px;font-weight:700}
-.ch-arr{color:var(--gold);font-size:16px;transition:transform .3s;flex-shrink:0}
-.ch-item.open .ch-arr{transform:rotate(180deg)}
-.ch-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
-.ch-body-i{padding:0 22px 18px 70px;border-top:1px solid var(--bdr-s);background:var(--bg-c)}
-.lesson-l{list-style:none;padding-top:14px}
-.lesson-l li{display:flex;align-items:flex-start;gap:9px;padding:7px 0;font-size:13px;color:var(--muted);border-bottom:1px solid var(--bdr-s)}
-.lesson-l li:last-child{border:none}
-.lesson-l li::before{content:'▸';color:var(--gold);font-size:11px;flex-shrink:0;margin-top:2px}
+/* ── CHAPTERS (combined) ── */
+.ch-v-list{max-width:680px;margin:44px auto 0}
+.ch-v-row{display:grid;grid-template-columns:56px 1fr;gap:22px;padding:26px 0;border-bottom:1px solid var(--bdr-s)}
+.ch-v-row:last-child{border-bottom:none}
+.ch-v-num{font-size:30px;font-weight:900;color:rgba(255,215,0,.22);line-height:1.1;padding-top:2px;letter-spacing:-1px}
+.ch-v-body h3{font-size:16px;font-weight:800;margin-bottom:6px;color:var(--txt)}
+.ch-v-body p{font-size:13px;color:var(--muted);line-height:1.65}
 
 /* ── AUTHOR ── */
 .author-wrap{display:grid;grid-template-columns:260px 1fr;gap:56px;align-items:center}
@@ -605,145 +596,54 @@ footer p{font-size:12px;color:var(--dim)}
   </div>
 </section>
 
-<!-- 5 MẬT MÃ -->
+<!-- NỘI DUNG SÁCH -->
 <section class="sec sec-alt">
-  <div class="container-wide">
-    <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl" data-i18n="mm.lbl">Nội Dung Sách</div>
-      <h2 class="sec-h" data-i18n="mm.h">5 Mật Mã Trong Cuốn Sách</h2>
-      <p class="sec-sub" style="margin:0 auto" data-i18n="mm.sub">Mỗi chương là một "mật mã" — bí quyết cụ thể để xây hệ thống affiliate AI của riêng bạn.</p>
-    </div>
-    <div class="mm-grid fade-up">
-      <div class="mm-card">
-        <div class="mm-num">01</div>
-        <div class="mm-icon">🧠</div>
-        <div class="mm-tag" data-i18n="mm.1.tag">Chương 1</div>
-        <h3 data-i18n="mm.1.h">Mật Mã Tư Duy</h3>
-        <p data-i18n="mm.1.p">Tại sao 95% người làm affiliate thất bại không phải vì thiếu công cụ — mà vì sai tư duy. Chương này reset toàn bộ cách bạn nhìn nhận affiliate.</p>
-      </div>
-      <div class="mm-card">
-        <div class="mm-num">02</div>
-        <div class="mm-icon">🎯</div>
-        <div class="mm-tag" data-i18n="mm.2.tag">Chương 2</div>
-        <h3 data-i18n="mm.2.h">Mật Mã Ngách</h3>
-        <p data-i18n="mm.2.p">Công thức 3 bước để AI phân tích và chọn ra ngách có lợi nhuận trong 10 phút. Biết chọn đúng sản phẩm là nền tảng của mọi thứ.</p>
-      </div>
-      <div class="mm-card">
-        <div class="mm-num">03</div>
-        <div class="mm-icon">⚡</div>
-        <div class="mm-tag" data-i18n="mm.3.tag">Chương 3</div>
-        <h3 data-i18n="mm.3.h">Mật Mã Content</h3>
-        <p data-i18n="mm.3.p">Bộ prompt độc quyền để AI tạo 30 bài content affiliate chỉ trong 1 giờ — đúng tone, đúng platform, đúng tâm lý người mua.</p>
-      </div>
-      <div class="mm-card">
-        <div class="mm-num">04</div>
-        <div class="mm-icon">🔄</div>
-        <div class="mm-tag" data-i18n="mm.4.tag">Chương 4</div>
-        <h3 data-i18n="mm.4.h">Mật Mã Phễu</h3>
-        <p data-i18n="mm.4.p">Xây phễu bán hàng tự động nuôi lead 24/7 — không cần chạy ads tốn kém, không cần nhắn tin thủ công từng người.</p>
-      </div>
-      <div class="mm-card">
-        <div class="mm-num">05</div>
-        <div class="mm-icon">🌅</div>
-        <div class="mm-tag" data-i18n="mm.5.tag">Chương 5</div>
-        <h3 data-i18n="mm.5.h">Mật Mã Tự Do</h3>
-        <p data-i18n="mm.5.p">Scale từ 1 lên nhiều sản phẩm, tự động hóa toàn bộ — để bạn có thể sống ở đâu, làm gì, mà thu nhập affiliate vẫn chạy.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CHAPTER DETAIL -->
-<section class="sec">
   <div class="container">
     <div class="fade-up" style="text-align:center">
-      <div class="sec-lbl" data-i18n="det.lbl">Chi Tiết</div>
-      <h2 class="sec-h" data-i18n="det.h">Bạn Sẽ Học Được Gì?</h2>
+      <div class="sec-lbl">Nội Dung Sách</div>
+      <h2 class="sec-h">5 Chương — 5 Mật Mã</h2>
+      <p class="sec-sub" style="margin:0 auto">Mỗi chương là một bí quyết cụ thể để xây hệ thống affiliate AI của riêng bạn.</p>
     </div>
-    <div class="ch-list fade-up">
+    <div class="ch-v-list fade-up">
 
-      <div class="ch-item">
-        <div class="ch-hd">
-          <div class="ch-num">1</div>
-          <div class="ch-title" data-i18n="det.ch1">Chương 1: Tư Duy Affiliate AI — Hiểu Đúng Để Không Đi Sai Đường</div>
-          <div class="ch-arr">▾</div>
+      <div class="ch-v-row">
+        <div class="ch-v-num">01</div>
+        <div class="ch-v-body">
+          <h3>Mật Mã Tư Duy</h3>
+          <p>Reset toàn bộ cách nhìn nhận affiliate — hiểu đúng tại sao 95% người thất bại không phải vì thiếu công cụ, mà vì sai nền tảng tư duy.</p>
         </div>
-        <div class="ch-body"><div class="ch-body-i">
-          <ul class="lesson-l">
-            <li>Affiliate AI khác gì affiliate truyền thống — và tại sao điều đó quan trọng</li>
-            <li>3 sai lầm tư duy khiến hầu hết mọi người làm affiliate mãi không ra tiền</li>
-            <li>Mô hình "1 người, nhiều hệ thống" — làm sao AI thay thế cả một đội nhóm</li>
-            <li>Xác định mục tiêu tài chính và ngược thiết kế hệ thống phù hợp</li>
-          </ul>
-        </div></div>
       </div>
 
-      <div class="ch-item">
-        <div class="ch-hd">
-          <div class="ch-num">2</div>
-          <div class="ch-title" data-i18n="det.ch2">Chương 2: Chọn Ngách & Sản Phẩm — Để AI Làm Trong 10 Phút</div>
-          <div class="ch-arr">▾</div>
+      <div class="ch-v-row">
+        <div class="ch-v-num">02</div>
+        <div class="ch-v-body">
+          <h3>Mật Mã Ngách</h3>
+          <p>Để AI chọn ngách có lợi nhuận trong 10 phút thay vì mất hàng tháng thử sai — đúng sản phẩm là nền tảng của mọi thứ.</p>
         </div>
-        <div class="ch-body"><div class="ch-body-i">
-          <ul class="lesson-l">
-            <li>Tiêu chí "sản phẩm affiliate ngon" mà 80% người làm affiliate bỏ qua</li>
-            <li>Prompt framework để AI phân tích và đề xuất ngách có tiềm năng</li>
-            <li>Cách đánh giá hoa hồng, cookie duration và conversion rate trước khi bắt đầu</li>
-            <li>Danh sách nền tảng affiliate tốt nhất tại Việt Nam và cách đăng ký</li>
-            <li>Checklist 10 điểm để xác nhận một sản phẩm đáng đầu tư thời gian</li>
-          </ul>
-        </div></div>
       </div>
 
-      <div class="ch-item">
-        <div class="ch-hd">
-          <div class="ch-num">3</div>
-          <div class="ch-title" data-i18n="det.ch3">Chương 3: Hệ Thống Content Tự Động Bằng AI</div>
-          <div class="ch-arr">▾</div>
+      <div class="ch-v-row">
+        <div class="ch-v-num">03</div>
+        <div class="ch-v-body">
+          <h3>Mật Mã Content</h3>
+          <p>Tạo 30 bài content affiliate đúng tâm lý người mua chỉ trong 1 giờ, đúng tone và đúng platform — bằng bộ prompt độc quyền.</p>
         </div>
-        <div class="ch-body"><div class="ch-body-i">
-          <ul class="lesson-l">
-            <li>Bộ 10 prompt master tạo content affiliate cho từng platform: TikTok, Facebook, YouTube, Blog</li>
-            <li>Công thức AIDA áp dụng cho affiliate content — AI viết đúng tâm lý người mua</li>
-            <li>Cách lên lịch và phân phối content đa kênh chỉ tốn 30 phút/tuần</li>
-            <li>Tái sử dụng 1 nội dung gốc thành 10 định dạng khác nhau bằng AI</li>
-            <li>SEO cơ bản cho affiliate blog — content chạy traffic mà không cần ads</li>
-          </ul>
-        </div></div>
       </div>
 
-      <div class="ch-item">
-        <div class="ch-hd">
-          <div class="ch-num">4</div>
-          <div class="ch-title" data-i18n="det.ch4">Chương 4: Phễu Bán Hàng & Traffic Thụ Động</div>
-          <div class="ch-arr">▾</div>
+      <div class="ch-v-row">
+        <div class="ch-v-num">04</div>
+        <div class="ch-v-body">
+          <h3>Mật Mã Phễu</h3>
+          <p>Xây phễu tự động nuôi lead 24/7 mà không cần chạy ads tốn kém hay nhắn tin thủ công từng người.</p>
         </div>
-        <div class="ch-body"><div class="ch-body-i">
-          <ul class="lesson-l">
-            <li>Giải phẫu phễu affiliate hoàn chỉnh: từ awareness đến purchase</li>
-            <li>Xây landing page affiliate bằng AI trong 2 giờ — không cần biết code</li>
-            <li>Email sequence tự động nuôi lead bằng AI — 7 email, 7 ngày, tự chạy</li>
-            <li>3 nguồn traffic miễn phí hiệu quả nhất: SEO, TikTok organic, Pinterest</li>
-            <li>Cách setup tracking để biết đúng kênh nào đang ra tiền</li>
-          </ul>
-        </div></div>
       </div>
 
-      <div class="ch-item">
-        <div class="ch-hd">
-          <div class="ch-num">5</div>
-          <div class="ch-title" data-i18n="det.ch5">Chương 5: Scale & Sống Tự Do — Hệ Thống Chạy Khi Bạn Ngủ</div>
-          <div class="ch-arr">▾</div>
+      <div class="ch-v-row">
+        <div class="ch-v-num">05</div>
+        <div class="ch-v-body">
+          <h3>Mật Mã Tự Do</h3>
+          <p>Scale sang nhiều sản phẩm, tự động hóa toàn bộ — thu nhập affiliate vẫn chạy dù bạn đang ở đâu hay làm gì.</p>
         </div>
-        <div class="ch-body"><div class="ch-body-i">
-          <ul class="lesson-l">
-            <li>Nhân mô hình từ 1 sản phẩm lên nhiều sản phẩm mà không tốn thêm sức</li>
-            <li>Dùng AI monitor performance và tự động điều chỉnh chiến lược</li>
-            <li>Outsource thông minh: việc nào nên thuê người, việc nào để AI làm</li>
-            <li>Lịch làm việc "chủ nhân hệ thống" — 2–4 giờ/tuần mà hệ thống vẫn chạy</li>
-            <li>Kế hoạch 90 ngày để có thu nhập thụ động đầu tiên từ affiliate AI</li>
-          </ul>
-        </div></div>
       </div>
 
     </div>
