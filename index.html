@@ -458,7 +458,7 @@ footer p{font-size:12px;color:var(--dim)}
 
     <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center">
       <a href="#pricing" class="btn-p" data-i18n="hero.cta1">Mở Khóa Ngay</a>
-      <a href="doc-thu.html" class="btn-p" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none" data-i18n="hero.cta2">📖 Đọc Thử Miễn Phí</a>
+      <a href="#" class="btn-p" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none" onclick="openDocThu();return false;" data-i18n="hero.cta2">📖 Đọc Thử Miễn Phí</a>
     </div>
     <div class="hero-author">
       <div class="hero-author-av">PM</div>
@@ -609,40 +609,40 @@ footer p{font-size:12px;color:var(--dim)}
       <div class="ch-v-row">
         <div class="ch-v-num">01</div>
         <div class="ch-v-body">
-          <h3>Mật Mã Tư Duy</h3>
-          <p>Reset toàn bộ cách nhìn nhận affiliate — hiểu đúng tại sao 95% người thất bại không phải vì thiếu công cụ, mà vì sai nền tảng tư duy.</p>
+          <h3>Tư Duy Affiliate AI — Hiểu Đúng Để Không Đi Sai Đường</h3>
+          <p>95% người làm affiliate thất bại không phải vì thiếu công cụ — mà vì sai tư duy. Chương này reset toàn bộ cách bạn nhìn nhận affiliate.</p>
         </div>
       </div>
 
       <div class="ch-v-row">
         <div class="ch-v-num">02</div>
         <div class="ch-v-body">
-          <h3>Mật Mã Ngách</h3>
-          <p>Để AI chọn ngách có lợi nhuận trong 10 phút thay vì mất hàng tháng thử sai — đúng sản phẩm là nền tảng của mọi thứ.</p>
+          <h3>Chọn Ngách & Sản Phẩm — Để AI Làm Trong 10 Phút</h3>
+          <p>Công thức 3 bước để AI phân tích và chọn ra ngách có lợi nhuận trong 10 phút. Biết chọn đúng sản phẩm là nền tảng của mọi thứ.</p>
         </div>
       </div>
 
       <div class="ch-v-row">
         <div class="ch-v-num">03</div>
         <div class="ch-v-body">
-          <h3>Mật Mã Content</h3>
-          <p>Tạo 30 bài content affiliate đúng tâm lý người mua chỉ trong 1 giờ, đúng tone và đúng platform — bằng bộ prompt độc quyền.</p>
+          <h3>Hệ Thống Content Tự Động Bằng AI</h3>
+          <p>Bộ prompt độc quyền để AI tạo 30 bài content affiliate chỉ trong 1 giờ — đúng tone, đúng platform, đúng tâm lý người mua.</p>
         </div>
       </div>
 
       <div class="ch-v-row">
         <div class="ch-v-num">04</div>
         <div class="ch-v-body">
-          <h3>Mật Mã Phễu</h3>
-          <p>Xây phễu tự động nuôi lead 24/7 mà không cần chạy ads tốn kém hay nhắn tin thủ công từng người.</p>
+          <h3>Phễu Bán Hàng & Traffic Thụ Động</h3>
+          <p>Xây phễu bán hàng tự động nuôi lead 24/7 — không cần chạy ads tốn kém, không cần nhắn tin thủ công từng người.</p>
         </div>
       </div>
 
       <div class="ch-v-row">
         <div class="ch-v-num">05</div>
         <div class="ch-v-body">
-          <h3>Mật Mã Tự Do</h3>
-          <p>Scale sang nhiều sản phẩm, tự động hóa toàn bộ — thu nhập affiliate vẫn chạy dù bạn đang ở đâu hay làm gì.</p>
+          <h3>Scale & Sống Tự Do — Hệ Thống Chạy Khi Bạn Ngủ</h3>
+          <p>Scale từ 1 lên nhiều sản phẩm, tự động hóa toàn bộ — để bạn có thể sống ở đâu, làm gì, mà thu nhập affiliate vẫn chạy.</p>
         </div>
       </div>
 
@@ -1045,6 +1045,8 @@ function pmInitFirebase() {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'reader_login', email: user.email, name: u.name })
         }).catch(() => {});
+        const redir = localStorage.getItem('pm_after_login');
+        if (redir) { localStorage.removeItem('pm_after_login'); window.location.href = redir; }
       } else {
         pmShowLogin();
       }
@@ -1093,6 +1095,15 @@ function pmOpenModal(step) {
 function pmCloseModal(e) {
   if (!e || e.target === document.getElementById('pm-modal')) {
     document.getElementById('pm-modal').style.display = 'none';
+  }
+}
+
+function openDocThu() {
+  if (window.pmAuth && window.pmAuth.currentUser) {
+    window.location.href = 'doc-thu.html';
+  } else {
+    localStorage.setItem('pm_after_login', 'doc-thu.html');
+    pmOpenModal('welcome');
   }
 }
 
