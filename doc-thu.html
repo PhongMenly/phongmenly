@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer"><!-- để giọng Google translate_tts chạy được cả khi deploy lên web -->
+<title>Đọc Thử: Mật Mã Tự Do — Phong Menly</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
+<style>
+/* ══════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  background:#b8b5b0;
+  background-image:
+    repeating-linear-gradient( 45deg,transparent,transparent 22px,rgba(0,0,0,.016) 22px,rgba(0,0,0,.016) 44px),
+    repeating-linear-gradient(-45deg,transparent,transparent 22px,rgba(0,0,0,.011) 22px,rgba(0,0,0,.011) 44px);
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  overflow-x:hidden;
+  padding-bottom:72px;
+}
+
+#app{
+  transform-origin:top center;
+  position:relative;
+  transition:transform .5s cubic-bezier(.22,.61,.36,1); /* canh giữa bìa: trượt êm, không lắc */
+}
+
+/* Đường gáy giữa hai trang — chỉ hiện khi mở đôi, ẩn lúc đang lật */
+#gutter{
+  position:absolute;top:0;bottom:0;left:50%;
+  width:90px;margin-left:-45px;
+  pointer-events:none;z-index:45;
+  opacity:0;transition:opacity .4s ease;
+  /* Gáy sách: hai trang cong vào tâm — sáng ở mép, tối dần vào khe giữa */
+  background:linear-gradient(to right,
+    rgba(255,255,255,0)   0%,
+    rgba(255,255,255,.35) 12%,
+    rgba(0,0,0,.04)       34%,
+    rgba(0,0,0,.16)       48%,
+    rgba(0,0,0,.22)       50%,
+    rgba(0,0,0,.16)       52%,
+    rgba(0,0,0,.04)       66%,
+    rgba(255,255,255,.35) 88%,
+    rgba(255,255,255,0)  100%);
+}
+#app.spread:not(.flipping) #gutter{opacity:1;}
+
+/* Mép sách: các lớp trang xếp chồng hai bên — chỉ hiện khi mở đôi */
+#app.spread::before,
+#app.spread::after{
+  content:'';position:absolute;top:6px;bottom:6px;width:9px;
+  pointer-events:none;z-index:-1;
+  box-shadow:0 3px 9px rgba(0,0,0,.22);
+}
+#app.spread::before{                 /* mép trái */
+  left:-8px;border-radius:3px 0 0 3px;
+  background:repeating-linear-gradient(to left,
+    rgba(0,0,0,.10) 0, rgba(0,0,0,.10) 1px,
+    rgba(196,176,134,.5) 1px, rgba(196,176,134,.5) 1.6px,
+    rgba(255,255,255,.7) 1.6px, rgba(255,255,255,.7) 3px);
+}
+#app.spread::after{                  /* mép phải */
+  right:-8px;border-radius:0 3px 3px 0;
+  background:repeating-linear-gradient(to right,
+    rgba(0,0,0,.10) 0, rgba(0,0,0,.10) 1px,
+    rgba(196,176,134,.5) 1px, rgba(196,176,134,.5) 1.6px,
+    rgba(255,255,255,.7) 1.6px, rgba(255,255,255,.7) 3px);
+}
+
+/* Bóng nền nâng cả cuốn sách lên — chiều sâu giấy dày (không dùng filter để khỏi phá hiệu ứng lật 3D) */
+#app.spread #book{box-shadow:0 16px 34px rgba(0,0,0,.22);}
+
+/* ══════════════════════════════════════════
+   TRANG — nền ấm tự nhiên như giấy sách
+══════════════════════════════════════════ */
+.page{
+  background-color:var(--paper-color);
+  background-image:var(--paper-img);
+  overflow:hidden;
+  position:relative;
+  font-family:'Lora',Georgia,serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  backface-visibility:hidden;
+}
+
+/* ── Biến chung ── */
+:root{
+  --gold:#b87c14;
+  --gold-light:rgba(184,124,20,.18);
+  --ink:#1c1c1c;
+  --ink-light:rgba(28,28,28,.45);
+
+  /* Giấy cao cấp: ngà ấm + thớ giấy mịn + chiều sâu mép trang */
+  --paper-color:#fbf8f1;
+  --paper-img:
+    radial-gradient(125% 115% at 50% 45%, rgba(255,255,255,.5) 38%, rgba(120,92,42,.07) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════════
+   BÌA TRƯỚC
+══════════════════════════════════════════ */
+.cv{background:#080808;}
+
+.cv .bg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  filter:brightness(.78) contrast(1.06);
+}
+
+.cv .ov{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,
+    rgba(0,0,0,.84) 0%,
+    rgba(0,0,0,.36) 28%,
+    rgba(0,0,0,.00) 52%,
+    rgba(0,0,0,.70) 100%);
+}
+
+.cv .top{
+  position:absolute;top:0;left:0;right:0;
+  padding:36px 16px 0;text-align:center;
+}
+
+.cv .series{
+  font-family:'Oswald',sans-serif;font-weight:300;
+  font-size:9.5px;letter-spacing:7px;
+  color:rgba(255,215,0,.68);
+  display:block;margin-bottom:11px;
+  text-transform:uppercase;
+}
+
+.cv .t1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:84px;line-height:.86;
+  color:#fff;letter-spacing:3px;
+  display:block;
+  text-shadow:2px 3px 12px rgba(0,0,0,.8);
+}
+
+.cv .rule{
+  width:50%;height:1px;margin:14px auto;
+  background:linear-gradient(to right,transparent,rgba(255,215,0,.6),transparent);
+}
+
+.cv .t2{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:32px;letter-spacing:8px;
+  color:#FFD700;
+  text-shadow:2px 2px 0 rgba(0,0,0,.85);
+  display:block;
+}
+
+.cv .bot{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:0 20px 24px;text-align:center;
+}
+
+.cv .tagline{
+  font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:15px;color:#fff;letter-spacing:.5px;
+  margin-bottom:12px;
+  text-shadow:0 1px 10px rgba(0,0,0,.7);
+}
+.cv .tagline b{color:#FFD700;font-weight:700;}
+
+.cv .al{
+  width:36%;height:1px;margin:0 auto 10px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.28),transparent);
+}
+
+.cv .auth{
+  font-family:'Oswald',sans-serif;font-weight:300;
+  font-size:9.5px;letter-spacing:3px;
+  color:rgba(255,255,255,.72);text-transform:uppercase;
+}
+.cv .auth b{font-weight:600;color:rgba(255,255,255,.92);}
+
+/* ══════════════════════════════════════════
+   TRANG NỘI DUNG CHUẨN
+   .cp = content page
+══════════════════════════════════════════ */
+.cp{
+  padding:44px 50px 36px;
+  display:flex;flex-direction:column;
+  height:100%;
+}
+
+/* Trang tiếp theo (không có tiêu đề) — bù khoảng trống header */
+.cp-cont{
+  padding-top:84px;
+}
+
+/* Tiêu đề trang */
+.pt{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:10px;letter-spacing:5px;
+  color:var(--gold);text-align:center;
+  margin-bottom:10px;text-transform:uppercase;
+}
+
+/* Rule dưới tiêu đề */
+.pt-rule{
+  width:36%;height:1px;margin:0 auto 20px;
+  background:linear-gradient(to right,transparent,rgba(184,124,20,.5),transparent);
+}
+
+/* Body text */
+.pb{
+  font-family:'Lora',Georgia,serif;font-weight:400;
+  font-size:13px;line-height:1.78;
+  color:#1a1a1a;text-align:justify;
+  flex:1;hyphens:auto;word-break:break-word;
+}
+
+.pb p{text-indent:2em;margin-bottom:0;}
+.pb p.ni{text-indent:0;}
+.pb p+p{margin-top:4px;}
+.pb b{font-weight:700;color:#8c5e00;}
+.pb i{font-style:italic;color:#1a1a1a;}
+
+/* Ký tên */
+.sig{
+  margin-top:16px;text-align:right;
+  font-family:'Lora',serif;font-style:italic;
+  font-size:12px;color:#333;
+}
+
+/* Số trang */
+.pn{
+  text-align:center;margin-top:12px;
+  font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:10px;color:var(--gold);letter-spacing:2px;
+}
+
+/* ══════════════════════════════════════════
+   MỤC LỤC
+══════════════════════════════════════════ */
+.toc{
+  padding:48px 42px 36px;
+  display:flex;flex-direction:column;
+  height:100%;
+  background-color:var(--paper-color);
+  background-image:radial-gradient(ellipse at 50% 0%,rgba(184,124,20,.06),transparent 58%),var(--paper-img);
+}
+
+.toc-hd{text-align:center;margin-bottom:13px;}
+
+.toc-kick{
+  font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:9px;letter-spacing:6px;
+  color:rgba(184,124,20,.85);
+  display:block;margin-bottom:7px;text-transform:uppercase;
+}
+
+.toc-h{
+  font-family:'Montserrat',sans-serif;font-weight:700;
+  font-size:21px;color:#111;letter-spacing:4px;
+  text-transform:uppercase;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+
+.toc-r{
+  width:40%;height:1px;margin:10px auto 0;
+  background:linear-gradient(to right,transparent,rgba(184,124,20,.5),transparent);
+}
+
+.toc ol{list-style:none;flex:1;display:flex;flex-direction:column;justify-content:center;gap:0;}
+
+.toc li{
+  padding:5px 0;
+  border-bottom:1px solid rgba(0,0,0,.07);
+}
+.toc li:last-child{border-bottom:none;}
+
+.toc-row{display:flex;align-items:baseline;gap:10px;}
+
+.toc-no{
+  font-family:'Bebas Neue',sans-serif;font-size:16px;
+  color:rgba(184,124,20,.9);letter-spacing:1px;min-width:26px;
+  -webkit-font-smoothing:antialiased;
+}
+
+.toc-t{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:13px;color:#1a1a1a;
+  letter-spacing:.3px;line-height:1.15;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+
+.toc-s{
+  font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:8.5px;letter-spacing:1.3px;
+  color:rgba(28,28,28,.62);
+  margin-left:36px;margin-top:1px;text-transform:uppercase;
+}
+
+.toc li.hl .toc-no{color:var(--gold);}
+.toc li.hl .toc-t{color:var(--gold);}
+.toc li.hl .toc-s{color:rgba(184,124,20,.6);}
+
+.toc-ft{
+  text-align:center;margin-top:10px;
+  font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:9px;letter-spacing:3px;
+  color:rgba(0,0,0,.55);text-transform:uppercase;
+}
+
+/* Số trang trong Mục lục — cân đối sau khi thu hẹp khoảng cách */
+.toc .pn{margin-top:8px;font-size:9px;}
+
+/* ══════════════════════════════════════════
+   CHAPTER OPENER (trang mở chương)
+══════════════════════════════════════════ */
+.ch-open{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  height:100%;
+  padding:48px 40px;
+  background-color:var(--paper-color);
+  background-image:var(--paper-img);
+  text-align:center;
+}
+
+.ch-open.gold-open{
+  background:linear-gradient(160deg,#fef9ee 0%,#fdf5e0 100%);
+}
+
+.ch-num{
+  font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:9.5px;letter-spacing:7px;
+  color:rgba(28,28,28,.65);text-transform:uppercase;
+  margin-bottom:16px;
+}
+
+.ch-open .ch-rule{
+  width:40px;height:1px;
+  background:linear-gradient(to right,transparent,var(--gold),transparent);
+  margin:0 auto 16px;
+}
+
+.ch-title{
+  font-family:'Montserrat',sans-serif;font-weight:500;   /* Medium */
+  font-size:27px;color:var(--ink);
+  letter-spacing:2.5px;text-transform:uppercase;          /* in hoa, tracking cân đối */
+  line-height:1.3;
+}
+
+.ch-open.gold-open .ch-title{color:var(--gold);}
+
+.ch-sub{
+  font-family:'Lora',serif;font-style:italic;
+  font-size:12px;color:rgba(28,28,28,.72);
+  margin-top:14px;line-height:1.65;
+  max-width:80%;
+}
+
+.ch-open .pn{position:absolute;bottom:22px;left:0;right:0;}
+
+/* Chapter opener variant có ảnh minh họa phía trên */
+.ch-open.has-img{justify-content:flex-start;padding:0 0 40px;}
+/* Tỉ lệ gốc ảnh (1499×773) → hiện trọn ảnh, không cắt nội dung; tự co theo bề ngang trang */
+.ch-open .ch-img{width:calc(100% - 16px);margin:0 8px;aspect-ratio:1499/773;overflow:hidden;flex-shrink:0;border-radius:3px;}
+.ch-open .ch-img img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
+.ch-open.has-img .ch-body{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:40px 40px 10px;
+}
+.ch-open .ch-story{
+  padding:0 44px 12px;flex-shrink:0;
+  border-top:1px solid rgba(184,124,20,.2);
+  margin-top:6px;
+}
+.ch-open .ch-story p{
+  font-family:'Lora',Georgia,serif;font-size:11.5px;
+  line-height:1.74;color:#2a2a2a;
+  text-align:justify;margin-bottom:4px;text-indent:0;
+}
+.ch-open .ch-story .bq{
+  border-left:2px solid var(--gold);
+  padding:2px 0 2px 12px;margin:6px 0;
+  font-style:italic;color:#222;
+  font-size:11px;line-height:1.65;
+}
+
+/* ══════════════════════════════════════════
+   LỜI NGỎ — trang có ảnh minh họa
+══════════════════════════════════════════ */
+.lo-img{
+  width:calc(100% + 100px);
+  margin:10px -50px 16px;
+  height:200px;
+  overflow:hidden;
+  border-radius:0;
+}
+.lo-img img{
+  width:100%;height:100%;
+  object-fit:cover;
+  object-position:center 28%;
+  display:block;
+}
+/* Dải 3 ảnh ghép ngang (triptych) */
+.lo-trip{ display:flex; gap:0; }
+.lo-trip img{
+  flex:1 1 0; width:0;
+  object-position:center 30%;
+  border-right:2px solid var(--gold);
+}
+.lo-trip img:last-child{ border-right:0; }
+
+/* ══ MOBILE: đảm bảo mọi trang đọc thử hiện đầy đủ, không bị cắt ══ */
+@media(max-width:720px){
+  /* Lưới an toàn: trang nội dung nào dài hơn khổ thì cuộn được trong khung,
+     không bao giờ mất chữ/số trang ở cuối (vd trang Lời Ngỏ) */
+  .page.cp, .page.ch-open, .page.win-page, .page.toc, .page.tx-end{
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  /* Trang Lời Ngỏ: thu gọn ảnh + giãn dòng vừa phải để gọn trong khổ */
+  .lo-page{ padding-top:26px; padding-bottom:24px; }
+  .lo-page .lo-img{ height:128px; margin:4px -50px 12px; }
+  .lo-page .pt-rule{ margin-bottom:12px; }
+  .lo-page .pb{ font-size:12px; line-height:1.6; }
+  .lo-page .pb p+p{ margin-top:3px; }
+  .lo-page .pb .bq{ margin:6px 0 8px; line-height:1.55; }
+  .lo-page .sig{ margin-top:10px; }
+  .lo-page .pn{ margin-top:8px; }
+}
+
+/* Thông điệp có số thứ tự */
+.pb .msg{
+  border-left:2.5px solid var(--gold);
+  padding:6px 0 6px 14px;
+  margin:10px 0 5px;
+  background:rgba(184,124,20,.05);
+  border-radius:0 3px 3px 0;
+}
+.pb .msg-no{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:8.5px;letter-spacing:3.5px;
+  color:var(--gold);text-transform:uppercase;
+  display:block;margin-bottom:4px;
+}
+.pb .msg-txt{
+  font-style:italic;color:#1e1e1e;
+  font-size:12px;line-height:1.72;
+  display:block;
+}
+
+/* Trích dẫn — đường kẻ vàng bên trái */
+.pb .bq{
+  border-left:2.5px solid var(--gold);
+  padding:2px 0 2px 14px;
+  margin:8px 0 10px;
+  font-style:italic;
+  color:#222;
+  font-size:13px;
+  line-height:1.7;
+  text-indent:0;
+}
+
+/* Grid 4 thị trường affiliate */
+.mkt-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:7px;margin:12px 0 14px;
+}
+.mkt-card{
+  border:1px solid rgba(184,124,20,.28);
+  border-radius:4px;padding:8px 10px;
+  background:rgba(184,124,20,.05);
+}
+.mkt-card.hl{
+  border-color:var(--gold);
+  background:rgba(184,124,20,.11);
+}
+.mkt-card .mc-label{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:9px;letter-spacing:3px;
+  color:var(--gold);text-transform:uppercase;
+  display:block;margin-bottom:4px;
+}
+.mkt-card.hl .mc-label{color:#8c5e00;}
+.mkt-card .mc-list{
+  font-family:'Lora',serif;font-size:10.5px;
+  color:#2a2a2a;line-height:1.6;
+  padding-left:0;list-style:none;
+}
+.mkt-card .mc-list li::before{
+  content:'·';color:var(--gold);
+  margin-right:5px;font-weight:700;
+}
+.mkt-card.hl .mc-list{color:#1a1a1a;}
+
+/* Ảnh phân tích + tiêu đề 4 thị trường */
+/* Tỉ lệ gốc ảnh (2736×1536) → hiện trọn sơ đồ 4 thị trường, không cắt; tự co theo bề ngang trang */
+.mkt-img{width:100%;margin:0 0 2px;aspect-ratio:2736/1536;overflow:hidden;flex-shrink:0;border-radius:4px;}
+.mkt-img img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
+.mkt-title{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:10.5px;letter-spacing:5px;text-transform:uppercase;
+  color:var(--gold);text-align:center;padding:0 0 8px;
+}
+.mkt-card.hl .mc-new{
+  display:inline-block;margin-top:5px;
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:8.5px;
+  letter-spacing:2px;text-transform:uppercase;color:#7a4500;
+  background:rgba(184,124,20,.18);border-radius:2px;
+  padding:2px 6px;
+}
+/* Industry tags inside each card */
+.mc-tags{display:flex;flex-wrap:wrap;gap:2px;margin:2px 0 5px;}
+.mc-tag{
+  font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:7.5px;letter-spacing:.5px;
+  color:rgba(28,28,28,.52);
+  background:rgba(184,124,20,.06);
+  border:1px solid rgba(184,124,20,.18);
+  border-radius:2px;padding:1px 4px;
+}
+.mkt-card.hl .mc-tag{
+  color:#7a4a00;
+  background:rgba(184,124,20,.13);
+  border-color:rgba(184,124,20,.32);
+}
+
+/* ══════════════════════════════════════════
+   BÌA SAU
+══════════════════════════════════════════ */
+.bc{background:#080808;}
+
+.bc .bg{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;
+  filter:brightness(.62) contrast(1.06);
+}
+.bc .ov{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom,
+    rgba(8,8,8,.86) 0%,
+    rgba(8,8,8,.42) 30%,
+    rgba(8,8,8,.42) 58%,
+    rgba(8,8,8,.93) 100%);
+}
+
+.bc-inner{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-start;   /* đưa chữ lên vùng trống phía trên */
+  text-align:center;padding:110px 44px 0;
+}
+.bc-series{
+  font-family:'Oswald',sans-serif;font-weight:300;
+  font-size:9.5px;letter-spacing:6px;
+  color:rgba(255,215,0,.7);text-transform:uppercase;
+  margin-bottom:26px;
+}
+.bc-quote{
+  font-family:'Montserrat',sans-serif;font-weight:700;
+  font-size:25px;letter-spacing:.3px;color:#fff;line-height:1.2;
+  text-shadow:0 2px 16px rgba(0,0,0,.9);
+}
+.bc-quote b{color:#FFD700;font-weight:700;
+  text-shadow:0 0 22px rgba(255,215,0,.55),0 2px 14px rgba(0,0,0,.85);}
+.bc-desc{
+  font-family:'Montserrat',sans-serif;font-weight:400;
+  font-size:11px;line-height:1.9;color:rgba(255,255,255,.82);
+  max-width:92%;margin-top:18px;
+  text-shadow:0 1px 8px rgba(0,0,0,.8);
+}
+.bc-rule{
+  width:46px;height:1px;margin:22px auto;
+  background:linear-gradient(to right,transparent,rgba(255,215,0,.6),transparent);
+}
+.bc-tagline{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:13.5px;letter-spacing:4px;
+  color:#FFD700;text-transform:uppercase;
+  text-shadow:0 0 16px rgba(255,215,0,.45),0 2px 10px rgba(0,0,0,.95);
+}
+.bc-tagline b{font-weight:700;color:#FFD700;}
+.bc-foot{
+  position:absolute;bottom:30px;left:0;right:0;text-align:center;
+}
+.bc-auth{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.9);
+  text-transform:uppercase;
+}
+.bc-mark{
+  font-family:'Montserrat',sans-serif;font-weight:600;
+  font-size:9px;letter-spacing:5px;color:rgba(255,215,0,.4);
+  text-transform:uppercase;margin-top:10px;
+}
+
+/* ══════════════════════════════════════════
+   CONTROLS
+══════════════════════════════════════════ */
+#bar{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:4px;
+  background:rgba(14,14,14,.88);
+  padding:7px 14px;border-radius:40px;
+  backdrop-filter:blur(16px);z-index:300;
+  box-shadow:0 4px 28px rgba(0,0,0,.38);
+}
+
+#bar button{
+  background:none;border:none;
+  color:rgba(255,255,255,.72);
+  cursor:pointer;font-size:13px;
+  padding:3px 8px;border-radius:6px;
+  transition:all .15s;line-height:1;
+}
+#bar button:hover{background:rgba(255,255,255,.12);color:#fff;}
+
+#bar .info{
+  font-family:'Oswald',sans-serif;font-weight:300;
+  font-size:10px;color:rgba(255,255,255,.5);
+  letter-spacing:2px;min-width:80px;text-align:center;
+  padding:0 4px;user-select:none;
+}
+
+.top-bar{
+  position:fixed;top:14px;right:14px;
+  display:flex;gap:8px;z-index:300;
+}
+.top-bar button{
+  background:rgba(14,14,14,.65);border:none;
+  color:rgba(255,255,255,.72);
+  width:34px;height:34px;border-radius:50%;
+  cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(12px);transition:all .15s;
+}
+.top-bar button:hover{background:rgba(0,0,0,.9);color:#fff;}
+/* Nút tốc độ hiển thị chữ số */
+#btn-speed{font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:.3px;}
+/* Đang đọc: nút sáng vàng + nhịp thở nhẹ */
+.top-bar button.on{background:var(--gold);color:#fff;animation:readpulse 1.6s ease-in-out infinite;}
+@keyframes readpulse{0%,100%{box-shadow:0 0 0 0 rgba(184,124,20,.5);}50%{box-shadow:0 0 0 6px rgba(184,124,20,0);}}
+
+/* Đoạn đang được đọc — tô sáng nhẹ kiểu highlight giấy */
+.page .reading{
+  background:linear-gradient(90deg,rgba(184,124,20,.18),rgba(184,124,20,.07));
+  box-shadow:inset 3px 0 0 var(--gold);
+  border-radius:3px;
+  transition:background .25s ease, box-shadow .25s ease;
+}
+
+/* Toast thông báo nhỏ */
+#toast{
+  position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(8px);
+  background:rgba(20,20,20,.92);color:#fff;
+  font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.3px;
+  padding:9px 16px;border-radius:20px;z-index:400;
+  max-width:80vw;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .3s ease, transform .3s ease;
+  backdrop-filter:blur(10px);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Nút lật 2 bên ── */
+.side{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(14,14,14,.45);border:none;color:#fff;
+  font-size:26px;line-height:1;cursor:pointer;z-index:250;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(10px);opacity:.55;
+  transition:background .15s,opacity .2s,transform .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.side:hover{background:rgba(0,0,0,.85);opacity:1;}
+.side:active{transform:translateY(-50%) scale(.92);}
+.side:disabled{opacity:.12;cursor:default;}
+#navL{left:16px;} #navR{right:16px;}
+
+/* ── Thanh trượt tiến độ ── */
+#bar input#seek{
+  -webkit-appearance:none;appearance:none;
+  width:230px;height:4px;border-radius:3px;
+  background:rgba(255,255,255,.18);
+  cursor:pointer;outline:none;margin:0 4px;
+}
+#bar input#seek::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--gold);border:2px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.5);transition:transform .12s;
+}
+#bar input#seek::-webkit-slider-thumb:active{transform:scale(1.25);}
+#bar input#seek::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;
+  background:var(--gold);border:2px solid #fff;cursor:pointer;
+}
+
+@media(max-width:720px){
+  .side{width:42px;height:42px;font-size:22px;opacity:.7;}
+  #navL{left:8px;} #navR{right:8px;}
+  #bar input#seek{width:150px;}
+}
+
+/* ══ WIN CRITERIA PAGE ══ */
+.win-page{
+  padding:32px 40px 24px;
+  display:flex;flex-direction:column;
+}
+.wp-head{text-align:center;margin-bottom:12px;}
+.wp-kicker{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:8px;letter-spacing:5px;
+  color:var(--gold);text-transform:uppercase;
+  display:block;margin-bottom:5px;
+}
+.wp-title{
+  font-family:'Bebas Neue',sans-serif;font-size:30px;
+  letter-spacing:8px;color:var(--ink);line-height:1;
+}
+.wp-rule{
+  width:52%;height:1px;margin:9px auto 0;
+  background:linear-gradient(to right,transparent,var(--gold),transparent);
+}
+.win-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:7px;flex:1;
+}
+.win-box{
+  border:1px solid rgba(184,124,20,.28);border-radius:4px;
+  padding:9px 8px 8px;
+  background:rgba(184,124,20,.04);
+  display:flex;flex-direction:column;
+}
+.win-box.wb-hl{
+  border-color:var(--gold);
+  background:rgba(184,124,20,.09);
+}
+.wb-cat{
+  font-family:'Oswald',sans-serif;font-weight:700;
+  font-size:7px;letter-spacing:3px;
+  color:var(--gold);text-transform:uppercase;
+  display:block;margin-bottom:3px;
+}
+.wb-title{
+  font-family:'Bebas Neue',sans-serif;font-size:15px;
+  letter-spacing:3px;color:var(--ink);
+  border-bottom:1px solid rgba(184,124,20,.25);
+  padding-bottom:5px;margin-bottom:6px;line-height:1;
+}
+.wb-list{list-style:none;padding:0;margin:0;flex:1;}
+.wb-list li{
+  font-family:'Lora',serif;font-size:8.5px;
+  color:var(--ink);line-height:1.5;
+  padding:3.5px 0;
+  border-bottom:1px solid rgba(184,124,20,.12);
+  display:flex;gap:5px;align-items:flex-start;
+}
+.wb-list li:last-child{border-bottom:none;}
+.wb-list li .wn{
+  font-family:'Bebas Neue',sans-serif;font-size:13px;
+  color:var(--gold);line-height:1.15;
+  flex-shrink:0;min-width:10px;font-weight:400;
+}
+.wb-list li b{color:var(--gold);font-weight:700;}
+.wp-cta{
+  margin-top:10px;padding-top:9px;
+  border-top:1px solid rgba(184,124,20,.2);
+}
+.wp-cta p{
+  font-family:'Lora',serif;font-size:9px;
+  color:var(--ink);line-height:1.65;
+  text-align:center;margin-bottom:3px;font-style:italic;
+}
+.wp-cta .wc-sig{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:9px;letter-spacing:2px;
+  color:var(--gold);text-align:right;margin-top:6px;
+}
+
+/* ══════════════════════════════════════════
+   TRANG KẾT BẢN ĐỌC THỬ
+══════════════════════════════════════════ */
+.tx-end{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;height:100%;padding:46px 38px;
+  background-color:var(--paper-color);
+  background-image:radial-gradient(ellipse at 50% 0%,rgba(184,124,20,.07),transparent 60%),var(--paper-img);
+}
+.tx-end .te-kick{
+  font-family:'Oswald',sans-serif;font-weight:400;font-size:9px;
+  letter-spacing:6px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;
+}
+.tx-end .te-h{
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:22px;
+  letter-spacing:2px;color:#111;line-height:1.25;text-transform:uppercase;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+.tx-end .te-rule{width:44px;height:2px;background:var(--gold);margin:15px 0 17px;}
+.tx-end .te-p{
+  font-family:'Lora',serif;font-size:12px;line-height:1.78;color:#2a2a2a;
+  max-width:300px;margin-bottom:6px;
+}
+.tx-end .te-list{
+  list-style:none;margin:10px 0 16px;padding:0;text-align:left;
+  font-family:'Oswald',sans-serif;font-weight:400;font-size:11px;
+  letter-spacing:.4px;color:#333;line-height:1.55;
+}
+.tx-end .te-list li{display:flex;gap:9px;align-items:baseline;padding:3px 0;}
+.tx-end .te-list .tn{
+  font-family:'Bebas Neue',sans-serif;color:var(--gold);
+  font-size:15px;min-width:20px;
+}
+.tx-end .te-cta{
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;
+  letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-top:2px;
+}
+.tx-end .te-sig{
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:9px;
+  letter-spacing:2px;color:#9a9a9a;margin-top:14px;text-transform:uppercase;
+}
+
+/* Nhãn teaser "Sắp ra mắt" dưới trang mở chương (bản đọc thử) */
+.ch-open .ch-teaser{
+  margin-top:20px;font-family:'Oswald',sans-serif;font-weight:400;
+  font-size:9.5px;letter-spacing:3px;color:var(--gold);
+  text-transform:uppercase;opacity:.9;
+}
+</style>
+</head>
+<body>
+
+<!-- Nút trên -->
+<div class="top-bar">
+  <button id="btn-read"  title="Nghe đọc">🎧</button>
+  <button id="btn-speed" title="Tốc độ đọc">1×</button>
+  <button id="btn-sound" title="Âm thanh">🔊</button>
+  <button id="btn-full"  title="Toàn màn hình">⛶</button>
+</div>
+
+<!-- Sách -->
+<div id="app">
+<div id="book">
+
+  <!-- ══ BÌA TRƯỚC ══ -->
+  <div class="page cv">
+    <img class="bg" src="https://d8j0ntlcm91z4.cloudfront.net/user_31uXJWzyakcQMlQMAdzLiTqF7Oq/hf_20260615_174203_7839e9cb-6780-4c8e-9c8c-8eca372618fb.png" alt="">
+    <div class="ov"></div>
+    <div class="top">
+      <span class="series">START 01</span>
+      <span class="t1">MẬT MÃ<br>TỰ DO</span>
+      <div class="rule"></div>
+      <span class="t2">AFFILIATE × AI</span>
+    </div>
+    <div class="bot">
+      <div class="tagline">Để từ <b>1</b> trở thành <b>số 1</b></div>
+      <div class="al"></div>
+      <div class="auth">Được viết bởi <b>Phong Menly</b></div>
+    </div>
+  </div>
+
+  <!-- ══ LỜI CẢM ƠN — phần 1 ══ -->
+  <div class="page cp">
+    <div class="pt">Lời Cảm Ơn</div>
+    <div class="pt-rule"></div>
+    <div class="pb">
+      <p class="ni">Cuốn sách này được viết bởi một người chưa thành công lớn.</p>
+      <p class="ni">Đó là điều đầu tiên tôi muốn bạn biết trước khi đọc bất cứ thứ gì khác.</p>
+      <p>Tôi không ngồi viết từ đỉnh núi nhìn xuống. Tôi đang ngồi giữa hành trình, với cái laptop quen thuộc, đang làm đúng những gì tôi sắp kể trong từng trang tiếp theo. Không có khoảng cách nào giữa tôi và bạn cả, ngoài một vài bước chân đi trước.</p>
+      <p>Hành trình này bắt đầu từ một cái tên tôi không bao giờ quên: Sơn Piaz.</p>
+      <p>Anh ấy đã lang thang khắp nước Mỹ, không phải để du lịch, mà để tìm một câu trả lời: làm sao một người bình thường có thể tự do thật sự trên internet? Anh gặp người này, học từ người kia, thử rồi bỏ, bỏ rồi thử lại, cho đến khi nhìn ra con đường. Không phải con đường của người khác vẽ sẵn, mà con đường anh tự đi ra bằng chính đôi chân mình.</p>
+      <p>Tôi may mắn được đồng hành cùng anh ấy trên hành trình đó.</p>
+      <p>Từ những buổi nói chuyện thật, từ những lần ngồi nhìn anh xây dựng hệ thống từ con số không, từ cái tinh thần dám đi và dám thử của anh mà tôi hiểu ra một điều: affiliate marketing kết hợp với AI không phải là trào lưu nhất thời. Đó là con đường thật sự cho người làm một mình muốn đi xa.</p>
+    </div>
+    <div class="pn">2</div>
+  </div>
+
+  <!-- ══ LỜI CẢM ƠN — phần 2 ══ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p>Từ đó mà có <b>START 01</b>.</p>
+      <p>Từ đó mà có <b>affitor</b> và hệ thống affiliate network đang được xây dựng từng ngày.</p>
+      <p>Từ đó mà có cuốn sách này trong tay bạn lúc này.</p>
+      <p>Cái đích chúng tôi đang nhắm đến là một con đường cụ thể, cho một người, đạt một triệu đô la, không cần team trăm người, không cần văn phòng, không cần ai cho phép. Chỉ cần đúng hệ thống, đúng thời điểm, và đủ can đảm để không bỏ cuộc giữa chừng.</p>
+      <p>Tôi chưa đến đó.</p>
+      <p>Nhưng tôi đang đi. Và tôi viết cuốn này vừa để sắp xếp lại hành trình của mình, vừa để rủ bạn cùng bước.</p>
+      <p>Nếu bạn cũng đang tìm hướng, chưa rõ mình đang thiếu cái gì, đang thử mà chưa thấy kết quả thì đây là cuốn sách tôi muốn tặng bạn. Không phải vì tôi giỏi hơn bạn. Mà vì tôi đã đi trước vài bước, và tôi muốn kể lại thật nhất có thể.</p>
+      <p>Cùng bắt đầu nhé.</p>
+    </div>
+    <div class="sig">— Phong Menly</div>
+    <div class="pn">3</div>
+  </div>
+
+  <!-- ══ GHI CHÚ VỀ CUỐN SÁCH ══ -->
+  <div class="page cp">
+    <div class="pt">Ghi Chú Về Cuốn Sách</div>
+    <div class="pt-rule"></div>
+    <div class="pb">
+      <p>Đây là bản thảo cuốn đầu tiên trong series <b>START 01</b>, được tôi biên soạn dựa trên hành trình thật của chính mình trong lĩnh vực affiliate marketing và AI.</p>
+      <p>Tất cả các câu chuyện trong sách đều là <b>câu chuyện có thật</b>, được viết lại theo lối kể tự nhiên, gần gũi, để những bài học từ thực tế hiện ra mộc mạc và dễ nhớ nhất có thể.</p>
+      <p><b>Tác giả:</b> Phong Menly. <b>Biên soạn:</b> với sự hỗ trợ của hệ thống <i>"Bộ Não Thứ Hai"</i> và trí tuệ nhân tạo. <b>Hình ảnh và thiết kế:</b> được tạo ra với sự hỗ trợ của <i>Claude Agent</i> và <i>Higgsfield</i>, dưới sự điều phối của Phong Menly.</p>
+    </div>
+    <div class="pn">4</div>
+  </div>
+
+  <!-- ══ LỜI NGỎ — 1 trang ══ -->
+  <div class="page cp lo-page">
+    <div class="pt">Lời Ngỏ</div>
+    <div class="pt-rule"></div>
+    <div class="lo-img lo-trip">
+      <img src="https://d8j0ntlcm91z4.cloudfront.net/user_31uXJWzyakcQMlQMAdzLiTqF7Oq/hf_20260616_110753_a26936d7-ca6f-4bdb-a3ac-89c45df1868a.png" alt="Lời Ngỏ 1">
+      <img src="https://d8j0ntlcm91z4.cloudfront.net/user_31uXJWzyakcQMlQMAdzLiTqF7Oq/hf_20260616_110839_8ae5ce89-4554-4c94-aa26-3f91088d7fcd.png" alt="Lời Ngỏ 2">
+      <img src="https://d8j0ntlcm91z4.cloudfront.net/user_31uXJWzyakcQMlQMAdzLiTqF7Oq/hf_20260616_110933_ee56a3db-ac8d-4a6c-9d21-a045c1e5e5bf.png" alt="Lời Ngỏ 3">
+    </div>
+    <div class="pb">
+      <p class="ni">Lúc 20 tuổi, tôi có một lời thề.</p>
+      <div class="bq">"Hoặc là thành công. Hoặc là chết trong quá trình đi đến thành công."</div>
+      <p class="ni">Tôi nói thật. Cái miệng tôi, cái ngực đầy lửa — tôi tin từng chữ. Bọn bạn đứng nhìn tôi bước về phía trước. Lúc đó tôi tưởng đó là sự khác biệt.</p>
+      <p class="ni">Rồi 10 năm qua. Tôi ngoảnh lại, bắt đầu nghi ngờ chính mình. Đôi vai mỏi. Cố gắng mãi không tìm ra lối thoát. Tôi lạc vào mơ hồ — rơi vào cuộc chơi của người khác, sống theo nhịp của người khác.</p>
+      <p class="ni">Rồi lập gia đình. Con ngựa hoang ngày nào từ từ bị thời gian và trách nhiệm phủ mờ. Buông xuôi thêm vài năm. Và thế là tôi quên luôn cả ước mơ của mình.</p>
+      <p class="ni">Cuốn sách này bắt đầu từ ngày tôi nhớ lại.</p>
+    </div>
+    <div class="sig">— Phong Menly</div>
+    <div class="pn">5</div>
+  </div>
+
+  <!-- ══ MỤC LỤC ══ -->
+  <div class="page toc">
+    <div class="toc-hd">
+      <span class="toc-kick">Mật Mã Tự Do · Phong Menly</span>
+      <div class="toc-h">MỤC LỤC</div>
+      <div class="toc-r"></div>
+    </div>
+    <ol>
+      <li>
+        <div class="toc-row"><span class="toc-no">I</span><span class="toc-t">Ngựa Hoang Thích Khám Phá</span></div>
+        <div class="toc-s">Thất bại thứ nhất · Bài học về lựa chọn</div>
+      </li>
+      <li class="hl">
+        <div class="toc-row"><span class="toc-no">II</span><span class="toc-t">Bản Đồ Traffic</span></div>
+        <div class="toc-s">Chìa khóa mở cánh cửa tự do · 5 bước huyền thoại</div>
+      </li>
+      <li>
+        <div class="toc-row"><span class="toc-no">III</span><span class="toc-t">Kiêu Hãnh & Cú Ngã Trượt Dài</span></div>
+        <div class="toc-s">Ăn mừng sớm và cú lừa của nghỉ ngơi</div>
+      </li>
+      <li>
+        <div class="toc-row"><span class="toc-no">IV</span><span class="toc-t">Dòng Tiền Điều Khiển Traffic</span></div>
+        <div class="toc-s">Làm gì khi có những kết quả nhỏ</div>
+      </li>
+      <li class="hl">
+        <div class="toc-row"><span class="toc-no">V</span><span class="toc-t">Cuộc Chơi Của System</span></div>
+        <div class="toc-s">Đế chế một người nắm cả hệ thống</div>
+      </li>
+    </ol>
+    <div class="toc-ft">Affiliate × AI · Start 01</div>
+    <div class="pn">6</div>
+  </div>
+
+  <!-- ══ PHẦN I — Mở bài chương ══ -->
+  <div class="page ch-open has-img">
+    <div class="ch-body">
+      <div class="ch-num">Chương 1 · Thất Bại Thứ Nhất</div>
+      <div class="ch-rule"></div>
+      <div class="ch-title">Ngựa Hoang<br>Thích Khám Phá</div>
+      <div class="ch-sub">Con đường này mất nhiều năm nhất.<br>Không có cách nào khác — trừ khi bạn có tiêu chí.</div>
+    </div>
+    <div class="ch-img">
+      <img src="https://d2ol7oe51mr4n9.cloudfront.net/user_31uXJWzyakcQMlQMAdzLiTqF7Oq/ab9edb1f-b936-4a7e-83c3-c98e09a757ef.png" alt="Hành Trình Tự Do · 4 Thị Trường">
+    </div>
+    <div class="ch-story">
+      <div class="bq">Mỗi lần thử sai là 3 năm tuổi trẻ</div>
+    </div>
+    <div class="pn">7</div>
+  </div>
+
+  <!-- ══ PHẦN I — Nội dung trang 1 ══ -->
+  <div class="page cp">
+    <div class="pt">Chương 1 · Ngựa Hoang Thích Khám Phá</div>
+    <div class="pt-rule"></div>
+    <div class="pb">
+      <p class="ni">Tôi viết cuốn sách này khi chưa phải là người tự do tài chính thật sự.</p>
+      <p class="ni">Điều đó cần nói thẳng ngay từ đầu. Không phải vì tôi muốn khiêm tốn. Mà vì đó là sự thật quan trọng nhất bạn cần biết. Tôi không ngồi viết từ đỉnh núi nhìn xuống. Tôi đang đi, và vừa đi vừa ghi lại những gì tôi biết — thứ đã tìm ra, thứ đã thử, thứ đã vấp.</p>
+      <p class="ni">Thứ tôi biết là: tôi đã tìm ra đúng hướng. Huyết mạch của mô hình kinh doanh <b>một người</b> — tối giản, đơn giản, siêu hiệu quả, và có thể đánh bại cả một doanh nghiệp trăm người.</p>
+      <p class="ni">Nhưng để biết điều đó, tôi đã mất rất nhiều năm làm <b>ngựa hoang</b>.</p>
+      <p>Ngựa hoang thích khám phá. Tôi có thể bắt đầu bất cứ thứ gì — bán sản phẩm này, thử mô hình nọ, nghe ai nói hay thì nhảy vào. Tôi chưa bao giờ thua hẳn. Nhưng tôi cũng chưa bao giờ thắng thật sự. Luôn có một giới hạn — cái trần vô hình mà dù nỗ lực thêm bao nhiêu, tôi vẫn không vượt qua được.</p>
+      <p>Hồi đó tôi nghĩ vấn đề là do mình chưa đủ giỏi, chưa đủ chăm. Sự thật là: <b>tôi đang sai ở chỗ lựa chọn mô hình và con đường</b>. Không ai nói với tôi điều đó. Mọi người xung quanh chỉ nói một câu duy nhất: <i>"Làm tốt hơn đi. Phục vụ khách hàng hiện tại của mày tốt hơn đi."</i></p>
+      <p>Sau này tôi mới hiểu: đó không phải lời khuyên. Đó là cái bẫy. Bởi vì <b>khách hàng và nhu cầu đã có sẵn ở ngoài kia</b> — xã hội đã sẵn sàng từ lâu rồi. Thứ tôi thiếu không phải kỹ năng. Là <b>sự lựa chọn</b>.</p>
+    </div>
+    <div class="pn">8</div>
+  </div>
+
+  <!-- ══ PHẦN I — Nội dung trang 2 ══ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Tôi từng nghe một câu: kinh doanh là đi giải quyết vấn đề của thị trường. Tôi không hiểu câu đó cho đến khi tôi thực sự chạm vào nó — theo cách đau nhất.</p>
+      <p>Người cho tôi câu trả lời đó là <b>Sơn Piaz</b>. Anh không phải người ngồi dạy lý thuyết. Anh đã thật sự đi — theo đúng nghĩa đen và nghĩa bóng. Rời Việt Nam, lang thang qua nước Mỹ, không phải để du lịch, mà để tìm một câu trả lời: <i>làm sao một người bình thường có thể tự do thật sự trên internet?</i> Anh gặp người này, học từ người kia, thử rồi bỏ, bỏ rồi thử lại — cho đến khi nhìn ra con đường. Không phải con đường của người khác vẽ sẵn, mà con đường anh tự đi ra bằng chính đôi chân mình. Và anh đã xây được thứ mà tôi chưa từng nhìn thấy ai ở Việt Nam làm được: <b>một hệ thống affiliate thật sự.</b></p>
+      <p>Tôi tham gia một sự kiện của anh — 250 người, toàn những ai tôi gọi là <b>cao thủ</b>. Họ có sức ảnh hưởng, có uy tín, có dự án riêng. Nhưng khi tôi cố gắng chen vào nghe họ nói, điều tôi nhận ra lại là: họ bàn về tài chính, Google Ads, YouTube — và dường như họ đến đó không phải để học điều mới, mà để gặp lại những người trong ngành của mình. Vì Sơn Piaz là người đi đầu trong lĩnh vực affiliate, cả hội trường xem đây như một dịp hội ngộ. Với AI lúc đó — mọi thứ chưa có nhiều tiềm năng. Nó chỉ nằm gọn trong ba chữ: <b>Chưa Khai Phá</b>.</p>
+      <p>Còn tôi lúc đó? Là một ông chủ thất nghiệp đang đi làm thuê, mông lung trong cuộc đời của mình, đang tìm một lối thoát. Tôi không hiểu nhiều — cũng như bao người khác trong phòng với đầy những từ ngữ trên trời. Nhưng may mắn, <b>3 Mật Lệnh ngầm tôi đã bắt được</b> — điều mà nhiều người không mấy chú ý.</p>
+    </div>
+    <div class="pn">9</div>
+  </div>
+
+  <!-- ══ PHẦN I — Nội dung trang 3 ══ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="msg">
+        <span class="msg-no">Mật Lệnh 1 · Sơn Piaz</span>
+        <span class="msg-txt">"Tại sao cũng nỗ lực như bạn, thậm chí không bằng bạn, mà người khác lại thành công hơn? Bởi vì người ta chỉ đang làm thứ khác bạn. Họ đã chọn đúng hướng, đúng xu hướng, đúng thị trường và đúng nhu cầu."</span>
+      </div>
+      <p>Câu đó như một cú đấm thẳng vào mặt tôi. Không phải vì nó mới — mà vì tôi biết nó đúng.</p>
+      <div class="msg">
+        <span class="msg-no">Mật Lệnh 2 · Tony Triệu</span>
+        <span class="msg-txt">"Đường nào cũng làm. Tại sao không nghĩ đến chuyện go Global? Chọn việc khó ngay từ đầu — mọi thứ sau này sẽ luôn trở nên dễ hơn. Hãy chọn làm cùng người đã có dự án, đã có kinh nghiệm. Bạn học được gấp trăm lần so với trả tiền cho một khóa học có phí."</span>
+      </div>
+      <div class="msg">
+        <span class="msg-no">Mật Lệnh 3 · Hoàng Nam</span>
+        <span class="msg-txt">"Thay vì tập trung vào thu hút, hãy xây dựng hệ thống trước — dùng ma trận nội dung và email marketing. Luôn chọn phương án nhanh nhất để đo lường tốt nhất. Và tập trung vào thế mạnh của mình: thứ mình tự tin nhất."</span>
+      </div>
+      <p class="ni">Ba mật lệnh đó. Không phải giáo trình. Không phải khóa học đắt tiền. Chỉ là ba câu nói mà đa số bỏ qua — nhưng chúng đã thay đổi hoàn toàn cách tôi nhìn vào con đường của mình.</p>
+      <p>Và đó là lúc tôi nhìn vào tấm bản đồ 4 thị trường affiliate chưa được khai phá — rồi lần đầu tiên trong nhiều năm, tôi biết mình cần chọn cái nào.</p>
+    </div>
+    <div class="sig">— Phong Menly</div>
+    <div class="pn">10</div>
+  </div>
+
+  <!-- ══ PHẦN I — Nội dung trang 4 ══ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="mkt-title">Hãy đưa ra lựa chọn của bạn</div>
+      <div class="mkt-img">
+        <img src="https://d2ol7oe51mr4n9.cloudfront.net/user_31uXJWzyakcQMlQMAdzLiTqF7Oq/ded0a9bf-629e-4964-b29b-ad2a9c1b2e19.png" alt="4 Thị Trường Affiliate Chưa Được Khai Phá">
+      </div>
+      <div class="mkt-grid">
+        <div class="mkt-card">
+          <span class="mc-label">E-Commerce</span>
+          <div class="mc-tags">
+            <span class="mc-tag">Shopee</span><span class="mc-tag">Tiktok Shop</span><span class="mc-tag">Thời Trang</span><span class="mc-tag">Đồ Ăn</span><span class="mc-tag">Mobile App</span><span class="mc-tag">Dropship</span>
+          </div>
+        </div>
+        <div class="mkt-card">
+          <span class="mc-label">Dịch Vụ</span>
+          <div class="mc-tags">
+            <span class="mc-tag">Làm Đẹp</span><span class="mc-tag">CS Sức Khoẻ</span><span class="mc-tag">TPCN</span><span class="mc-tag">SaaS</span><span class="mc-tag">Coaching</span><span class="mc-tag">Spa · F&B</span>
+          </div>
+        </div>
+        <div class="mkt-card">
+          <span class="mc-label">Tài Chính</span>
+          <div class="mc-tags">
+            <span class="mc-tag">Finance</span><span class="mc-tag">Forex</span><span class="mc-tag">Crypto</span><span class="mc-tag">Bảo Hiểm</span><span class="mc-tag">Chứng Khoán</span><span class="mc-tag">Đầu Tư</span>
+          </div>
+        </div>
+        <div class="mkt-card hl">
+          <span class="mc-label">AI · Công Nghệ ✦</span>
+          <div class="mc-tags">
+            <span class="mc-tag">AI Tools</span><span class="mc-tag">Agent AI</span><span class="mc-tag">Automation</span><span class="mc-tag">No-Code</span><span class="mc-tag">SaaS AI</span><span class="mc-tag">Affiliate AI</span>
+          </div>
+          <span class="mc-new">★ Lợi thế người mới nhỉnh hơn</span>
+        </div>
+      </div>
+    </div>
+    <div class="pn">11</div>
+  </div>
+
+  <!-- ══ PHẦN I — Nội dung trang 5 ══ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Tôi đã qua ba thị trường — không thua hẳn, nhưng cũng không thắng thật sự. Mỗi thị trường có một bức tường riêng mà tôi chỉ nhận ra sau khi đã va vào nó đủ đau.</p>
+      <p><b>E-Commerce</b> — bán hàng, chạy ads, tối ưu sản phẩm. Dễ tiếp cận, dễ chuyển đổi, dễ đo kết quả. Nhưng hoa hồng chỉ tính <b>một lần</b>, cạnh tranh giá khốc liệt, vốn kẹt ở hàng tồn kho và logistics bào mòn lợi nhuận. Chất xám bỏ vào không nhiều — nhưng phải thay đổi liên tục theo xu hướng người dùng, không bao giờ dừng. Dừng chạy ads là dừng thu nhập. Bài học đắt nhất: <b>thu nhập không nhân rộng được.</b></p>
+      <p><b>Dịch Vụ</b> — content, tư vấn, coaching, chạy dự án. Phổ biến tại Việt Nam lẫn thị trường quốc tế, vào được với 0 đồng vốn ban đầu. Nhưng đây là ngành <b>dành cho người có chuyên môn và uy tín thật sự</b>: dễ làm, dễ mở — nhưng khó vận hành và chi phí ngày càng lớn. Cần chất xám liên tục, cạnh tranh đối thủ gay gắt, và khó mở rộng quy mô khi chưa đủ năng lực. Càng thêm khách, càng thêm việc. Tôi không tự do — tôi chỉ <b>đổi chủ</b>.</p>
+      <p><b>Tài Chính</b> — đầu tư, chứng khoán, forex, fintech. Ngành <b>dành cho người thông minh, tài giỏi</b> — đòi hỏi chất xám cao và khả năng quản trị cảm xúc. Cần là người tiếp thị hơn là người trực tiếp chơi. Hoa hồng cao, cạnh tranh ở mức trung bình — nhưng rủi ro rất cao, giá trị thực tế thấp và tiềm ẩn nguy hiểm cho cả người giới thiệu lẫn người được giới thiệu khi chưa đủ kiến thức. Tôi chỉ đang chơi trò <b>cờ bạc mặc vest</b>.</p>
+      <p>Ba thị trường. Nhiều năm. Mỗi lần đều cảm tưởng mình đang đi đúng — cho đến khi chạm vào <b>cái trần vô hình</b> và không vượt qua được. Và cuối cùng, bạn cũng đã biết tại sao tôi chọn <b>Affiliate × AI</b> cho mô hình kinh doanh một người của mình.</p>
+      <p><i>Bạn thì sao? Hãy chọn cho mình một con đường.</i></p>
+    </div>
+    <div class="pn">12</div>
+  </div>
+
+  <!-- ══ WIN CRITERIA — Tiêu chí lựa chọn dự án ══ -->
+  <div class="page win-page">
+    <div class="wp-head">
+      <span class="wp-kicker">Chương 1 · Tiêu Chí Lựa Chọn</span>
+      <div class="wp-title">WIN CRITERIA</div>
+      <div class="wp-rule"></div>
+    </div>
+    <div class="win-grid">
+      <div class="win-box wb-hl">
+        <span class="wb-cat">Dự Án</span>
+        <div class="wb-title">WIN PROJECT</div>
+        <ul class="wb-list">
+          <li><span class="wn">1</span><span>Đúng hướng · Đúng sở thích · <b>Nhanh ra kết quả</b></span></li>
+          <li><span class="wn">2</span><span>Vô hạn · Dễ mở rộng · Chu kỳ <b>3 – 6 – 10 năm</b> tới</span></li>
+          <li><span class="wn">3</span><span>Dễ bắt đầu · Nhiều góc content để giới thiệu &amp; quảng bá</span></li>
+          <li><span class="wn">4</span><span>Ngày càng giỏi · Thông minh hơn · <b>Tăng uy tín</b></span></li>
+          <li><span class="wn">5</span><span>Dòng tiền thụ động · Cập nhật liên tục · Giá trị thực cho thị trường</span></li>
+        </ul>
+      </div>
+      <div class="win-box wb-hl">
+        <span class="wb-cat">Sản Phẩm</span>
+        <div class="wb-title">WIN PRODUCT</div>
+        <ul class="wb-list">
+          <li><span class="wn">1</span><span><b>$150 – 600 / User</b> tối thiểu</span></li>
+          <li><span class="wn">2</span><span>Traffic &gt; <b>200.000 / Tháng</b></span></li>
+          <li><span class="wn">3</span><span><b>Recurring 12 tháng</b> hoặc Lifetime — rõ ràng chi trả</span></li>
+          <li><span class="wn">4</span><span>Ra mắt gần nhất · Cập nhật thường xuyên · Nhiều người cần</span></li>
+          <li><span class="wn">5</span><span>Dễ giới thiệu · Nhãn hàng hỗ trợ nhiệt tình · <b>Có booking</b></span></li>
+        </ul>
+      </div>
+      <div class="win-box">
+        <span class="wb-cat">Marketing</span>
+        <div class="wb-title">WIN MKT</div>
+        <ul class="wb-list">
+          <li><span class="wn">·</span><span>Có tín dụng miễn phí hoặc hỗ trợ tín dụng</span></li>
+          <li><span class="wn">·</span><span>Đầu ra thu hút · Không cần nhiều bước giới thiệu</span></li>
+          <li><span class="wn">·</span><span>Bạn thích &amp; <b>hào hứng</b> mỗi khi sử dụng</span></li>
+          <li><span class="wn">·</span><span>Người dùng có <b>kết quả ngay</b> khi dùng</span></li>
+          <li><span class="wn">·</span><span>Test thử → nhiều người phản hồi tích cực, ít nỗ lực</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wp-cta">
+      <p>Tôi tin rằng 3 năm sau mọi giấc mơ của bạn đều có thể thực hiện được — thay vì 10 năm mòn mỏi. Ý chí có thể còn đó, nhưng sức khỏe, sự nhạy bén và mối quan hệ sẽ ngày càng ít đi.</p>
+      <p>Nếu không nằm trong tiêu chí này — tôi tuyệt đối không làm. Tôi thích mình là một doanh nhân và chỉ chia sẻ đúng lĩnh vực mình giỏi nhất.</p>
+      <div class="wc-sig">— Phong Menly</div>
+    </div>
+    <div class="pn">13</div>
+  </div>
+
+  <!-- ══ PHẦN II — Teaser ══ -->
+  <div class="page ch-open gold-open">
+    <div class="ch-num">Phần II · Chìa Khóa</div>
+    <div class="ch-rule"></div>
+    <div class="ch-title">Bản Đồ<br>Traffic</div>
+    <div class="ch-sub">5 bước huyền thoại mở cánh cửa tự do.<br>Đây là chương quan trọng nhất.</div>
+    <div class="ch-teaser">Sắp ra mắt · Trọn vẹn trong bản đầy đủ</div>
+    <div class="pn">14</div>
+  </div>
+
+  <!-- ══ PHẦN III — Teaser ══ -->
+  <div class="page ch-open">
+    <div class="ch-num">Phần III</div>
+    <div class="ch-rule"></div>
+    <div class="ch-title">Kiêu Hãnh &amp;<br>Cú Ngã Trượt Dài</div>
+    <div class="ch-sub">Ăn mừng sớm và cú lừa của nghỉ ngơi.</div>
+    <div class="ch-teaser">Sắp ra mắt · Trọn vẹn trong bản đầy đủ</div>
+    <div class="pn">15</div>
+  </div>
+
+  <!-- ══ PHẦN IV — Teaser ══ -->
+  <div class="page ch-open">
+    <div class="ch-num">Phần IV</div>
+    <div class="ch-rule"></div>
+    <div class="ch-title">Dòng Tiền Điều<br>Khiển Traffic</div>
+    <div class="ch-sub">Làm gì khi có những kết quả nhỏ đầu tiên.</div>
+    <div class="ch-teaser">Sắp ra mắt · Trọn vẹn trong bản đầy đủ</div>
+    <div class="pn">16</div>
+  </div>
+
+  <!-- ══ PHẦN V — Teaser ══ -->
+  <div class="page ch-open gold-open">
+    <div class="ch-num">Phần V · Cao Trào</div>
+    <div class="ch-rule"></div>
+    <div class="ch-title">Cuộc Chơi<br>Của System</div>
+    <div class="ch-sub">Đế chế một người nắm cả hệ thống.<br>Một mình. Tự do. Không giới hạn.</div>
+    <div class="ch-teaser">Sắp ra mắt · Trọn vẹn trong bản đầy đủ</div>
+    <div class="pn">17</div>
+  </div>
+
+  <!-- ══ BÌA SAU ══ -->
+  <div class="page bc">
+    <img class="bg" src="https://d8j0ntlcm91z4.cloudfront.net/user_31uXJWzyakcQMlQMAdzLiTqF7Oq/hf_20260616_064331_fbfbe9f3-9fa8-48e0-b908-d786e6c824f7.png" alt="">
+    <div class="ov"></div>
+    <div class="bc-inner">
+      <span class="bc-series">Affiliate × AI</span>
+      <div class="bc-quote">Bạn đang sống…<br><b>hay chỉ đang tồn tại?</b></div>
+      <p class="bc-desc">Hãy bắt đầu hành trình tự do của mình — rời xa nơi mình đang đứng. Bởi thứ quý giá nhất của chúng ta là <b>sức khỏe, thời gian và sự tự do</b>. Hãy cùng tôi mở ra cánh cửa ấy, người anh em.</p>
+      <div class="bc-rule"></div>
+      <div class="bc-tagline">Để từ <b>1</b> trở thành <b>số 1</b></div>
+    </div>
+    <div class="bc-foot">
+      <div class="bc-auth">Phong Menly</div>
+    </div>
+  </div>
+</div><!-- /#book -->
+<div id="gutter"></div>
+</div><!-- /#app -->
+
+<!-- Nút lật 2 bên mép trang -->
+<button class="side" id="navL" title="Trang trước" aria-label="Trang trước">‹</button>
+<button class="side" id="navR" title="Trang sau"   aria-label="Trang sau">›</button>
+
+<!-- Thanh trượt tiến độ + vị trí trang -->
+<div id="bar">
+  <button id="b1" title="Về đầu sách">⏮</button>
+  <input  id="seek" type="range" min="0" max="1" step="1" value="0" aria-label="Tiến độ đọc">
+  <span class="info" id="info">Bìa</span>
+</div>
+
+<script>
+/* ── Trạng thái layout (khai báo sớm: 'init' có thể bắn ngay khi load) ── */
+let curScale = 1, gOffset = 0;
+
+/* ── Điều khiển (khai báo sớm để updateInfo dùng được ngay khi 'init' bắn) ── */
+const seek = document.getElementById('seek');
+const navL = document.getElementById('navL');
+const navR = document.getElementById('navR');
+let seeking = false;
+function paintSeek(v){
+  const max = +seek.max || 1;
+  const pct = max ? (v/max*100) : 0;
+  seek.style.background =
+    `linear-gradient(to right,var(--gold) ${pct}%,rgba(255,255,255,.18) ${pct}%)`;
+}
+
+/* ── Âm thanh: dùng chung 1 AudioContext ── */
+let soundOn = true;
+let ac = null;
+function audio(){
+  if(!ac){
+    try{ ac = new(window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ return null; }
+  }
+  if(ac.state==='suspended') ac.resume();
+  return ac;
+}
+
+/* Tiếng lật trang — dùng file âm thanh thật bạn đã tải lên */
+const FLIP_SRC = 'data:audio/mpeg;base64,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';
+let flipPool = [];
+/* tạo sẵn vài instance để lật nhanh liên tiếp không bị trễ / chồng tiếng */
+for(let i=0;i<4;i++){ const el=new Audio(FLIP_SRC); el.preload='auto'; el.volume=.5; flipPool.push(el); }
+let flipIdx = 0;
+function playFlip(){
+  if(!soundOn) return;
+  try{
+    const el = flipPool[flipIdx]; flipIdx=(flipIdx+1)%flipPool.length;
+    el.currentTime = 0;
+    el.volume = .5;            /* nhẹ nhàng */
+    el.play().catch(()=>{});
+  }catch(e){}
+}
+
+/* ── Mở khóa âm thanh trên mobile ──
+   iOS/Android chặn phát audio cho tới khi có thao tác người dùng.
+   Lần chạm/nhấp đầu tiên: resume AudioContext + "mồi" sẵn các file lật
+   (play rồi pause ngay) để các lần lật sau phát được như trên máy tính. */
+let audioUnlocked = false;
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  try{ const a = audio(); if(a && a.state==='suspended') a.resume(); }catch(e){}
+  flipPool.forEach(el=>{
+    el.play().then(()=>{ el.pause(); el.currentTime=0; }).catch(()=>{});
+  });
+}
+['touchstart','touchend','pointerdown','mousedown','click','keydown'].forEach(ev=>{
+  window.addEventListener(ev, unlockAudio, {passive:true});
+});
+
+/* Tiếng sột soạt rất nhẹ khi rê chuột trên mặt sách */
+let lastRustle = 0;
+function playRustle(speed){
+  if(!soundOn) return;
+  const now = performance.now();
+  if(now-lastRustle < 200) return;          /* giới hạn tần suất */
+  lastRustle = now;
+  const a = audio(); if(!a || a.state!=='running') return;
+  const dur=.08, sr=a.sampleRate, n=Math.floor(sr*dur);
+  const buf=a.createBuffer(1,n,sr), d=buf.getChannelData(0);
+  for(let i=0;i<n;i++){
+    const t=i/n;
+    const env = Math.sin(Math.PI*t);        /* phồng nhẹ ở giữa */
+    d[i] = (Math.random()*2-1)*env;
+  }
+  const src=a.createBufferSource(); src.buffer=buf;
+  const hp=a.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1800;
+  const lp=a.createBiquadFilter(); lp.type='lowpass';  lp.frequency.value=5200;
+  const g =a.createGain();
+  g.gain.value = Math.min(.022, .005 + speed*.0004);  /* rất khẽ, to dần theo tốc độ tay */
+  src.connect(hp); hp.connect(lp); lp.connect(g); g.connect(a.destination);
+  src.start();
+}
+
+document.getElementById('btn-sound').addEventListener('click',()=>{
+  soundOn=!soundOn;
+  document.getElementById('btn-sound').textContent=soundOn?'🔊':'🔇';
+});
+
+/* ── Toàn màn hình ── */
+document.getElementById('btn-full').addEventListener('click',()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
+});
+document.addEventListener('fullscreenchange',()=>{
+  document.getElementById('btn-full').textContent=document.fullscreenElement?'✕':'⛶';
+  setTimeout(fit,80);
+});
+
+/* ── Khởi tạo PageFlip ── */
+const IS_MOBILE = window.innerWidth < 720;
+let PW, PH;
+if(IS_MOBILE){
+  /* Chiều cao khả dụng = màn hình trừ thanh điều khiển dưới + nút trên + lề.
+     Kẹp PH theo CẢ chiều cao → 1 trang luôn vừa trọn màn hình, không bị khổ cao cắt mất chữ. */
+  const availH = window.innerHeight - 76;             /* chỉ chừa thanh điều khiển dưới → cao hơn */
+  const availW = window.innerWidth - 2;               /* sát mép, phủ kín bề ngang (bỏ giới hạn 400) */
+  PW = Math.min(availW, Math.round(availH / 1.44));   /* lớn nhất có thể, vẫn vừa chiều cao, giữ tỉ lệ A5 */
+  PH = Math.round(PW * 1.44);
+}else{
+  PW = 515; PH = Math.round(PW * 1.44);  /* desktop giữ nguyên */
+}
+
+const pf = new St.PageFlip(document.getElementById('book'),{
+  width:               PW,
+  height:              PH,
+  showCover:           true,
+  usePortrait:         IS_MOBILE,
+  drawShadow:          true,
+  maxShadowOpacity:    .2,
+  flippingTime:        820,    /* chậm hơn chút → nhẹ nhàng, tự nhiên, không lắc */
+  mobileScrollSupport: false,
+  clickEventForward:   true,
+  useMouseEvents:      true,
+  swipeDistance:       20,
+  startZIndex:         10,
+});
+
+/* ── CHỈ MOBILE: nội dung thừa của 1 trang tự tràn sang trang mới (desktop giữ nguyên) ── */
+function paginateMobile(){
+  try{
+    const book = document.getElementById('book');
+    const fits = el => el.scrollHeight <= el.clientHeight + 1;
+    Array.from(book.querySelectorAll(':scope > .page')).forEach(p=>{ p.style.width=PW+'px'; p.style.height=PH+'px'; });
+    /* duyệt danh sách sống: trang nối thêm sẽ được xét tiếp ở vòng sau */
+    for(let i=0; i<book.children.length; i++){
+      const page = book.children[i];
+      if(!(page.classList && page.classList.contains('cp'))) continue;   /* chỉ tách trang CHỮ (.cp) */
+      const pb = page.querySelector(':scope > .pb');
+      if(!pb || fits(page)) continue;
+      /* tạo trang nối tiếp cùng kiểu, KHÔNG tiêu đề/số trang */
+      const cont = document.createElement('div');
+      cont.className = page.className + (page.classList.contains('cp-cont') ? '' : ' cp-cont');
+      cont.style.width = PW+'px'; cont.style.height = PH+'px';
+      const npb = document.createElement('div'); npb.className = 'pb';
+      cont.appendChild(npb);
+      page.parentNode.insertBefore(cont, page.nextSibling);
+      /* dồn block cuối của trang gốc sang ĐẦU trang nối, tới khi trang gốc vừa khít */
+      let guard = 0;
+      while(!fits(page) && pb.children.length > 1 && guard++ < 300){
+        npb.insertBefore(pb.lastElementChild, npb.firstChild);
+      }
+    }
+    Array.from(book.querySelectorAll(':scope > .page')).forEach(p=>{ p.style.width=''; p.style.height=''; });
+  }catch(e){ /* có trục trặc khi đo → giữ nguyên trang gốc, không phá sách */ }
+}
+
+let booted = false;
+function initBook(){
+  if(booted) return; booted = true;
+  if(IS_MOBILE) paginateMobile();
+  pf.loadFromHTML(document.querySelectorAll('.page'));
+}
+/* Mobile: chờ FONT tải xong mới đo cho chuẩn (có fallback nếu font lâu). Desktop: dựng ngay. */
+if(IS_MOBILE && document.fonts && document.fonts.ready){
+  document.fonts.ready.then(initBook);
+  setTimeout(initBook, 2000);
+}else{
+  initBook();
+}
+
+function updateInfo(){
+  const i = pf.getCurrentPageIndex();
+  const t = pf.getPageCount();
+  document.getElementById('info').textContent =
+    i===0?'Bìa':i>=t-1?'Kết thúc':`Trang ${i}`;
+  seek.max = Math.max(1,t-1);
+  if(!seeking){ seek.value = i; paintSeek(i); }
+  navL.disabled = i<=0;          /* ở bìa → ẩn nút lùi */
+  navR.disabled = i>=t-1;        /* ở cuối → ẩn nút tiến */
+}
+
+pf.on('flip',()=>{playFlip();updateInfo();refreshLayout();onFlipForRead();});
+pf.on('init',()=>{updateInfo();refreshLayout();});
+
+/* ══════════════════════════════════════════
+   NGHE ĐỌC — audiobook tiếng Việt
+   Engine chính: GIỌNG GOOGLE (translate_tts) — tự nhiên, đồng nhất mọi máy.
+   Dự phòng: giọng hệ điều hành (Web Speech API) khi mất mạng / Google chặn.
+   🎧 đọc theo từng đoạn + tô sáng + tự cuộn, tự lật trang. "1×" đổi tốc độ.
+══════════════════════════════════════════ */
+const ttsBtn   = document.getElementById('btn-read');
+const speedBtn = document.getElementById('btn-speed');
+const SS_OK    = 'speechSynthesis' in window;
+
+/* Các phần tử chứa chữ cần đọc, theo đúng thứ tự trong trang */
+const READ_SEL = [
+  '.t1','.t2','.tagline','.auth',
+  '.pt','.pb > p','.pb > .ni','.pb > .bq','.pb > .msg','.pb > ul > li',
+  '.ch-num','.ch-title','.ch-sub',
+  '.toc-kick','.toc-h','.toc li',
+  '.wp-kicker','.wp-title','.wb-cat','.wb-title','.wb-list > li','.wp-cta > p',
+  '.bc-quote','.bc-desc','.bc-tagline'
+].join(',');
+
+const RATES = [1.2, 1.35, 1.5, 1.0];   /* vòng tốc độ — mặc định 1.2× */
+let rateIdx = 0;
+let reading = false;        /* phiên nghe đang bật */
+let paused  = false;        /* tạm dừng */
+let autoAdvancing = false;  /* true khi TỰ lật (phân biệt người dùng lật tay) */
+let blocks = [], bi = 0;    /* danh sách đoạn của trang hiện tại + chỉ số đoạn */
+let chunks = [], ci = 0;    /* các mẩu ≤200 ký tự của đoạn hiện tại + chỉ số mẩu */
+let loadedPage = -1;
+
+/* Engine giọng Google */
+let useGoogle = true;       /* ưu tiên giọng Google; tự chuyển giọng máy nếu Google bị chặn */
+let chunkRetries = 0;       /* số lần thử lại 1 mẩu khi Google lỗi */
+let gAudio = null;          /* 1 thẻ audio tái sử dụng (mobile dễ cho phép phát) */
+let loadTimer = null;       /* canh giờ chống treo khi Google không phản hồi */
+let ssWarned = false;       /* đã báo chuyển giọng máy chưa */
+
+function gUrl(t, lang){
+  return 'https://translate.google.com/translate_tts?ie=UTF-8&tl=' + (lang||'vi') + '&client=tw-ob&q=' + encodeURIComponent(t);
+}
+function clearLoadTimer(){ if(loadTimer){ clearTimeout(loadTimer); loadTimer=null; } }
+function ensureAudio(){
+  if(!gAudio){
+    gAudio = new Audio();
+    gAudio.preload = 'auto';
+    try{ gAudio.preservesPitch = gAudio.mozPreservesPitch = gAudio.webkitPreservesPitch = true; }catch(e){}
+    gAudio.addEventListener('playing', clearLoadTimer);  /* phát được → hủy canh giờ */
+    gAudio.addEventListener('ended', ()=>{ clearLoadTimer(); if(reading && !paused){ chunkRetries=0; ci++; playChunk(); } });
+    gAudio.addEventListener('error', ()=>{ clearLoadTimer(); if(reading && !paused) onGoogleError(); });
+  }
+  return gAudio;
+}
+/* Google lỗi/treo 1 mẩu → thử lại 1 lần; vẫn lỗi → chuyển hẳn sang giọng máy để KHÔNG bị im lặng */
+function onGoogleError(){
+  clearLoadTimer();
+  if(!reading || paused) return;
+  if(chunkRetries < 1){
+    chunkRetries++;
+    setTimeout(()=>{ if(reading && !paused) playChunk(); }, 250);
+  } else {
+    chunkRetries = 0;
+    useGoogle = false;   /* Google bị chặn trên domain này → dùng giọng máy cho cả phiên (đồng nhất, không xen kẽ) */
+    if(!ssWarned){ ssWarned = true; toast('Giọng Google bị chặn trên web — đang dùng giọng máy của thiết bị.'); }
+    speakChunkSS();
+  }
+}
+
+function pickViVoice(){
+  const vs = (SS_OK ? speechSynthesis.getVoices() : []) || [];
+  return vs.find(v=>/vi[-_]?VN/i.test(v.lang) && /natural|premium|google|enhanced/i.test(v.name))
+      || vs.find(v=>/^vi\b/i.test(v.lang) || /vi[-_]VN/i.test(v.lang))
+      || vs.find(v=>/viet/i.test(v.name))
+      || null;
+}
+
+/* ── Chuẩn hoá đọc tiếng Việt: số & chữ số La Mã đọc đúng kiểu người Việt ── */
+const VIU = ["không","một","hai","ba","bốn","năm","sáu","bảy","tám","chín"];
+function viReadThree(num, full){
+  let tr=Math.floor(num/100), ch=Math.floor((num%100)/10), dv=num%10, s="";
+  if(tr>0||full) s+=VIU[tr]+" trăm";
+  if(ch>1){ s+=" "+VIU[ch]+" mươi"; if(dv===1)s+=" mốt"; else if(dv===5)s+=" lăm"; else if(dv>0)s+=" "+VIU[dv]; }
+  else if(ch===1){ s+=" mười"; if(dv===5)s+=" lăm"; else if(dv>0)s+=" "+VIU[dv]; }
+  else if(ch===0 && dv>0){ s+=(tr>0||full)?(" lẻ "+VIU[dv]):(" "+VIU[dv]); }
+  return s.trim();
+}
+function viNum(numStr){
+  let n=parseInt(numStr,10); if(isNaN(n))return numStr; if(n===0)return "không";
+  const scales=["","nghìn","triệu","tỷ"]; let g=[];
+  while(n>0){ g.push(n%1000); n=Math.floor(n/1000); }
+  let parts=[];
+  for(let i=g.length-1;i>=0;i--){ if(g[i]===0)continue; parts.push((viReadThree(g[i], i<g.length-1)+" "+scales[i]).trim()); }
+  return parts.join(" ").replace(/\s+/g," ").trim();
+}
+const VIROMAN={I:1,II:2,III:3,IV:4,V:5,VI:6,VII:7,VIII:8,IX:9,X:10,XI:11,XII:12,XIII:13,XIV:14,XV:15,XVI:16,XVII:17,XVIII:18,XIX:19,XX:20};
+function normalizeVi(t){
+  let s=" "+t+" ";
+  /* Sửa cách đọc tên riêng cho đúng giọng Việt (thêm dòng nếu cần) */
+  s=s.replace(/\bMenly\b/gi, "Men li");          /* Phong Menly → "Phong Men-li" */
+  s=s.replace(/&/g," và ").replace(/×/g," ").replace(/·/g," , ");
+  s=s.replace(/>/g," lớn hơn ").replace(/</g," nhỏ hơn ").replace(/%/g," phần trăm ");
+  for(let k=0;k<2;k++) s=s.replace(/(\d)\.(\d{3})(?=\D|$)/g,"$1$2");      /* bỏ . ngăn nghìn: 200.000→200000 */
+  for(let k=0;k<3;k++) s=s.replace(/(\d)\s*[–—-]\s*(\d)/g,"$1 đến $2");   /* khoảng số → "đến" */
+  s=s.replace(/\$\s*(\d[\d. ]*\d|\d)/g,"$1 đô la ");                       /* $150 → 150 đô la */
+  s=s.replace(/—/g," , ").replace(/–/g," , ");                            /* gạch còn lại → ngắt nghỉ */
+  s=s.replace(/\s*\/\s*/g," mỗi ");                                       /* / → mỗi */
+  s=s.replace(/\b([IVX]{1,5})\b/g,(m,r)=> VIROMAN[r]?(" "+viNum(String(VIROMAN[r]))+" "):m); /* chữ La Mã */
+  s=s.replace(/\d+/g,m=>" "+viNum(m)+" ");                                /* số → chữ */
+  return s.replace(/\s+/g," ").trim();
+}
+
+/* Cắt đoạn dài thành mẩu ≤ ~190 ký tự, ưu tiên ranh giới câu */
+function splitChunks(text){
+  const parts = text.match(/[^.!?…\n]+[.!?…]*\s*/g) || [text];
+  const out = []; let cur = '';
+  for(let p of parts){
+    p = p.trim(); if(!p) continue;
+    if((cur ? cur+' '+p : p).length > 190){
+      if(cur){ out.push(cur); cur=''; }
+      if(p.length > 190){ for(let k=0;k<p.length;k+=190) out.push(p.slice(k,k+190)); }
+      else cur = p;
+    } else cur = cur ? cur+' '+p : p;
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+
+function clearHi(){ document.querySelectorAll('.page .reading').forEach(e=>e.classList.remove('reading')); }
+
+/* ── Từ tiếng Anh trong sách → đọc bằng giọng Anh chuẩn ── */
+const EN_WORDS = new Set([
+  "affiliate","traffic","win","marketing","ads","content","internet","start","system",
+  "booking","claude","agent","coaching","commerce","criteria","email","fintech","forex",
+  "global","google","higgsfield","laptop","lifetime","logistics","mkt","network","go",
+  "product","project","recurring","series","team","test","user","vest","youtube","affitor",
+  "tony","piaz","online","offline","app","video","ebook"
+]);
+/* Lưu ý: KHÔNG thêm "ai" — chỉ "AI" viết hoa mới là tiếng Anh (xử lý riêng trong tokenLang) */
+function tokenLang(w){
+  if(w === 'AI') return 'en';            /* "AI" hoa = công nghệ; "ai" thường = tiếng Việt */
+  if(/^\d+$/.test(w)) return 'vi';
+  return EN_WORDS.has(w.toLowerCase()) ? 'en' : 'vi';
+}
+/* Chuẩn hoá rồi tách thành các mẩu {text, lang} — gom từ cùng ngôn ngữ, cắt ≤190 ký tự */
+function buildLangChunks(rawText){
+  const norm = normalizeVi(rawText);
+  const parts = norm.match(/[\p{L}\p{N}]+|[^\p{L}\p{N}]+/gu) || [];
+  const segs = []; let cur = null;
+  for(const p of parts){
+    if(!/[\p{L}\p{N}]/u.test(p)){            /* dấu câu / khoảng trắng → bám vào mẩu hiện tại */
+      if(cur) cur.text += p; else segs.push(cur = {lang:'vi', text:p});
+      continue;
+    }
+    const lang = tokenLang(p);
+    if(cur && cur.lang === lang) cur.text += p;
+    else segs.push(cur = {lang, text:p});
+  }
+  const out = [];
+  for(const s of segs){
+    const t = s.text.trim();
+    if(!t) continue;
+    for(const c of splitChunks(t)) out.push({lang:s.lang, text:c});
+  }
+  return out;
+}
+function pickEnVoice(){
+  const vs = (SS_OK ? speechSynthesis.getVoices() : []) || [];
+  return vs.find(v=>/en[-_]?US/i.test(v.lang) && /natural|premium|google|enhanced/i.test(v.name))
+      || vs.find(v=>/^en\b/i.test(v.lang) || /en[-_]/i.test(v.lang))
+      || null;
+}
+
+function loadBlocks(){
+  const pages = document.querySelectorAll('#book .page');
+  const i = pf.getCurrentPageIndex();
+  const el = pages[i];
+  blocks = el ? Array.from(el.querySelectorAll(READ_SEL)).filter(b=>
+    (b.innerText||'').replace(/\s+/g,' ').trim().length > 0) : [];
+  bi = 0; loadedPage = i;
+}
+
+function setBtns(){
+  ttsBtn.textContent = (reading && !paused) ? '⏸' : '🎧';
+  ttsBtn.classList.toggle('on', reading && !paused);
+  ttsBtn.title = (reading && !paused) ? 'Tạm dừng' : 'Nghe đọc';
+  if(speedBtn) speedBtn.textContent = RATES[rateIdx] + '×';
+}
+
+/* Bắt đầu đọc 1 ĐOẠN: tô sáng + cuộn + cắt mẩu rồi phát */
+function speakBlock(){
+  if(!reading || paused) return;
+  if(loadedPage !== pf.getCurrentPageIndex()) loadBlocks();
+  if(bi >= blocks.length){ advancePage(); return; }
+  clearHi();
+  const el = blocks[bi];
+  const txt = (el.innerText||'').replace(/\s+/g,' ').trim();
+  if(!txt){ bi++; return speakBlock(); }
+  el.classList.add('reading');
+  try{ el.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){}
+  chunks = splitChunks(normalizeVi(txt)).map(t=>({lang:'vi', text:t})); ci = 0;  /* CHỈ 1 giọng Google tiếng Việt */
+  playChunk();
+}
+
+/* Phát 1 MẨU của đoạn hiện tại */
+function playChunk(){
+  if(!reading || paused) return;
+  if(ci >= chunks.length){ bi++; return speakBlock(); }   /* hết đoạn → đoạn sau */
+  if(useGoogle){
+    const a = ensureAudio();
+    clearLoadTimer();
+    a.src = gUrl(chunks[ci].text, chunks[ci].lang);
+    a.playbackRate = RATES[rateIdx];
+    a.volume = 1;
+    a.play().catch(()=> onGoogleError());
+    loadTimer = setTimeout(()=>{ if(reading && !paused) onGoogleError(); }, 5000); /* 5s không phát được → coi như lỗi, không treo */
+  } else {
+    speakChunkSS();
+  }
+}
+
+/* Phát 1 mẩu bằng giọng hệ điều hành (dự phòng) */
+function speakChunkSS(){
+  if(!reading || paused) return;
+  if(!SS_OK){ ci++; return playChunk(); }
+  const ch = chunks[ci];
+  const u = new SpeechSynthesisUtterance(ch.text);
+  const v = ch.lang==='en' ? pickEnVoice() : pickViVoice(); if(v) u.voice = v;
+  u.lang = ch.lang==='en' ? 'en-US' : 'vi-VN'; u.rate=RATES[rateIdx]; u.pitch=1; u.volume=1;
+  u.onend   = ()=>{ if(reading && !paused){ ci++; playChunk(); } };
+  u.onerror = ()=>{ if(reading && !paused){ ci++; playChunk(); } };
+  try{ speechSynthesis.cancel(); speechSynthesis.speak(u); }
+  catch(e){ ci++; playChunk(); }
+}
+
+function advancePage(){
+  clearHi();
+  const i = pf.getCurrentPageIndex(), t = pf.getPageCount();
+  if(i >= t-1){ stopRead(); return; }
+  autoAdvancing = true;
+  pf.flipNext('top');
+  setTimeout(()=>{ autoAdvancing = false; loadBlocks(); speakBlock(); }, 980);
+}
+
+function stopAudio(){
+  clearLoadTimer();
+  try{ if(gAudio){ gAudio.pause(); } }catch(e){}
+  try{ if(SS_OK) speechSynthesis.cancel(); }catch(e){}
+}
+
+function startRead(){
+  reading = true; paused = false;
+  if(loadedPage !== pf.getCurrentPageIndex()) loadBlocks();
+  setBtns(); speakBlock();
+}
+function pauseRead(){ paused = true; setBtns(); stopAudio(); }
+function resumeRead(){
+  paused = false; setBtns();
+  /* nếu mẩu Google đang dở → phát tiếp đúng chỗ; nếu không → phát lại mẩu hiện tại */
+  if(useGoogle && gAudio && gAudio.src && !gAudio.ended && gAudio.currentTime > 0){
+    gAudio.play().catch(()=> playChunk());
+  } else {
+    playChunk();
+  }
+}
+function stopRead(){
+  reading = false; paused = false;
+  clearHi(); setBtns(); stopAudio();
+}
+
+ttsBtn.addEventListener('click', ()=>{
+  if(!reading)    startRead();
+  else if(paused) resumeRead();
+  else            pauseRead();
+});
+
+if(speedBtn) speedBtn.addEventListener('click', ()=>{
+  rateIdx = (rateIdx + 1) % RATES.length;
+  setBtns();
+  if(gAudio) try{ gAudio.playbackRate = RATES[rateIdx]; }catch(e){}  /* áp dụng ngay cho Google */
+});
+
+/* Người dùng tự lật khi đang nghe → đọc theo trang mới (nếu đang phát) */
+function onFlipForRead(){
+  if(reading && !autoAdvancing){
+    stopAudio(); clearHi(); loadBlocks();
+    if(!paused) setTimeout(()=>{ if(reading && !paused) speakBlock(); }, 320);
+  }
+}
+
+/* Vá lỗi Chrome tự "ngủ" giọng máy sau ~15s */
+setInterval(()=>{
+  if(reading && !paused && !useGoogle && SS_OK && speechSynthesis.speaking){
+    try{ speechSynthesis.resume(); }catch(e){}
+  }
+}, 8000);
+
+/* Chuyển tab / thu nhỏ → tạm dừng cho lịch sự */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden && reading && !paused) pauseRead();
+});
+window.addEventListener('pagehide', stopAudio);
+
+/* Toast nhỏ thông báo */
+let toastTimer = null;
+function toast(msg){
+  let t = document.getElementById('toast');
+  if(!t){ t = document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 4200);
+}
+
+if(SS_OK){ speechSynthesis.onvoiceschanged = ()=>{}; }
+setBtns();
+
+/* Trạng thái lật: ẩn gáy giữa khi đang lật → trang rõ ràng, không bị che mờ */
+pf.on('changeState',e=>{
+  const app=document.getElementById('app');
+  if(e.data==='flipping'||e.data==='user_fold'){
+    app.classList.add('flipping');
+    /* Rời bìa: canh giữa NGAY khi bắt đầu lật để trượt đồng thời, không nhảy sau khi lật */
+    const i=pf.getCurrentPageIndex();
+    if(i<=0 || i>=pf.getPageCount()-1){ gOffset=0; app.classList.add('spread'); applyTransform(); }
+  } else {
+    app.classList.remove('flipping');
+    refreshLayout();
+  }
+});
+
+navL.addEventListener('click',()=>pf.flipPrev('top'));
+navR.addEventListener('click',()=>pf.flipNext('top'));
+document.getElementById('b1').addEventListener('click',()=>pf.flip(0));
+
+/* Thanh trượt: kéo để xem vị trí, thả ra mới nhảy trang (mượt, không lật dồn) */
+seek.addEventListener('input',()=>{ seeking=true; paintSeek(+seek.value); });
+seek.addEventListener('change',()=>{ const v=+seek.value; seeking=false; pf.flip(v); });
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown') pf.flipNext();
+  if(e.key==='ArrowLeft' ||e.key==='PageUp')   pf.flipPrev();
+  if(e.key==='Home') pf.flip(0);
+  if(e.key==='End')  pf.flip(pf.getPageCount()-1);
+});
+
+/* ── Cuộn chuột lật trang — mượt, theo tốc độ con lăn, không lật vọt ── */
+let wheelAcc=0, flipping=false, flipTimer=null, decayTimer=null;
+const WHEEL_TH=70;   /* ngưỡng dồn tích để lật 1 trang */
+
+window.addEventListener('wheel',e=>{
+  if(IS_MOBILE) return;          /* mobile giữ cuộn dọc bình thường */
+  e.preventDefault();
+  if(flipping) return;           /* đang lật thì bỏ qua → không giật, không vọt */
+
+  wheelAcc += e.deltaY;
+  clearTimeout(decayTimer);
+  decayTimer=setTimeout(()=>wheelAcc=0,200);   /* ngừng cuộn thì xả dồn tích */
+
+  if(wheelAcc>=WHEEL_TH){ wheelAcc=0; triggerFlip('next'); }
+  else if(wheelAcc<=-WHEEL_TH){ wheelAcc=0; triggerFlip('prev'); }
+},{passive:false});
+
+function triggerFlip(dir){
+  flipping=true;
+  if(dir==='next') pf.flipNext('top'); else pf.flipPrev('top');
+  clearTimeout(flipTimer);
+  flipTimer=setTimeout(()=>{flipping=false;},880); /* khóa trọn 1 nhịp lật → không chồng, không stutter */
+}
+
+/* ── Sột soạt khi rê chuột trên mặt sách ── */
+(function(){
+  const book = document.getElementById('book');
+  let px=null, py=null;
+  book.addEventListener('mousemove',e=>{
+    if(px!==null){
+      const dx=e.clientX-px, dy=e.clientY-py;
+      const sp=Math.hypot(dx,dy);
+      if(sp>5) playRustle(sp);          /* chỉ kêu khi tay thật sự di chuyển */
+    }
+    px=e.clientX; py=e.clientY;
+  });
+  book.addEventListener('mouseleave',()=>{px=py=null;});
+})();
+
+/* ── Scale + canh giữa ── (curScale, gOffset khai báo ở đầu script) */
+function applyTransform(){
+  const app=document.getElementById('app');
+  if(IS_MOBILE){ app.style.transform='none'; return; }
+  app.style.transform=`scale(${curScale}) translateX(${gOffset}px)`;
+}
+
+/* Canh giữa bìa/bìa sau (1 trang) và bật gáy khi mở đôi */
+function refreshLayout(){
+  const app=document.getElementById('app');
+  if(IS_MOBILE){ gOffset=0; app.classList.remove('spread'); applyTransform(); return; }
+  const i=pf.getCurrentPageIndex(), t=pf.getPageCount();
+  if(i<=0)            gOffset=-PW/2;   /* bìa trước → kéo vào giữa */
+  else if(i>=t-1)     gOffset= PW/2;   /* bìa sau   → kéo vào giữa */
+  else                gOffset= 0;      /* mở đôi    → căn giữa sẵn */
+  app.classList.toggle('spread', gOffset===0);
+  applyTransform();
+}
+
+function fit(){
+  const app = document.getElementById('app');
+  const vw  = window.innerWidth;
+  const vh  = window.innerHeight;
+
+  if(IS_MOBILE){
+    app.style.transform = 'none';
+    /* canh giữa theo chiều dọc → khoảng trống trên/dưới cân nhau, gọn gàng */
+    const mt = Math.max(6, Math.round((vh - PH) / 2) - 16);
+    app.style.marginTop = mt + 'px';
+    return;
+  }
+
+  const bW = PW*2+4, bH = PH+4;
+  curScale = Math.min((vw-28)/bW, (vh-76)/bH, 1);
+  app.style.width      = bW+'px';
+  app.style.height     = bH+'px';
+  const mt = Math.max(8,(vh-bH*curScale-60)/2);
+  app.style.marginTop  = mt+'px';
+  applyTransform();
+}
+
+window.addEventListener('load',  fit);
+window.addEventListener('resize',()=>{
+  /* tắt transition khi resize để không rung/giật, rồi bật lại */
+  const app=document.getElementById('app');
+  app.style.transition='none';
+  fit();
+  requestAnimationFrame(()=>{ app.style.transition=''; });
+});
+fit();
+</script>
+</body>
+</html>
