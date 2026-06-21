@@ -148,10 +148,10 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .cs-wrap{display:inline-flex;flex-direction:column;max-width:440px;width:100%;margin-top:32px;text-align:left;gap:6px}
 .cs-link-url{font-size:12px;color:#5b9bd5;word-break:break-all;line-height:1.4;text-decoration:none}
 .cs-link-url:hover{text-decoration:underline}
-.cs-card{display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;text-decoration:none;transition:.2s;background:#1a1a1a}
-.cs-card:hover{border-color:rgba(255,215,0,.3);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.7)}
-.cs-thumb{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#111}
-.cs-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.cs-card{display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;text-decoration:none;transition:.25s;background:#1a1a1a;max-width:480px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.cs-card:hover{border-color:rgba(255,215,0,.35);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,.7)}
+.cs-thumb{position:relative;width:100%;overflow:hidden;background:#111}
+.cs-thumb img{width:100%;height:auto;display:block;object-fit:contain}
 .cs-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .cs-play-btn{width:56px;height:56px;background:rgba(255,0,0,.85);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 24px rgba(255,0,0,.45);transition:.2s}
 .cs-card:hover .cs-play-btn{transform:scale(1.1)}
@@ -530,25 +530,21 @@ footer p{font-size:12px;color:var(--dim)}
       <h2 class="sec-h" data-i18n="cs.h">Brand AI <span class="tgold">TOP VIEW</span> viết về Phong Menly</h2>
     </div>
     <div class="fade-up" style="display:flex;justify-content:center">
-      <div class="cs-wrap">
-        <a href="https://www.topview.ai/case-studies/phongmenly-ai-marketing-case-study" target="_blank" rel="noopener" class="cs-link-url">
-          https://www.topview.ai/case-studies/phongmenly-ai-marketing-case-study
-        </a>
-        <a href="https://www.topview.ai/case-studies/phongmenly-ai-marketing-case-study" target="_blank" rel="noopener" class="cs-card">
-          <div class="cs-thumb">
-            <img src="images/topview-case-study.png"
-                 alt="Case Study: How Phong Menly Scaled Video 5x with TopView AI">
+      <a href="https://www.topview.ai/case-studies/phongmenly-ai-marketing-case-study" target="_blank" rel="noopener" class="cs-card">
+        <div class="cs-thumb">
+          <img src="images/topview-case-study.png"
+               alt="Case Study: How Phong Menly Scaled Video 5x with TopView AI">
+          <div class="cs-play"><div class="cs-play-btn">▶</div></div>
+        </div>
+        <div class="cs-body">
+          <div class="cs-title">Case Study: How Phongmenly Scaled Video 5x with TopView AI</div>
+          <div class="cs-desc">See how AI marketer Phongmenly used Topview to increase video output by 5x and cut production time significantly.</div>
+          <div class="cs-foot">
+            <span class="cs-domain">www.topview.ai</span>
+            <span class="cs-dur">00:47</span>
           </div>
-          <div class="cs-body">
-            <div class="cs-title">Case Study: How Phongmenly Scaled Video 5x with...</div>
-            <div class="cs-desc">See how AI marketer Phongmenly used Topview to increase video output by 5x and cut production time by...</div>
-            <div class="cs-foot">
-              <span class="cs-domain">www.topview.ai</span>
-              <span class="cs-dur">00:47</span>
-            </div>
-          </div>
-        </a>
-      </div>
+        </div>
+      </a>
     </div>
   </div>
 </section>
