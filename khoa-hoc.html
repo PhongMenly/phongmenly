@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -654,29 +653,41 @@ document.addEventListener('click', () => {
 
 const KH_LAUNCH = new Date('2026-07-01T00:00:00+07:00');
 
-// Ghi reader trực tiếp vào Supabase (cùng project với index.html)
-const _mmtdSb = window.supabase
-  ? window.supabase.createClient('https://ryhogciybrffiumuawrk.supabase.co', 'sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm', { auth: { persistSession: false } })
-  : null;
+// Ghi reader thẳng vào Supabase REST API — không cần SDK
+const _SB = 'https://ryhogciybrffiumuawrk.supabase.co';
+const _SK = 'sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
+const _SH = { 'Content-Type':'application/json', 'apikey':_SK, 'Authorization':'Bearer '+_SK };
 
 async function mmtdTrackReader(email, name) {
-  if (!_mmtdSb || !email) return;
+  if (!email) return;
   try {
-    const { data: ex } = await _mmtdSb.from('mmtd_readers')
-      .select('id, visit_count').eq('email', email).maybeSingle();
-    if (ex) {
-      await _mmtdSb.from('mmtd_readers').update({
-        ...(name && { name }),
-        visit_count: (ex.visit_count || 0) + 1,
-        last_seen: new Date().toISOString()
-      }).eq('id', ex.id);
+    const res = await fetch(
+      `${_SB}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count`,
+      { headers: _SH }
+    );
+    const rows = await res.json();
+    if (rows && rows.length > 0) {
+      const row = rows[0];
+      await fetch(`${_SB}/rest/v1/mmtd_readers?id=eq.${row.id}`, {
+        method: 'PATCH',
+        headers: _SH,
+        body: JSON.stringify({
+          ...(name && { name }),
+          visit_count: (row.visit_count || 0) + 1,
+          last_seen: new Date().toISOString()
+        })
+      });
     } else {
-      await _mmtdSb.from('mmtd_readers').insert({
-        email, name: name || email.split('@')[0],
-        visit_count: 1, last_seen: new Date().toISOString()
+      await fetch(`${_SB}/rest/v1/mmtd_readers`, {
+        method: 'POST',
+        headers: { ..._SH, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          email, name: name || email.split('@')[0],
+          visit_count: 1, last_seen: new Date().toISOString()
+        })
       });
     }
-  } catch(e) { console.warn('[MMTD] reader track error:', e); }
+  } catch(e) { console.warn('[MMTD]', e); }
 }
 
 // Gate password logic
