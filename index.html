@@ -1470,22 +1470,55 @@ const MMTD_HOLDER   = 'HO KINH DOANH LE DANG PHUONG';
 let mmtdRef = '';
 let mmtdPoll = null;
 
-// Đọc ?ref= từ URL, lưu vào localStorage, hiện badge
+// ─── Affiliate tracking: cookie 45 ngày + localStorage dự phòng ───
+const MMTD_REF_KEY = 'mmtd_ref';
+const MMTD_REF_TTL = 45 * 24 * 60 * 60 * 1000; // 45 ngày (ms)
+
+// Lưu mã ref kèm hạn 45 ngày (cookie + localStorage). Last-click wins: lần click mới reset lại 45 ngày.
+function mmtdSaveRef(code){
+  const data = { ref: code, exp: Date.now() + MMTD_REF_TTL };
+  try { localStorage.setItem(MMTD_REF_KEY, JSON.stringify(data)); } catch(e){}
+  document.cookie = MMTD_REF_KEY + '=' + encodeURIComponent(code) +
+    ';max-age=' + Math.floor(MMTD_REF_TTL/1000) + ';path=/;SameSite=Lax';
+}
+
+function mmtdGetAff(){
+  // 1) localStorage có hạn
+  try {
+    const raw = localStorage.getItem(MMTD_REF_KEY);
+    if (raw) {
+      if (raw.charAt(0) === '{') {
+        const d = JSON.parse(raw);
+        if (d && d.ref) {
+          if (Date.now() < d.exp) return d.ref;
+          localStorage.removeItem(MMTD_REF_KEY); // hết hạn
+        }
+      } else if (/^[a-z0-9_-]+$/i.test(raw)) {
+        // dữ liệu cũ dạng chuỗi thuần → nâng cấp sang format có hạn
+        mmtdSaveRef(raw.toLowerCase());
+        return raw.toLowerCase();
+      }
+    }
+  } catch(e){}
+  // 2) cookie dự phòng
+  const m = document.cookie.match(/(?:^|;\s*)mmtd_ref=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
+// Đọc ?ref= từ URL, lưu cookie 45 ngày, hiện badge
 (function(){
   const p = new URLSearchParams(window.location.search);
   const raw = p.get('ref') || p.get('aff') || '';
   if (!raw) return;
   const code = raw.replace(/[^a-z0-9_-]/gi,'').slice(0,32).toLowerCase();
   if (!code) return;
-  localStorage.setItem('mmtd_ref', code);
+  mmtdSaveRef(code);
   const b = document.createElement('div');
   b.style.cssText = 'position:fixed;bottom:20px;left:20px;background:rgba(8,8,8,.93);border:1px solid rgba(255,215,0,.45);border-radius:10px;padding:10px 14px;font-size:.78rem;color:#FFD700;z-index:1500;max-width:220px;line-height:1.6;transition:opacity .4s';
-  b.innerHTML = '✦ Affiliate: <strong>' + code + '</strong><br><span style="color:#A1A1AA;font-size:.72rem">Link đã được ghi nhận</span>';
+  b.innerHTML = '✦ Affiliate: <strong>' + code + '</strong><br><span style="color:#A1A1AA;font-size:.72rem">Đã ghi nhận · lưu 45 ngày</span>';
   document.body.appendChild(b);
   setTimeout(()=>{ b.style.opacity='0'; setTimeout(()=>b.remove(),400); }, 6000);
 })();
-
-function mmtdGetAff(){ return localStorage.getItem('mmtd_ref') || ''; }
 
 function mmtdGenCode(name){
   const ts  = Date.now().toString(36).toUpperCase().slice(-4);
