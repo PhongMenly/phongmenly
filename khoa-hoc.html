@@ -6,7 +6,8 @@
 <title>Khóa Học — Phong Menly</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -112,6 +113,26 @@ nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px soli
 .drop-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
 .drop-item:hover{background:rgba(255,255,255,.06);color:var(--txt)}
 .drop-item.red:hover{background:rgba(229,62,62,.1);color:#E53E3E}
+/* ── AUTH MODAL ── */
+.pm-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:9000;padding:20px}
+.pm-modal-box{background:#161616;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:36px 32px;width:100%;max-width:380px;position:relative;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.8)}
+.pm-modal-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.08);border:none;color:var(--muted);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.2s;font-family:inherit}
+.pm-modal-close:hover{background:rgba(255,255,255,.15);color:var(--txt)}
+.pm-modal-logo{font-size:36px;margin-bottom:12px}
+.pm-modal-title{font-size:20px;font-weight:800;color:var(--txt);margin-bottom:6px}
+.pm-modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.pm-btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;background:#fff;color:#1a1a1a;border:none;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;font-family:inherit}
+.pm-btn-google:hover{background:#f0f0f0;transform:translateY(-1px)}
+.pm-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--dim);font-size:12px}
+.pm-divider::before,.pm-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.pm-email-input{width:100%;padding:13px 18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:50px;color:var(--txt);font-size:14px;font-family:inherit;margin-bottom:10px;outline:none;transition:.2s;display:block}
+.pm-email-input:focus{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.04)}
+.pm-email-input::placeholder{color:var(--dim)}
+.pm-btn-email{width:100%;padding:13px 20px;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;font-family:inherit}
+.pm-btn-email:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,215,0,.3)}
+.pm-sent-icon{font-size:42px;margin-bottom:14px}
+.pm-sent-title{font-size:16px;font-weight:800;color:var(--txt);margin-bottom:8px}
+.pm-sent-sub{font-size:13px;color:var(--muted);line-height:1.6}
 
 /* ── RESPONSIVE ── */
 @media(max-width:900px){.kh-grid{grid-template-columns:1fr 1fr;gap:18px}}
@@ -133,14 +154,8 @@ nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px soli
     <!-- AUTH -->
     <div class="nav-auth" id="nav-auth">
       <div class="auth-skel" id="auth-loading"></div>
-      <button class="btn-glogin" id="btn-glogin" style="display:none" onclick="pmSignIn()">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-        </svg>
-        Đăng nhập
+      <button class="btn-glogin" id="btn-glogin" style="display:none" onclick="pmOpenModal()">
+        Đăng ký / Đăng nhập
       </button>
       <div class="u-profile" id="u-profile" style="display:none" onclick="pmToggleDrop(event)">
         <img class="u-av" id="u-av" src="" alt="">
@@ -340,21 +355,58 @@ nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px soli
 </div>
 
 <script>
-// ── GOOGLE AUTH ──
-// ⚠️ Thay YOUR_GOOGLE_CLIENT_ID bằng Client ID thật từ Google Cloud Console
-const PM_CLIENT_ID = '920925434890-podt0rdpsm7vhdog4kagt1i08tg9idas.apps.googleusercontent.com';
+// ── FIREBASE AUTH ──
+const PM_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB5p0tjfsAVUaHzCrmFkAzMiwAsjiOwGc8",
+  authDomain: "phongmenlyproduct-37e44.firebaseapp.com",
+  projectId: "phongmenlyproduct-37e44",
+  storageBucket: "phongmenlyproduct-37e44.firebasestorage.app",
+  messagingSenderId: "322407876187",
+  appId: "1:322407876187:web:fca389d542c409dbeca17e"
+};
+
 const PM_VIP_EMAILS = [];
+let pmAuth = null;
 
 function pmIsVIP(email) {
   return PM_VIP_EMAILS.includes(email) || localStorage.getItem('pm_vip_' + email) === 'true';
 }
 
-function pmInitAuth() {
+function pmInitFirebase() {
   try {
-    const raw = localStorage.getItem('pm_user');
-    if (raw) { pmShowProfile(JSON.parse(raw)); return; }
-  } catch(e) {}
-  pmShowLogin();
+    if (!firebase.apps.length) firebase.initializeApp(PM_FIREBASE_CONFIG);
+    pmAuth = firebase.auth();
+
+    if (pmAuth.isSignInWithEmailLink(window.location.href)) {
+      let email = localStorage.getItem('pm_email_for_link');
+      if (!email) email = window.prompt('Nhập email bạn đã dùng để đăng nhập:');
+      if (email) {
+        pmAuth.signInWithEmailLink(email, window.location.href)
+          .then(() => {
+            localStorage.removeItem('pm_email_for_link');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          })
+          .catch(e => console.error('Magic link error:', e));
+      }
+    }
+
+    pmAuth.onAuthStateChanged(user => {
+      if (user) {
+        const u = {
+          email: user.email,
+          name: user.displayName || user.email.split('@')[0],
+          given_name: user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0],
+          picture: user.photoURL || null
+        };
+        pmShowProfile(u);
+      } else {
+        pmShowLogin();
+      }
+    });
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    pmShowLogin();
+  }
 }
 
 function pmShowLogin() {
@@ -387,32 +439,54 @@ function pmShowProfile(user) {
   badge.className = 'u-badge ' + (vip ? 'vip' : 'free');
 }
 
-function pmSignIn() {
-  if (typeof google === 'undefined') { alert('Đang tải... thử lại sau giây lát.'); return; }
-  google.accounts.id.initialize({ client_id: PM_CLIENT_ID, callback: pmHandleCredential, auto_select: false });
-  google.accounts.id.prompt(n => {
-    if (n.isNotDisplayed() || n.isSkippedMoment()) {
-      const tmp = document.createElement('div');
-      tmp.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999';
-      document.body.appendChild(tmp);
-      google.accounts.id.renderButton(tmp, { theme:'filled_black', size:'large', text:'signin_with', locale:'vi' });
-      tmp.querySelector('div[role=button]')?.click();
-    }
-  });
+function pmOpenModal() {
+  document.getElementById('pm-modal').style.display = 'flex';
+  document.getElementById('pm-email-form').style.display = 'block';
+  document.getElementById('pm-email-sent').style.display = 'none';
+  document.getElementById('pm-email-input').value = '';
+  setTimeout(() => document.getElementById('pm-email-input').focus(), 100);
 }
 
-function pmHandleCredential(resp) {
+function pmCloseModal(e) {
+  if (!e || e.target === document.getElementById('pm-modal')) {
+    document.getElementById('pm-modal').style.display = 'none';
+  }
+}
+
+async function pmSignInGoogle() {
+  if (!pmAuth) { alert('Đang tải... thử lại.'); return; }
   try {
-    const b64 = resp.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-    const payload = JSON.parse(atob(b64 + '=='.slice((b64.length%4)||4)));
-    localStorage.setItem('pm_user', JSON.stringify(payload));
-    pmShowProfile(payload);
-  } catch(e) { console.error('Auth error', e); }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await pmAuth.signInWithPopup(provider);
+    document.getElementById('pm-modal').style.display = 'none';
+  } catch(e) { console.error('Google sign-in error:', e); }
+}
+
+async function pmSendMagicLink() {
+  const email = document.getElementById('pm-email-input').value.trim();
+  if (!email || !email.includes('@')) { alert('Vui lòng nhập email hợp lệ.'); return; }
+  if (!pmAuth) { alert('Đang tải... thử lại.'); return; }
+  const btn = document.querySelector('.pm-btn-email');
+  btn.textContent = 'Đang gửi...';
+  btn.disabled = true;
+  try {
+    await pmAuth.sendSignInLinkToEmail(email, {
+      url: window.location.origin + window.location.pathname,
+      handleCodeInApp: true
+    });
+    localStorage.setItem('pm_email_for_link', email);
+    document.getElementById('pm-email-form').style.display = 'none';
+    document.getElementById('pm-email-sent').style.display = 'block';
+  } catch(e) {
+    console.error('Send magic link error:', e);
+    alert('Có lỗi khi gửi email. Thử lại sau.');
+    btn.textContent = '✉️ Gửi link đăng nhập';
+    btn.disabled = false;
+  }
 }
 
 function pmSignOut() {
-  localStorage.removeItem('pm_user');
-  if (typeof google !== 'undefined') google.accounts.id.disableAutoSelect();
+  if (pmAuth) pmAuth.signOut();
   document.getElementById('u-profile').style.display = 'none';
   document.getElementById('btn-glogin').style.display = 'flex';
 }
@@ -427,7 +501,10 @@ document.addEventListener('click', () => {
   if (p) p.classList.remove('open');
 });
 
-document.addEventListener('DOMContentLoaded', pmInitAuth);
+document.addEventListener('DOMContentLoaded', () => {
+  pmInitFirebase();
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') pmCloseModal({ target: document.getElementById('pm-modal') }); });
+});
 
 const bt = document.getElementById('brand-track');
 if (bt) {
@@ -446,5 +523,33 @@ if (bt) {
   });
 }
 </script>
+
+<!-- AUTH MODAL -->
+<div class="pm-modal-overlay" id="pm-modal" style="display:none" onclick="pmCloseModal(event)">
+  <div class="pm-modal-box">
+    <button class="pm-modal-close" onclick="pmCloseModal({target:document.getElementById('pm-modal')})">✕</button>
+    <h3 class="pm-modal-title">Đăng ký / Đăng nhập</h3>
+    <p class="pm-modal-sub">Tiếp tục với Google hoặc email</p>
+    <button class="pm-btn-google" onclick="pmSignInGoogle()">
+      <svg viewBox="0 0 24 24" width="18" height="18">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Tiếp tục với Google
+    </button>
+    <div class="pm-divider"><span>hoặc đăng nhập bằng email</span></div>
+    <div id="pm-email-form">
+      <input class="pm-email-input" type="email" id="pm-email-input" placeholder="Nhập email của bạn..." onkeydown="if(event.key==='Enter')pmSendMagicLink()">
+      <button class="pm-btn-email" onclick="pmSendMagicLink()">✉️ Gửi link đăng nhập</button>
+    </div>
+    <div id="pm-email-sent" style="display:none">
+      <div class="pm-sent-icon">✅</div>
+      <p class="pm-sent-title">Đã gửi link đến email!</p>
+      <p class="pm-sent-sub">Kiểm tra hộp thư và click vào link để đăng nhập tự động.</p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
