@@ -1111,7 +1111,7 @@ function pmCloseModal(e) {
 }
 
 function openDocThu() {
-  if (window.pmAuth && window.pmAuth.currentUser) {
+  if (pmAuth && pmAuth.currentUser) {
     window.location.href = 'doc-thu.html';
   } else {
     localStorage.setItem('pm_after_login', 'doc-thu.html');

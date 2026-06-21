@@ -1961,8 +1961,9 @@ const GATE_CONFIG = {
   messagingSenderId:"322407876187",
   appId:"1:322407876187:web:fca389d542c409dbeca17e"
 };
-const gateApp  = firebase.initializeApp(GATE_CONFIG,'gate');
-const gateAuth = firebase.auth(gateApp);
+// Dùng app mặc định (cùng key lưu session với index.html) → đã đăng nhập ở trang chủ thì vào thẳng, không hỏi lại
+if (!firebase.apps.length) firebase.initializeApp(GATE_CONFIG);
+const gateAuth = firebase.auth();
 
 function gateShowStep(s){
   ['welcome','login','register'].forEach(id=>{
