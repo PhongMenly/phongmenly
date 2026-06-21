@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -157,6 +158,29 @@ nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px soli
 /* ── RESPONSIVE ── */
 @media(max-width:900px){.kh-grid{grid-template-columns:1fr 1fr;gap:18px}}
 @media(max-width:580px){.kh-grid{grid-template-columns:1fr;gap:16px}.pg-hero{padding:48px 16px 36px}.kh-wrap{padding:24px 16px 60px}}
+
+/* ── GATE ── */
+#kh-gate{padding:40px 20px 80px;max-width:540px;margin:0 auto;text-align:center}
+.gate-icon{font-size:52px;margin-bottom:20px;display:block;filter:drop-shadow(0 4px 20px rgba(255,215,0,.3))}
+.gate-label{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px}
+.gate-h{font-size:clamp(28px,5vw,48px);font-weight:900;letter-spacing:-1.5px;line-height:1.15;margin-bottom:6px}
+.gate-date{font-size:18px;font-weight:700;color:var(--gold);margin-bottom:28px}
+.gate-cd{display:flex;gap:12px;justify-content:center;margin-bottom:36px;flex-wrap:wrap}
+.gate-cd-unit{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 18px;min-width:72px}
+.gate-cd-num{font-size:32px;font-weight:900;color:var(--txt);letter-spacing:-1px;line-height:1;display:block}
+.gate-cd-lbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:4px;display:block}
+.gate-sep{color:rgba(255,255,255,.15);font-size:24px;font-weight:300;align-self:center}
+.gate-lock-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:28px 28px 24px;margin-bottom:0}
+.gate-lock-h{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:6px}
+.gate-lock-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.gate-pw-row{display:flex;gap:10px}
+.gate-pw-input{flex:1;padding:14px 18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--txt);font-size:15px;font-family:inherit;outline:none;transition:.2s;letter-spacing:2px}
+.gate-pw-input:focus{border-color:rgba(255,215,0,.5);background:rgba(255,215,0,.03)}
+.gate-pw-input::placeholder{letter-spacing:0;color:var(--dim)}
+.gate-pw-btn{padding:14px 22px;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;transition:.2s;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.gate-pw-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.gate-pw-err{font-size:13px;color:#E53E3E;min-height:20px;margin-top:10px}
+@media(max-width:480px){.gate-cd{gap:8px}.gate-cd-unit{padding:12px 12px;min-width:60px}.gate-cd-num{font-size:26px}.gate-pw-row{flex-direction:column}.gate-pw-btn{width:100%}}
 </style>
 </head>
 <body>
@@ -206,6 +230,36 @@ nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px soli
     Được tin tưởng bởi 3.600+ học viên
   </div>
 </div>
+
+<!-- GATE (hiển thị khi chưa nhập mật mã) -->
+<div id="kh-gate">
+  <span class="gate-icon">🔒</span>
+  <div class="gate-label">Khóa Học AI</div>
+  <h2 class="gate-h">Sắp Ra Mắt</h2>
+  <div class="gate-date">1 tháng 7 · 2026</div>
+  <div class="gate-cd" id="gate-cd">
+    <div class="gate-cd-unit"><span class="gate-cd-num" id="gcd-d">--</span><span class="gate-cd-lbl">Ngày</span></div>
+    <span class="gate-sep">·</span>
+    <div class="gate-cd-unit"><span class="gate-cd-num" id="gcd-h">--</span><span class="gate-cd-lbl">Giờ</span></div>
+    <span class="gate-sep">·</span>
+    <div class="gate-cd-unit"><span class="gate-cd-num" id="gcd-m">--</span><span class="gate-cd-lbl">Phút</span></div>
+    <span class="gate-sep">·</span>
+    <div class="gate-cd-unit"><span class="gate-cd-num" id="gcd-s">--</span><span class="gate-cd-lbl">Giây</span></div>
+  </div>
+  <div class="gate-lock-box">
+    <div class="gate-lock-h">Bạn có mật mã?</div>
+    <div class="gate-lock-sub">Nhập mật mã để xem trước nội dung khóa học</div>
+    <div class="gate-pw-row">
+      <input id="kh-pw" class="gate-pw-input" type="password" placeholder="Nhập mật mã..." autocomplete="off"
+        onkeydown="if(event.key==='Enter')khUnlock()">
+      <button class="gate-pw-btn" onclick="khUnlock()">Vào xem</button>
+    </div>
+    <div class="gate-pw-err" id="gate-pw-err"></div>
+  </div>
+</div>
+
+<!-- NỘI DUNG (ẩn cho đến khi mở khóa) -->
+<div id="kh-content" style="display:none">
 
 <!-- FILTER TABS -->
 <div class="filter-bar">
@@ -350,6 +404,8 @@ nav{background:rgba(8,8,8,.98);backdrop-filter:blur(20px);border-bottom:1px soli
   </div>
 </div>
 
+</div><!-- /kh-content -->
+
 <!-- BRAND MARQUEE -->
 <div class="brand-sec">
   <div class="brand-sec-hd">
@@ -454,10 +510,7 @@ function pmInitFirebase() {
           picture: user.photoURL || null
         };
         pmShowProfile(u);
-        fetch(KH_WEBHOOK, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'reader_login', email: user.email, name: u.name })
-        }).catch(() => {});
+        mmtdTrackReader(user.email, u.name);
       } else {
         pmShowLogin();
       }
@@ -599,44 +652,76 @@ document.addEventListener('click', () => {
   if (p) p.classList.remove('open');
 });
 
-const KH_WEBHOOK = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
-const KH_LAUNCH  = new Date('2026-07-01T00:00:00+07:00');
+const KH_LAUNCH = new Date('2026-07-01T00:00:00+07:00');
+
+// Ghi reader trực tiếp vào Supabase (cùng project với index.html)
+const _mmtdSb = window.supabase
+  ? window.supabase.createClient('https://ryhogciybrffiumuawrk.supabase.co', 'sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm', { auth: { persistSession: false } })
+  : null;
+
+async function mmtdTrackReader(email, name) {
+  if (!_mmtdSb || !email) return;
+  try {
+    const { data: ex } = await _mmtdSb.from('mmtd_readers')
+      .select('id, visit_count').eq('email', email).maybeSingle();
+    if (ex) {
+      await _mmtdSb.from('mmtd_readers').update({
+        ...(name && { name }),
+        visit_count: (ex.visit_count || 0) + 1,
+        last_seen: new Date().toISOString()
+      }).eq('id', ex.id);
+    } else {
+      await _mmtdSb.from('mmtd_readers').insert({
+        email, name: name || email.split('@')[0],
+        visit_count: 1, last_seen: new Date().toISOString()
+      });
+    }
+  } catch(e) { console.warn('[MMTD] reader track error:', e); }
+}
+
+// Gate password logic
+function khUnlock() {
+  const val = (document.getElementById('kh-pw').value || '').trim().toLowerCase();
+  if (val === 'tudo') {
+    localStorage.setItem('kh_unlocked', '1');
+    document.getElementById('kh-gate').style.display = 'none';
+    document.getElementById('kh-content').style.display = 'block';
+    document.getElementById('gate-pw-err').textContent = '';
+  } else {
+    const err = document.getElementById('gate-pw-err');
+    err.textContent = 'Mật mã không đúng. Thử lại.';
+    document.getElementById('kh-pw').value = '';
+    document.getElementById('kh-pw').focus();
+  }
+}
+
+function khGateCountdown() {
+  const ms = KH_LAUNCH - new Date();
+  if (ms <= 0) return;
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const pad = v => String(v).padStart(2, '0');
+  document.getElementById('gcd-d').textContent = pad(d);
+  document.getElementById('gcd-h').textContent = pad(h);
+  document.getElementById('gcd-m').textContent = pad(m);
+  document.getElementById('gcd-s').textContent = pad(s);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   pmInitFirebase();
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') pmCloseModal({ target: document.getElementById('pm-modal') }); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') pmCloseModal({ target: document.getElementById('pm-modal') });
+  });
 
-  if (new Date() < KH_LAUNCH) {
-    // Hiện banner + card học thử
-    document.getElementById('launch-banner').style.display = 'block';
-    document.getElementById('hoc-thu-card').style.display  = 'flex';
+  const unlocked = localStorage.getItem('kh_unlocked') === '1';
+  document.getElementById('kh-gate').style.display    = unlocked ? 'none'  : 'block';
+  document.getElementById('kh-content').style.display = unlocked ? 'block' : 'none';
 
-    // Ẩn giá, khóa nút mua
-    document.querySelectorAll('.kh-price').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.kh-btn').forEach(el => {
-      if (el.closest('#hoc-thu-card')) return;
-      el.textContent = '🔒 Ra mắt 1/7/2026';
-      el.style.cssText += ';background:rgba(255,255,255,.06);color:#A1A1AA;pointer-events:none';
-    });
-
-    // Đếm ngược
-    function tick() {
-      const ms = KH_LAUNCH - new Date();
-      if (ms <= 0) return location.reload();
-      const d = Math.floor(ms / 86400000);
-      const h = Math.floor((ms % 86400000) / 3600000);
-      const m = Math.floor((ms % 3600000) / 60000);
-      const s = Math.floor((ms % 60000) / 1000);
-      document.getElementById('kh-countdown').innerHTML =
-        [['Ngày',d],['Giờ',h],['Phút',m],['Giây',s]].map(([l,v]) =>
-          `<div style="text-align:center;background:rgba(0,0,0,.35);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:8px 12px;min-width:52px">
-            <div style="font-size:1.3rem;font-weight:900;color:#FFD700;line-height:1">${String(v).padStart(2,'0')}</div>
-            <div style="font-size:.6rem;color:#A1A1AA;font-weight:700;letter-spacing:.5px;margin-top:2px">${l.toUpperCase()}</div>
-          </div>`
-        ).join('');
-    }
-    tick(); setInterval(tick, 1000);
-  }
+  // Countdown cho gate
+  khGateCountdown();
+  setInterval(khGateCountdown, 1000);
 });
 
 const bt = document.getElementById('brand-track');
