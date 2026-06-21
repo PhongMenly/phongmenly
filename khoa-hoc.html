@@ -478,7 +478,7 @@ async function pmRegister() {
   if (!name) { errEl.textContent = 'Vui lòng nhập họ và tên.'; return; }
   if (!email.includes('@')) { errEl.textContent = 'Email không hợp lệ.'; return; }
   if (pass.length < 6) { errEl.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.'; return; }
-  const btn = document.querySelector('#pm-register-form .pm-btn-submit');
+  const btn = document.querySelector('#pm-step-register .pm-btn-submit');
   btn.textContent = 'Đang đăng ký...'; btn.disabled = true;
   try {
     const cred = await pmAuth.createUserWithEmailAndPassword(email, pass);
@@ -497,7 +497,7 @@ async function pmLogin() {
   const pass = document.getElementById('pm-login-pass').value;
   const errEl = document.getElementById('pm-login-error');
   errEl.textContent = '';
-  const btn = document.querySelector('#pm-login-form .pm-btn-submit');
+  const btn = document.querySelector('#pm-step-login .pm-btn-submit');
   btn.textContent = 'Đang đăng nhập...'; btn.disabled = true;
   try {
     await pmAuth.signInWithEmailAndPassword(email, pass);
