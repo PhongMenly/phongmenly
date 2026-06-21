@@ -1517,7 +1517,7 @@ function mmtdGetAff(){
   if (!sessionStorage.getItem('mmtd_click_sent')) {
     sessionStorage.setItem('mmtd_click_sent', '1');
     fetch(MMTD_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'click', aff:code, referrer:document.referrer||'' })
+      body: JSON.stringify({ action:'click', aff:code, product:'Mật Mã Tự Do', referrer:document.referrer||'' })
     }).catch(()=>{});
   }
   const b = document.createElement('div');
