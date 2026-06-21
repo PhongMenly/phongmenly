@@ -7,6 +7,8 @@
 <title>Đọc Thử: Mật Mã Tự Do — Phong Menly</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@300;400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <style>
 /* ══════════════════════════════════════════
    RESET & BASE
@@ -835,9 +837,135 @@ body{
   font-size:9.5px;letter-spacing:3px;color:var(--gold);
   text-transform:uppercase;opacity:.9;
 }
+
+/* ══ AUTH GATE ══ */
+#auth-gate{
+  position:fixed;inset:0;z-index:9999;
+  background:#b8b5b0;
+  background-image:
+    repeating-linear-gradient(45deg,transparent,transparent 22px,rgba(0,0,0,.016) 22px,rgba(0,0,0,.016) 44px),
+    repeating-linear-gradient(-45deg,transparent,transparent 22px,rgba(0,0,0,.011) 22px,rgba(0,0,0,.011) 44px);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.gate-box{
+  background:#111;border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;padding:36px 32px;
+  width:100%;max-width:400px;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+  text-align:center;
+}
+.gate-logo{
+  font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;
+  background:linear-gradient(135deg,#b87c14,#e8a020);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:10px;
+}
+.gate-title{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:20px;color:#fff;margin-bottom:6px;
+}
+.gate-sub{
+  font-family:'Oswald',sans-serif;font-weight:300;
+  font-size:13px;color:rgba(255,255,255,.52);margin-bottom:24px;
+}
+.gate-btn-google{
+  width:100%;padding:13px 18px;
+  background:#fff;color:#222;border:none;border-radius:12px;
+  font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-bottom:14px;font-family:inherit;
+}
+.gate-btn-google:hover{background:#f0f0f0;}
+.gate-divider{
+  display:flex;align-items:center;gap:10px;
+  color:rgba(255,255,255,.28);font-size:12px;margin-bottom:14px;
+}
+.gate-divider::before,.gate-divider::after{
+  content:'';flex:1;height:1px;background:rgba(255,255,255,.12);
+}
+.gate-input{
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;color:#fff;font-size:14px;margin-bottom:10px;
+  font-family:inherit;display:block;
+}
+.gate-input::placeholder{color:rgba(255,255,255,.35);}
+.gate-input:focus{outline:none;border-color:rgba(184,124,20,.5);}
+.gate-btn-submit{
+  width:100%;padding:13px 18px;
+  background:linear-gradient(135deg,#b87c14,#e8a020);
+  color:#000;border:none;border-radius:12px;
+  font-size:14px;font-weight:800;cursor:pointer;margin-bottom:12px;
+  font-family:inherit;
+}
+.gate-btn-email{
+  width:100%;padding:12px 18px;
+  background:rgba(255,255,255,.07);color:#fff;
+  border:1px solid rgba(255,255,255,.14);border-radius:12px;
+  font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;
+  font-family:inherit;
+}
+.gate-btn-email:hover{background:rgba(255,255,255,.12);}
+.gate-switch{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px;}
+.gate-switch span{color:#b87c14;cursor:pointer;}
+.gate-error{color:#ff6b6b;font-size:12px;margin-bottom:10px;min-height:16px;text-align:left;}
+.gate-home{font-size:12px;color:rgba(255,255,255,.3);text-decoration:none;display:inline-block;}
+.gate-home:hover{color:rgba(255,255,255,.6);}
+.gate-step{display:none;}
+.gate-step.active{display:block;}
+.gate-back{
+  background:none;border:none;color:rgba(255,255,255,.45);
+  font-size:13px;cursor:pointer;padding:0 0 14px;
+  text-align:left;display:block;font-family:inherit;
+}
+.gate-back:hover{color:#fff;}
 </style>
 </head>
 <body>
+
+<!-- AUTH GATE OVERLAY -->
+<div id="auth-gate">
+  <div class="gate-box">
+    <!-- STEP: WELCOME -->
+    <div class="gate-step active" id="gate-welcome">
+      <div class="gate-logo">M²</div>
+      <div class="gate-title">Đăng nhập để Đọc Thử</div>
+      <div class="gate-sub">Miễn phí · Chỉ cần tài khoản</div>
+      <button class="gate-btn-google" onclick="gateGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Tiếp tục với Google
+      </button>
+      <div class="gate-divider"><span>hoặc</span></div>
+      <button class="gate-btn-email" onclick="gateShowStep('register')">✉ Đăng ký bằng Email</button>
+      <div class="gate-switch">Đã có tài khoản? <span onclick="gateShowStep('login')">Đăng nhập</span></div>
+      <a href="index.html" class="gate-home">← Về trang chủ</a>
+    </div>
+    <!-- STEP: LOGIN -->
+    <div class="gate-step" id="gate-login">
+      <button class="gate-back" onclick="gateShowStep('welcome')">← Quay lại</button>
+      <div class="gate-title">Đăng nhập</div>
+      <input class="gate-input" type="email" id="gate-login-email" placeholder="Email...">
+      <input class="gate-input" type="password" id="gate-login-pass" placeholder="Mật khẩu...">
+      <div class="gate-error" id="gate-login-err"></div>
+      <button class="gate-btn-submit" onclick="gateEmailLogin()">Đăng nhập</button>
+      <div class="gate-switch">Chưa có tài khoản? <span onclick="gateShowStep('register')">Đăng ký</span></div>
+      <a href="index.html" class="gate-home">← Về trang chủ</a>
+    </div>
+    <!-- STEP: REGISTER -->
+    <div class="gate-step" id="gate-register">
+      <button class="gate-back" onclick="gateShowStep('welcome')">← Quay lại</button>
+      <div class="gate-title">Tạo tài khoản</div>
+      <input class="gate-input" type="text" id="gate-reg-name" placeholder="Họ và tên...">
+      <input class="gate-input" type="email" id="gate-reg-email" placeholder="Email...">
+      <input class="gate-input" type="password" id="gate-reg-pass" placeholder="Mật khẩu (ít nhất 6 ký tự)...">
+      <div class="gate-error" id="gate-reg-err"></div>
+      <button class="gate-btn-submit" onclick="gateEmailRegister()">Đăng ký</button>
+      <div class="gate-switch">Đã có tài khoản? <span onclick="gateShowStep('login')">Đăng nhập</span></div>
+      <a href="index.html" class="gate-home">← Về trang chủ</a>
+    </div>
+  </div>
+</div>
 
 <!-- Nút trên -->
 <div class="top-bar">
@@ -1804,7 +1932,7 @@ function fit(){
   }
 
   const bW = PW*2+4, bH = PH+4;
-  curScale = Math.min((vw-28)/bW, (vh-76)/bH, 1);
+  curScale = Math.min((vw-28)/bW, (vh-76)/bH, 1.3);
   app.style.width      = bW+'px';
   app.style.height     = bH+'px';
   const mt = Math.max(8,(vh-bH*curScale-60)/2);
@@ -1821,6 +1949,58 @@ window.addEventListener('resize',()=>{
   requestAnimationFrame(()=>{ app.style.transition=''; });
 });
 fit();
+
+/* ── AUTH GATE ── */
+const GATE_CONFIG = {
+  apiKey:"AIzaSyB5p0tjfsAVUaHzCrmFkAzMiwAsjiOwGc8",
+  authDomain:"phongmenlyproduct-37e44.firebaseapp.com",
+  projectId:"phongmenlyproduct-37e44",
+  storageBucket:"phongmenlyproduct-37e44.firebasestorage.app",
+  messagingSenderId:"322407876187",
+  appId:"1:322407876187:web:fca389d542c409dbeca17e"
+};
+const gateApp  = firebase.initializeApp(GATE_CONFIG,'gate');
+const gateAuth = firebase.auth(gateApp);
+
+function gateShowStep(s){
+  ['welcome','login','register'].forEach(id=>{
+    document.getElementById('gate-'+id).classList.toggle('active',id===s);
+  });
+}
+async function gateGoogle(){
+  const p=new firebase.auth.GoogleAuthProvider();
+  try{ await gateAuth.signInWithPopup(p); }catch(e){ console.error(e); }
+}
+async function gateEmailLogin(){
+  const email=document.getElementById('gate-login-email').value.trim();
+  const pass =document.getElementById('gate-login-pass').value;
+  const err  =document.getElementById('gate-login-err');
+  err.textContent='';
+  try{ await gateAuth.signInWithEmailAndPassword(email,pass); }
+  catch(e){
+    err.textContent=e.code==='auth/wrong-password'||e.code==='auth/user-not-found'
+      ?'Email hoặc mật khẩu không đúng.':e.message;
+  }
+}
+async function gateEmailRegister(){
+  const name =document.getElementById('gate-reg-name').value.trim();
+  const email=document.getElementById('gate-reg-email').value.trim();
+  const pass =document.getElementById('gate-reg-pass').value;
+  const err  =document.getElementById('gate-reg-err');
+  err.textContent='';
+  try{
+    const cred=await gateAuth.createUserWithEmailAndPassword(email,pass);
+    if(name) await cred.user.updateProfile({displayName:name});
+  }catch(e){
+    err.textContent=e.code==='auth/email-already-in-use'
+      ?'Email này đã được dùng. Hãy đăng nhập.':e.message;
+  }
+}
+
+const gateEl=document.getElementById('auth-gate');
+gateAuth.onAuthStateChanged(user=>{
+  gateEl.style.display = user ? 'none' : 'flex';
+});
 </script>
 </body>
 </html>
