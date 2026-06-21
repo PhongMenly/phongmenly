@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1021,9 +1022,7 @@ function pmInitFirebase() {
       if (!result || !result.user) return;
       pmCloseModal(null);
       if (result.additionalUserInfo?.isNewUser) {
-        fetch(MMTD_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ action:'new_user', email:result.user.email, name:result.user.displayName||'', source:'google_redirect' })
-        }).catch(()=>{});
+        mmtdTrackReader(result.user.email, result.user.displayName || '');
       }
     }).catch(e => console.error('Redirect result:', e));
 
@@ -1049,10 +1048,7 @@ function pmInitFirebase() {
           picture: user.photoURL || null
         };
         pmShowProfile(u);
-        fetch(MMTD_WEBHOOK, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'reader_login', email: user.email, name: u.name })
-        }).catch(() => {});
+        mmtdTrackReader(user.email, u.name);
         const redir = localStorage.getItem('pm_after_login');
         if (redir) { localStorage.removeItem('pm_after_login'); window.location.href = redir; }
       } else {
@@ -1146,9 +1142,7 @@ async function pmRegister() {
     await cred.user.updateProfile({ displayName: name });
     await pmAuth.currentUser.reload();
     pmCloseModal(null);
-    fetch(MMTD_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'new_user', email, name, source:'email' })
-    }).catch(()=>{});
+    mmtdTrackReader(email, name);
   } catch(e) {
     btn.textContent = 'Đăng ký'; btn.disabled = false;
     const msgs = {'auth/email-already-in-use':'Email này đã được đăng ký.','auth/weak-password':'Mật khẩu phải có ít nhất 6 ký tự.','auth/invalid-email':'Email không hợp lệ.'};
@@ -1182,9 +1176,7 @@ async function pmSignInGoogle() {
     const result = await pmAuth.signInWithPopup(provider);
     pmCloseModal(null);
     if (result.additionalUserInfo?.isNewUser) {
-      fetch(MMTD_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ action:'new_user', email:result.user.email, name:result.user.displayName||'', source:'google' })
-      }).catch(()=>{});
+      mmtdTrackReader(result.user.email, result.user.displayName || '');
     }
   } catch(e) {
     console.error('Google sign-in error:', e);
@@ -1463,6 +1455,32 @@ function toggleLang(){
    Webhook chung với KOL AI (cùng Supabase project)
 ══════════════════════════════════════════════════════ */
 const MMTD_WEBHOOK  = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+
+// Ghi reader trực tiếp vào Supabase (không qua Edge Function)
+const _mmtdSb = window.supabase
+  ? window.supabase.createClient('https://ryhogciybrffiumuawrk.supabase.co', 'sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm', { auth: { persistSession: false } })
+  : null;
+
+async function mmtdTrackReader(email, name) {
+  if (!_mmtdSb || !email) return;
+  try {
+    const { data: ex } = await _mmtdSb.from('mmtd_readers')
+      .select('id, visit_count').eq('email', email).maybeSingle();
+    if (ex) {
+      await _mmtdSb.from('mmtd_readers').update({
+        ...(name && { name }),
+        visit_count: (ex.visit_count || 0) + 1,
+        last_seen: new Date().toISOString()
+      }).eq('id', ex.id);
+    } else {
+      await _mmtdSb.from('mmtd_readers').insert({
+        email, name: name || email.split('@')[0],
+        visit_count: 1, last_seen: new Date().toISOString()
+      });
+    }
+  } catch(e) { console.warn('[MMTD] reader track error:', e); }
+}
+
 const MMTD_PRICE    = 686000;
 const MMTD_BANK     = 'ICB';
 const MMTD_ACC      = '105887395942';
