@@ -18,8 +18,8 @@
   --bdr:rgba(255,215,0,.2);--bdr-s:rgba(255,255,255,.06);
   --r:12px;--rl:20px;--mw:900px;--mww:1100px
 }
-html{scroll-behavior:smooth}
-body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;overflow-x:hidden}
+html{scroll-behavior:smooth;overflow-x:clip}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;overflow-x:clip;width:100%;max-width:100%}
 .container{max-width:var(--mw);margin:0 auto;padding:0 20px}
 .container-wide{max-width:var(--mww);margin:0 auto;padding:0 20px}
 .tgold{color:var(--gold)} .torg{color:var(--org)} .tmuted{color:var(--muted)}
@@ -219,12 +219,17 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 /* ── AUTHOR ── */
 .author-wrap{display:grid;grid-template-columns:260px 1fr;gap:56px;align-items:center}
 @media(max-width:680px){
-  /* Mobile: ảnh + mô tả thành 1 khối gắn liền, căn giữa — không tách rời */
-  .author-wrap{grid-template-columns:1fr;gap:20px;justify-items:center;text-align:center}
-  .author-photo{width:100%;max-width:260px;height:auto;aspect-ratio:13/16}
-  .a-name{font-size:28px}
-  .a-bio{text-align:center}
-  .a-bio p{text-align:left}
+  /* Mobile: ảnh nhỏ NẰM CẠNH mô tả — cùng nhìn thấy, không tách rời */
+  .author-wrap{grid-template-columns:118px 1fr;gap:16px;align-items:start;text-align:left}
+  .author-photo{width:118px;height:148px;aspect-ratio:auto}
+  .a-tag{margin-bottom:4px}
+  .a-name{font-size:21px;margin-bottom:10px}
+  .a-bio p{font-size:13.5px;line-height:1.72;margin-bottom:10px}
+}
+@media(max-width:400px){
+  .author-wrap{grid-template-columns:96px 1fr;gap:13px}
+  .author-photo{width:96px;height:122px}
+  .a-name{font-size:19px}
 }
 .author-photo{width:260px;height:320px;border-radius:var(--rl);background:linear-gradient(145deg,#1a1400,#0d0900);border:1px solid var(--bdr);overflow:hidden;flex-shrink:0}
 .author-photo img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
