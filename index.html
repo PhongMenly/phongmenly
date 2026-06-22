@@ -144,11 +144,12 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .fx-track{display:flex;width:max-content;gap:16px;will-change:transform}
 .fx-left{animation:fx-scroll-l 52s linear infinite}
 .fx-right{animation:fx-scroll-r 52s linear infinite}
-.fx-row:hover .fx-track{animation-play-state:paused}
 @keyframes fx-scroll-l{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes fx-scroll-r{from{transform:translateX(-50%)}to{transform:translateX(0)}}
-.fx-note{text-align:center;max-width:620px;margin:0 auto 22px;padding:0 20px;font-size:13px;color:var(--muted);line-height:1.7}
-.fx-note .fx-ai{color:var(--gold);font-weight:700}
+.fx-note{text-align:center;max-width:780px;margin:0 auto 32px;padding:0 24px;line-height:1.75}
+.fx-note .fx-ai{color:var(--gold);font-weight:800;font-size:20px;display:block;margin-bottom:6px;letter-spacing:.3px}
+.fx-note .fx-sub{font-size:17px;color:rgba(255,255,255,.85);display:block;font-weight:500}
+@media(max-width:640px){.fx-note .fx-ai{font-size:16px}.fx-note .fx-sub{font-size:14px}}
 .fx-card{flex-shrink:0;width:262px;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid var(--bdr-s);background:var(--bg-c);transition:border-color .25s,transform .25s,box-shadow .25s}
 .fx-card:hover{border-color:rgba(255,215,0,.45);transform:translateY(-4px);box-shadow:0 18px 44px rgba(0,0,0,.55)}
 .fx-img{width:100%;aspect-ratio:1/1;overflow:hidden;background:#0d0900}
@@ -736,8 +737,8 @@ footer p{font-size:12px;color:var(--dim)}
   <!-- BĂNG TRUYỀN CẢM XÚC — ảnh độc giả (AI tự tạo) + nhận xét chạy vô tận -->
   <div class="fx-sec">
     <p class="fx-note">
-      <span class="fx-ai">✨ Những hình ảnh này do chính độc giả yêu quý tự tay dùng AI tạo nên.</span><br>
-      📱 Sách bản điện tử — mở ra xem bất kỳ lúc nào, hoặc bật chế độ <strong style="color:var(--txt)">nghe sách nói</strong>.
+      <span class="fx-ai">✨ Những hình ảnh này do chính độc giả yêu quý tự tay dùng AI tạo nên gửi chúc mừng sách ra mắt.</span><br>
+      <span class="fx-sub">📖 Đây là bản điện tử để tiện mở ra xem bất kỳ lúc nào, hoặc bật chế độ <strong style="color:var(--txt);font-weight:800">nghe sách nói</strong>.</span>
     </p>
     <!-- Hàng 1: chạy sang trái -->
     <div class="fx-row">
@@ -1573,24 +1574,26 @@ const _SB = 'https://ryhogciybrffiumuawrk.supabase.co';
 const _SK = 'sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
 const _SH = { 'Content-Type':'application/json', 'apikey':_SK, 'Authorization':'Bearer '+_SK };
 
-async function mmtdTrackReader(email, name) {
+async function mmtdTrackReader(email, name, isBuyer) {
   if (!email) return;
   try {
-    // Đọc row hiện tại theo email
     const res = await fetch(
-      `${_SB}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count`,
+      `${_SB}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count,reader_status`,
       { headers: _SH }
     );
     const rows = await res.json();
     if (rows && rows.length > 0) {
       const row = rows[0];
+      // Chỉ upgrade buyer, không bao giờ downgrade
+      const newStatus = isBuyer ? 'buyer' : (row.reader_status || 'reader');
       await fetch(`${_SB}/rest/v1/mmtd_readers?id=eq.${row.id}`, {
         method: 'PATCH',
         headers: _SH,
         body: JSON.stringify({
           ...(name && { name }),
           visit_count: (row.visit_count || 0) + 1,
-          last_seen: new Date().toISOString()
+          last_seen: new Date().toISOString(),
+          reader_status: newStatus
         })
       });
     } else {
@@ -1599,7 +1602,8 @@ async function mmtdTrackReader(email, name) {
         headers: { ..._SH, 'Prefer': 'return=minimal' },
         body: JSON.stringify({
           email, name: name || email.split('@')[0],
-          visit_count: 1, last_seen: new Date().toISOString()
+          visit_count: 1, last_seen: new Date().toISOString(),
+          reader_status: isBuyer ? 'buyer' : 'reader'
         })
       });
     }
