@@ -219,12 +219,14 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 /* ── AUTHOR ── */
 .author-wrap{display:grid;grid-template-columns:260px 1fr;gap:56px;align-items:center}
 @media(max-width:680px){
-  /* Mobile: ảnh lên trên, nội dung xuống dưới — căn giữa */
-  .author-wrap{grid-template-columns:1fr;gap:18px;justify-items:center;text-align:center}
-  .author-photo{width:100%;max-width:240px;height:auto;border-radius:16px}
-  .a-name{font-size:24px;margin-bottom:12px}
-  .a-quote{font-size:18px!important}
-  .a-bio p{font-size:14px;line-height:1.75;margin-bottom:11px}
+  /* Mobile: ảnh lên trên, nội dung xuống dưới — gọn gàng, căn giữa */
+  .author-wrap{grid-template-columns:1fr;gap:14px;justify-items:center;text-align:center}
+  .author-photo{width:100%;max-width:168px;height:auto;aspect-ratio:13/16;border-radius:14px}
+  .a-bio{max-width:440px}
+  .a-tag{margin-bottom:3px}
+  .a-name{font-size:21px;margin-bottom:9px}
+  .a-quote{font-size:16px!important;margin-bottom:10px!important}
+  .a-bio p{font-size:13px;line-height:1.62;margin-bottom:8px}
 }
 .author-photo{width:280px;border-radius:var(--rl);background:linear-gradient(145deg,#1a1400,#0d0900);border:1px solid var(--bdr);overflow:hidden;flex-shrink:0}
 .author-photo img{width:100%;height:auto;display:block}
