@@ -261,23 +261,23 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .b-total strong{font-size:18px;font-weight:900;color:var(--gold)}
 
 /* ── PRICING ── */
-.order-card{max-width:900px;margin:36px auto 0;background:var(--bg-c);border:2px solid var(--bdr);border-radius:var(--rl);overflow:hidden;box-shadow:0 24px 100px rgba(255,215,0,.08);display:grid;grid-template-columns:45% 55%;grid-template-rows:auto 1fr;grid-template-areas:"book head" "book info";align-items:stretch}
-.order-book{grid-area:book;background:radial-gradient(ellipse at 50% 60%,rgba(255,215,0,.12) 0%,rgba(0,0,0,0) 65%);border-right:1px solid var(--bdr-s);display:flex;align-items:center;justify-content:center;padding:6px 8px;min-height:460px;overflow:hidden}
+.order-card{max-width:760px;margin:36px auto 0;background:var(--bg-c);border:2px solid var(--bdr);border-radius:var(--rl);overflow:hidden;box-shadow:0 24px 100px rgba(255,215,0,.08);display:grid;grid-template-columns:44% 56%;grid-template-rows:auto 1fr;grid-template-areas:"book head" "book info";align-items:stretch}
+.order-book{grid-area:book;background:radial-gradient(ellipse at 50% 60%,rgba(255,215,0,.12) 0%,rgba(0,0,0,0) 65%);border-right:1px solid var(--bdr-s);display:flex;align-items:center;justify-content:center;padding:6px 8px;min-height:340px;overflow:hidden}
 .order-book img{width:100%;height:100%;object-fit:contain;object-position:center;filter:drop-shadow(0 24px 60px rgba(255,215,0,.45)) drop-shadow(0 4px 20px rgba(0,0,0,.9));transition:.3s;display:block}
 .order-book img:hover{transform:scale(1.03) rotate(-0.5deg)}
-.order-head{grid-area:head;padding:34px 34px 0}
-.order-info{grid-area:info;padding:0 34px 34px;display:flex;flex-direction:column;justify-content:center}
+.order-head{grid-area:head;padding:30px 30px 0}
+.order-info{grid-area:info;padding:0 30px 30px;display:flex;flex-direction:column;justify-content:center}
 .order-lbl{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
 .order-title{font-size:21px;font-weight:900;line-height:1.25;margin-bottom:5px;white-space:nowrap}
 .order-title span{white-space:nowrap}
 .order-sub{font-size:13px;color:var(--muted);margin-bottom:0;line-height:1.6}
 .order-divider{height:1px;background:var(--bdr-s);margin:22px 0}
-.order-price-block{margin-bottom:22px}
+.order-price-block{margin-bottom:18px}
 .order-orig{font-size:13px;color:var(--dim);margin-bottom:4px}
 .order-orig span{text-decoration:line-through}
 .order-price{display:flex;align-items:baseline;gap:6px;line-height:1;margin-bottom:10px}
 .order-curr{font-size:22px;font-weight:700;color:var(--gold)}
-.order-amt{font-size:60px;font-weight:900;color:var(--gold);letter-spacing:-3px;line-height:1}
+.order-amt{font-size:52px;font-weight:900;color:var(--gold);letter-spacing:-2px;line-height:1}
 .order-save{display:inline-flex;align-items:center;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);color:var(--grn);font-size:12px;font-weight:700;padding:5px 14px;border-radius:50px}
 .order-inc{list-style:none;margin:22px 0 28px;display:flex;flex-direction:column;gap:10px}
 .order-inc li{font-size:13.5px;color:var(--muted);padding-left:22px;position:relative;line-height:1.45}
@@ -955,13 +955,6 @@ footer p{font-size:12px;color:var(--dim)}
           </div>
           <div class="order-save">✓ Tiết kiệm 313.000đ so với giá gốc</div>
         </div>
-
-        <ul class="order-inc">
-          <li>Ebook "Mật Mã Tự Do" — 5 chương đầy đủ</li>
-          <li>Bộ 50 Prompt AI Affiliate</li>
-          <li>Checklist 30 Ngày Đầu + 5 Template Landing Page</li>
-          <li>Nhóm kín 6 tháng với Phong Menly</li>
-        </ul>
 
         <a href="#" class="btn-buy" id="btn-buy-main" onclick="mmtdOpenCheckout();return false;" data-i18n="pr.btn">MỞ KHÓA NGAY</a>
         <p class="order-guar">🛡️ Cam kết hoàn tiền 100% trong 7 ngày · Không hỏi lý do</p>
