@@ -78,6 +78,8 @@ body{
 
 /* Bóng nền nâng cả cuốn sách lên — chiều sâu giấy dày (không dùng filter để khỏi phá hiệu ứng lật 3D) */
 #app.spread #book{box-shadow:0 16px 34px rgba(0,0,0,.22);}
+/* Cắt canvas PageFlip theo đúng khung sách — ngăn vệt thừa tràn ra ngoài */
+#book{overflow:hidden;isolation:isolate;}
 
 /* ══════════════════════════════════════════
    TRANG — nền ấm tự nhiên như giấy sách
@@ -92,7 +94,18 @@ body{
   -moz-osx-font-smoothing:grayscale;
   text-rendering:optimizeLegibility;
   backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  will-change:transform;
+  transform:translateZ(0);
+  contain:paint;
 }
+
+/* ── FIX: ảnh "dính"/nổi lên khi lật trang ──
+   StPageFlip bọc mỗi trang trong .stf__item; khi lật 3D, ảnh lớn (layer riêng của
+   trình duyệt) thoát khỏi vùng cắt. Ép wrapper cắt + ảnh nằm chung ngữ cảnh 3D. */
+.stf__item{overflow:hidden;}
+.stf__item,.page,.page img{-webkit-backface-visibility:hidden;backface-visibility:hidden;}
+.page img{transform:translateZ(0);}
 
 /* ── Biến chung ── */
 :root{
@@ -687,6 +700,18 @@ body{
 .side:active{transform:translateY(-50%) scale(.92);}
 .side:disabled{opacity:.12;cursor:default;}
 #navL{left:16px;} #navR{right:16px;}
+
+/* ── HIỆU NĂNG: trong lúc lật, tắt backdrop-filter của mọi lớp đè lên sách.
+   Làm mờ Gaussian tính lại mỗi khung hình là nguyên nhân chính gây giật khi lật.
+   Đứng yên vẫn giữ nguyên hiệu ứng kính mờ → nhìn không đổi, lật mượt hẳn. ── */
+body.flipping #bar,
+body.flipping .top-bar button,
+body.flipping .side,
+body.flipping #toast,
+body.flipping a[href="index.html"]{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
 
 /* ── Thanh trượt tiến độ ── */
 #bar input#seek{
@@ -1838,12 +1863,17 @@ pf.on('changeState',e=>{
   const app=document.getElementById('app');
   if(e.data==='flipping'||e.data==='user_fold'){
     app.classList.add('flipping');
+    document.body.classList.add('flipping');   /* tắt backdrop-filter các lớp đè → lật không giật */
     /* Rời bìa: canh giữa NGAY khi bắt đầu lật để trượt đồng thời, không nhảy sau khi lật */
     const i=pf.getCurrentPageIndex();
     if(i<=0 || i>=pf.getPageCount()-1){ gOffset=0; app.classList.add('spread'); applyTransform(); }
   } else {
     app.classList.remove('flipping');
+    document.body.classList.remove('flipping');   /* lật xong → bật lại kính mờ */
     refreshLayout();
+    /* Xóa vệt thừa: clear toàn bộ canvas còn sót sau khi lật xong */
+    const cv = document.querySelector('#book canvas');
+    if(cv){ const ctx=cv.getContext('2d'); if(ctx) ctx.clearRect(0,0,cv.width,cv.height); }
   }
 });
 
