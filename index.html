@@ -111,7 +111,8 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .price-note{font-size:14px;color:var(--muted);margin-top:10px}
 .price-note strong{color:var(--gold);font-size:17px}
 .hero-author{display:inline-flex;align-items:center;gap:10px;margin-top:16px;background:rgba(255,255,255,.04);border:1px solid var(--bdr-s);border-radius:50px;padding:8px 18px 8px 8px}
-.hero-author-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#000;flex-shrink:0}
+.hero-author-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#000;flex-shrink:0;overflow:hidden}
+.hero-author-av img{width:100%;height:100%;object-fit:cover;display:block}
 .hero-author-name{font-size:14px;font-weight:700;color:var(--txt);line-height:1.2}
 .hero-author-sub{font-size:11px;color:var(--muted);letter-spacing:.3px}
 .strike{text-decoration:line-through;color:var(--dim);margin-right:4px}
@@ -196,7 +197,8 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 /* ── AUTHOR ── */
 .author-wrap{display:grid;grid-template-columns:260px 1fr;gap:56px;align-items:center}
 @media(max-width:680px){.author-wrap{grid-template-columns:1fr;gap:28px}}
-.author-photo{width:260px;height:320px;border-radius:var(--rl);background:linear-gradient(145deg,#1a1400,#0d0900);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:72px;flex-shrink:0}
+.author-photo{width:260px;height:320px;border-radius:var(--rl);background:linear-gradient(145deg,#1a1400,#0d0900);border:1px solid var(--bdr);overflow:hidden;flex-shrink:0}
+.author-photo img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
 .a-tag{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
 .a-name{font-size:34px;font-weight:900;margin-bottom:14px;letter-spacing:-1px}
 .a-bio p{font-size:15px;color:var(--muted);line-height:1.8;margin-bottom:12px}
@@ -463,7 +465,7 @@ footer p{font-size:12px;color:var(--dim)}
       <a href="#" class="btn-p" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none" onclick="openDocThu();return false;" data-i18n="hero.cta2">📖 Đọc Thử Miễn Phí</a>
     </div>
     <div class="hero-author">
-      <div class="hero-author-av">PM</div>
+      <div class="hero-author-av"><img src="images/author-phong-menly.jpg" alt="Phong Menly"></div>
       <div class="hero-author-name">Tác giả: Phong Menly</div>
     </div>
   </div>
@@ -652,7 +654,7 @@ footer p{font-size:12px;color:var(--dim)}
 <section class="sec sec-alt">
   <div class="container">
     <div class="author-wrap fade-up">
-      <div class="author-photo">🧑</div>
+      <div class="author-photo"><img src="images/author-phong-menly.jpg" alt="Tác giả Phong Menly"></div>
       <div class="a-bio">
         <div class="a-tag">Tác giả</div>
         <div class="a-name">Phong Menly</div>
