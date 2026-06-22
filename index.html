@@ -127,7 +127,7 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .brand-overflow::before{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
 .brand-overflow::after{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
 .brand-track{display:flex;align-items:center;width:max-content;animation:brand-scroll 44s linear infinite}
-.brand-track:hover{animation-play-state:paused}
+@media(hover:hover){.brand-track:hover{animation-play-state:paused}}
 @keyframes brand-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 .brand-item{display:flex;flex-direction:row;align-items:center;gap:11px;background:var(--bg-c);border:1px solid var(--bdr-s);border-radius:50px;padding:8px 22px 8px 8px;margin:0 10px;transition:border-color .25s,box-shadow .25s;cursor:default;flex-shrink:0}
 .brand-item:hover{border-color:rgba(255,215,0,.45);box-shadow:0 0 20px rgba(255,215,0,.1)}
@@ -219,18 +219,12 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 /* ── AUTHOR ── */
 .author-wrap{display:grid;grid-template-columns:260px 1fr;gap:56px;align-items:center}
 @media(max-width:680px){
-  /* Mobile: ảnh + mô tả nằm cạnh nhau như desktop, cân đối chuyên nghiệp */
-  .author-wrap{grid-template-columns:132px 1fr;gap:18px;align-items:start;text-align:left}
-  .author-photo{width:132px;height:164px;aspect-ratio:auto;border-radius:14px}
-  .a-tag{margin-bottom:4px;font-size:11px}
-  .a-name{font-size:21px;margin-bottom:10px}
-  .a-bio p{font-size:13.5px;line-height:1.72;margin-bottom:10px}
-}
-@media(max-width:400px){
-  .author-wrap{grid-template-columns:106px 1fr;gap:14px}
-  .author-photo{width:106px;height:132px}
-  .a-name{font-size:18px}
-  .a-bio p{font-size:12.5px}
+  /* Mobile: ảnh lên trên, nội dung xuống dưới — căn giữa */
+  .author-wrap{grid-template-columns:1fr;gap:18px;justify-items:center;text-align:center}
+  .author-photo{width:100%;max-width:210px;height:auto;aspect-ratio:13/16;border-radius:16px}
+  .a-name{font-size:24px;margin-bottom:12px}
+  .a-quote{font-size:18px!important}
+  .a-bio p{font-size:14px;line-height:1.75;margin-bottom:11px}
 }
 .author-photo{width:260px;height:320px;border-radius:var(--rl);background:linear-gradient(145deg,#1a1400,#0d0900);border:1px solid var(--bdr);overflow:hidden;flex-shrink:0}
 .author-photo img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block}
@@ -238,6 +232,8 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .a-name{font-size:34px;font-weight:900;margin-bottom:14px;letter-spacing:-1px}
 .a-bio p{font-size:15px;color:var(--muted);line-height:1.8;margin-bottom:12px}
 .a-bio strong{color:var(--txt)}
+.a-quote{font-size:20px!important;font-weight:800;color:var(--txt)!important;line-height:1.4;margin-bottom:14px!important}
+.a-quote strong{color:var(--gold)}
 
 /* ── TESTIMONIALS ── */
 .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:44px}
@@ -732,10 +728,10 @@ footer p{font-size:12px;color:var(--dim)}
       <div class="a-bio">
         <div class="a-tag">Tác giả</div>
         <div class="a-name">Phong Menly</div>
-        <p>Tôi không phải "guru" theo nghĩa truyền thống. Tôi là người đã <strong>mất nhiều thời gian làm affiliate theo kiểu cũ</strong> — thử đủ thứ, thất bại đủ kiểu — cho đến khi tìm ra cách để AI làm phần lớn công việc thay mình.</p>
-        <p>Hành trình đó không ngắn, không dễ. Nhưng khi hệ thống bắt đầu chạy, <strong>mọi thứ thay đổi hoàn toàn</strong>. Có thể đi du lịch, làm việc khác, hay chỉ đơn giản là sống — mà thu nhập affiliate vẫn về đều.</p>
-        <p>Tôi viết cuốn sách này để <strong>rút ngắn hành trình đó cho bạn</strong>. Những gì tôi mất cả năm để tìm ra — bạn có thể bắt đầu áp dụng ngay từ tuần đầu tiên.</p>
-        <p><strong>Không có phép màu. Chỉ có hệ thống đúng.</strong></p>
+        <p class="a-quote">Để từ <strong>1</strong> trở thành <strong>số 1</strong>.</p>
+        <p>Thay vì đời mình sống lâu, tại sao không sống ở nhiều nơi và dám trải nghiệm mọi thứ?</p>
+        <p>Này người anh em — bao nhiêu lâu rồi bạn chưa được <strong>thực sự sống đúng ý mình?</strong></p>
+        <p>Trong tâm trí tôi luôn nghĩ về <strong>"Tự Do"</strong> — sống và làm điều mình thực sự muốn. Và đó là lý do tôi gửi trọn tâm huyết vào trong từng trang mà bạn sẽ đọc.</p>
       </div>
     </div>
   </div>
@@ -1383,18 +1379,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const bt = document.getElementById('brand-track');
 if (bt) {
-  bt.innerHTML += bt.innerHTML;
-  bt.querySelectorAll('img[data-fb]').forEach(img => {
-    img.onerror = function() {
-      const fb = this.dataset.fb;
-      this.src = fb;
-      this.onerror = function() {
-        const s = document.createElement('span');
-        s.className = 'b-fb';
-        s.textContent = '🤖';
-        this.parentElement.replaceChild(s, this);
+  // Nhân đôi 2 lần → luôn thừa nội dung phủ kín màn hình, lặp vô hạn không bao giờ trống
+  const original = bt.innerHTML;
+  bt.innerHTML = original + original + original + original;
+  bt.querySelectorAll('img').forEach(img => {
+    img.loading = 'eager';        // KHÔNG lazy → logo bản nhân đôi luôn tải, không bị mất trên mobile
+    img.decoding = 'async';
+    if (img.dataset.fb) {
+      img.onerror = function() {
+        const fb = this.dataset.fb;
+        this.src = fb;
+        this.onerror = function() {
+          const s = document.createElement('span');
+          s.className = 'b-fb';
+          s.textContent = '🤖';
+          this.parentElement.replaceChild(s, this);
+        };
       };
-    };
+    }
   });
 }
 
