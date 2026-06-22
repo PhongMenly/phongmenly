@@ -1738,10 +1738,12 @@ function mmtdSubmit(e){
   document.getElementById('mmtd-step-qr').style.display   = 'block';
   btn.textContent = '🚀 Xem QR Thanh Toán'; btn.disabled = false;
 
+  const _userEmail = (pmAuth && pmAuth.currentUser) ? pmAuth.currentUser.email : null;
   fetch(MMTD_WEBHOOK,{
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({ action:'register', ref:mmtdRef, aff:mmtdGetAff(),
-      product:'Mật Mã Tự Do', pkg:'book', name, phone, price:MMTD_PRICE, referrer:document.referrer||'' })
+      product:'Mật Mã Tự Do', pkg:'book', name, phone, price:MMTD_PRICE,
+      email: _userEmail, referrer:document.referrer||'' })
   }).catch(()=>{});
 
   mmtdPoll = setInterval(async()=>{
