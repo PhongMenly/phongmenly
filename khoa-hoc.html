@@ -662,7 +662,7 @@ async function mmtdTrackReader(email, name, isBuyer) {
   if (!email) return;
   try {
     const res = await fetch(
-      `${_SB}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count,reader_status`,
+      `${_SB}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count,reader_status,referrer`,
       { headers: _SH }
     );
     const rows = await res.json();
@@ -686,7 +686,8 @@ async function mmtdTrackReader(email, name, isBuyer) {
         body: JSON.stringify({
           email, name: name || email.split('@')[0],
           visit_count: 1, last_seen: new Date().toISOString(),
-          reader_status: isBuyer ? 'buyer' : 'reader'
+          reader_status: isBuyer ? 'buyer' : 'reader',
+          referrer: document.referrer || null
         })
       });
     }
