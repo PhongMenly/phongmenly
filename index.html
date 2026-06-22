@@ -433,11 +433,17 @@ footer p{font-size:12px;color:var(--dim)}
   .btn-glogin{padding:8px 14px;font-size:12.5px}
   .auth-full{display:none}
   .auth-short{display:inline}
-  /* Brand marquee: dải mờ 2 mép nhỏ lại để thấy rõ logo đang chạy */
-  .brand-overflow::before,.brand-overflow::after{width:36px}
+  /* Brand marquee: dải mờ 2 mép nhỏ tối đa để thấy rõ logo thương hiệu chạy */
+  .brand-overflow::before,.brand-overflow::after{width:24px}
   .brand-sec{padding:28px 0 20px}
-  /* Nút hero xếp dọc full-width — gọn, không wrap lộn xộn 3 dòng */
-  .btn-p{font-size:15px;padding:14px 24px;width:100%;max-width:360px;justify-content:center}
+  .brand-item{padding:7px 18px 7px 7px;margin:0 7px}
+  /* Nút hero nhỏ gọn, NẰM NGANG như desktop để hiển thị đủ */
+  .hero-cta{gap:9px!important}
+  .btn-p{font-size:13px;padding:11px 16px}
+  /* Chip tác giả nhỏ lại, vẫn hiện đủ */
+  .hero-author{margin-top:14px;padding:6px 14px 6px 6px}
+  .hero-author-av{width:30px;height:30px}
+  .hero-author-name{font-size:13px}
   .sec{padding:56px 16px}
   .b-card{grid-template-columns:auto 1fr}
   .b-val{display:none}
@@ -528,7 +534,7 @@ footer p{font-size:12px;color:var(--dim)}
       </div>
     </div>
 
-    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center">
+    <div class="hero-cta" style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center">
       <a href="#pricing" class="btn-p" data-i18n="hero.cta1">Mở Khóa Ngay</a>
       <a href="#" class="btn-p" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);box-shadow:none" onclick="openDocThu();return false;" data-i18n="hero.cta2">📖 Đọc Thử Miễn Phí</a>
     </div>
