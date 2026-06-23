@@ -329,6 +329,7 @@ const COURSES = [
 
 // Cấu hình thanh toán
 const BANK = { bin:'970415', acc:'105887395942', name:'HO KINH DOANH LE DANG PHUONG' }; // VietinBank
+const MMTD_WEBHOOK = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
 const TIERS = [
   {code:'M', label:'1 Tháng',  add:0,      note:'Truy cập 30 ngày'},
   {code:'Y', label:'1 Năm',    add:99000,  note:'Tiết kiệm hơn · +99k', tag:'Phổ biến'},
@@ -582,10 +583,13 @@ function payRefresh(){
   startPoll();
 }
 async function createOrder(amt){
+  const c = COURSES.find(x=>x.id===payCid);
   try{
-    await fetch(`${_SB}/rest/v1/course_orders`,{method:'POST',headers:{..._SH,'Prefer':'resolution=merge-duplicates'},
-      body:JSON.stringify({code:payCode,email:hvAuth.currentUser.email,course:payCid,tier:payTier,amount:amt,status:'pending',created_at:new Date().toISOString()})});
-  }catch(e){ /* bảng chưa có cũng không sao — QR vẫn dùng được */ }
+    await fetch(MMTD_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'register', ref:payCode, product:'Combo: '+c.name,
+        pkg:payTier, price:amt, name:(hvAuth.currentUser.displayName||''),
+        email:hvAuth.currentUser.email, referrer:document.referrer||'' })});
+  }catch(e){ /* không chặn — QR vẫn dùng được */ }
 }
 function startPoll(){
   clearInterval(payPoll);
@@ -593,9 +597,8 @@ function startPoll(){
   payPoll = setInterval(async ()=>{
     if(Date.now()-started > 10*60*1000){ clearInterval(payPoll); return; }
     try{
-      const r = await fetch(`${_SB}/rest/v1/course_orders?code=eq.${code}&status=eq.paid&select=code`,{headers:_SH});
-      const rows = await r.json();
-      if(rows && rows.length){ clearInterval(payPoll); grantUnlock(payCid, payTier); }
+      const r = await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(code)}`);
+      if(r.ok){ const d = await r.json(); if(d && d.paid){ clearInterval(payPoll); grantUnlock(payCid, payTier); } }
     }catch(e){}
   }, 4000);
 }
@@ -610,19 +613,24 @@ function grantUnlock(cid, tier){
 function payCopy(){ try{ navigator.clipboard.writeText(payCode); }catch(e){} }
 function payClose(e){ if(!e || e.target===document.getElementById('pay-modal')){ document.getElementById('pay-modal').classList.remove('show'); clearInterval(payPoll); } }
 
-// Khôi phục entitlement từ Supabase theo email (nếu đã mua trước đó)
+// Khôi phục entitlement theo email (đã mua combo trước đó, kể cả máy khác)
 async function syncEntitlements(email){
   try{
-    const r = await fetch(`${_SB}/rest/v1/course_orders?email=eq.${encodeURIComponent(email)}&status=eq.paid&select=course,tier,paid_at`,{headers:_SH});
-    const rows = await r.json();
-    if(Array.isArray(rows)){
-      rows.forEach(o=>{
-        const now=Date.now();
-        const exp = o.tier==='M' ? now+30*864e5 : o.tier==='Y' ? now+365*864e5 : 0;
-        localStorage.setItem('unlk_'+o.course, JSON.stringify({tier:o.tier,exp}));
-      });
-      if(rows.length) applyState();
-    }
+    const r = await fetch(`${MMTD_WEBHOOK}?paid_email=${encodeURIComponent(email)}`);
+    if(!r.ok) return;
+    const d = await r.json();
+    const codes = (d && d.codes) || [];
+    let changed = false;
+    codes.forEach(code=>{
+      // code = MAP <digit course> <tier M/Y/L> <uid>
+      const m = String(code).toUpperCase().match(/^MAP(\d)([MYL])/);
+      if(!m) return;
+      const cid = 'c'+m[1], tier = m[2], now = Date.now();
+      const exp = tier==='M' ? now+30*864e5 : tier==='Y' ? now+365*864e5 : 0;
+      localStorage.setItem('unlk_'+cid, JSON.stringify({tier,exp}));
+      changed = true;
+    });
+    if(changed) applyState();
   }catch(e){}
 }
 
