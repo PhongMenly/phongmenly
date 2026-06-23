@@ -427,12 +427,18 @@ footer p{font-size:12px;color:var(--dim)}
   /* Trên đầu: thanh thông báo không dính (tránh nav che mất nội dung), chỉ nav dính */
   .ann{position:static;font-size:11.5px;padding:7px 12px;gap:6px;line-height:1.5}
   .ann-title,.ann-unit{font-size:11.5px}
-  /* Nav gọn: ẩn tab để không tràn/cắt mất nút đăng nhập */
-  nav{top:0;padding:10px 12px}
-  .nav-i{gap:8px}
-  .nav-tabs{display:none}
-  .logo{font-size:24px}
-  #lang-toggle{padding:5px 8px;font-size:11px}
+  /* Hiện 2 tab Học Viện / Sản Phẩm trên mobile — mọi tài khoản đều thấy & bấm được */
+  nav{top:0;padding:9px 10px}
+  .nav-i{gap:6px}
+  .nav-tabs{display:flex;flex:1;justify-content:center;gap:1px;min-width:0;overflow-x:auto;scrollbar-width:none}
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .nav-tab{font-size:11.5px;padding:5px 8px;letter-spacing:.2px}
+  .logo{font-size:19px;flex-shrink:0}
+  /* Ẩn tên/badge cạnh avatar — chỉ còn mặt người, bấm vào mới ra hồ sơ + đăng xuất */
+  .u-info{display:none}
+  .u-profile{padding:4px;gap:0;flex-shrink:0}
+  .u-av,.u-av-ph{width:30px;height:30px}
+  #lang-toggle{padding:5px 7px;font-size:11px;flex-shrink:0}
   /* Nút auth ngoài chỉ hiện "Đăng nhập"; modal bên trong giữ nguyên */
   .btn-glogin{padding:8px 14px;font-size:12.5px}
   .auth-full{display:none}
