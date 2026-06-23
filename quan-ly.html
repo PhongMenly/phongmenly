@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý nội dung — Phong Menly</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080808;--card:#141416;--gold:#FFD700;--org:#FF7B00;--grn:#4ADE80;--txt:#fff;--muted:#A1A1AA;--dim:#52525B;--bdr:rgba(255,215,0,.22);--bdr-s:rgba(255,255,255,.08)}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;padding:0 0 80px}
+a{color:var(--gold);text-decoration:none}
+.top{position:sticky;top:0;z-index:30;background:rgba(8,8,8,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr-s);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.top h1{font-size:17px;font-weight:800}
+.top .who{font-size:12px;color:var(--muted)}
+.btn{padding:9px 18px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:.18s}
+.btn.gold{background:linear-gradient(135deg,var(--gold),var(--org));color:#000}
+.btn.gold:hover{filter:brightness(1.07)}
+.btn.line{background:transparent;border:1px solid var(--bdr-s);color:var(--txt)}
+.btn.sm{padding:6px 12px;font-size:12px;border-radius:8px}
+.btn.red{background:rgba(229,62,62,.12);color:#E53E3E;border:1px solid rgba(229,62,62,.3)}
+.wrap{max-width:980px;margin:0 auto;padding:26px 18px}
+.gate{max-width:420px;margin:80px auto;text-align:center;background:var(--card);border:1px solid var(--bdr-s);border-radius:18px;padding:40px 28px}
+.gate h2{font-size:22px;font-weight:900;margin-bottom:8px}
+.gate p{font-size:14px;color:var(--muted);margin-bottom:22px}
+.btn-g{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#000;padding:13px 22px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;border:none;font-family:inherit}
+.intro{font-size:13.5px;color:var(--muted);background:var(--card);border:1px solid var(--bdr-s);border-radius:12px;padding:14px 16px;margin-bottom:22px;line-height:1.7}
+.intro b{color:var(--gold)}
+.combo{background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;margin-bottom:18px;overflow:hidden}
+.combo-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;cursor:pointer;background:rgba(255,255,255,.02)}
+.combo-hd:hover{background:rgba(255,255,255,.04)}
+.combo-hd .t{font-size:15px;font-weight:800}
+.combo-hd .meta{font-size:12px;color:var(--muted)}
+.combo-body{padding:0 18px 18px;display:none}
+.combo.open .combo-body{display:block}
+.combo.open .chev{transform:rotate(90deg)}
+.chev{transition:.2s;color:var(--muted)}
+.les{border:1px solid var(--bdr-s);border-radius:12px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.02)}
+.les-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.les-num{width:26px;height:26px;border-radius:50%;background:var(--gold);color:#000;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.les-top input{flex:1}
+.row2{display:flex;gap:10px;margin-bottom:10px}
+.row2 .dur{width:110px;flex-shrink:0}
+label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin:0 0 4px 2px;text-transform:uppercase;letter-spacing:.5px}
+input,textarea{width:100%;padding:11px 13px;background:rgba(255,255,255,.05);border:1px solid var(--bdr-s);border-radius:10px;color:var(--txt);font-size:14px;font-family:inherit;outline:none;transition:.16s}
+input:focus,textarea:focus{border-color:var(--gold);background:rgba(255,215,0,.04)}
+textarea{resize:vertical;min-height:54px}
+.yt-ok{font-size:11px;color:var(--grn);margin-top:4px;display:none}
+.yt-ok.show{display:block}
+.les-actions{display:flex;justify-content:flex-end}
+.combo-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px;flex-wrap:wrap}
+.save-stt{font-size:13px;font-weight:700;color:var(--grn);min-height:20px}
+.hidden{display:none}
+@media(max-width:560px){.row2{flex-direction:column}.row2 .dur{width:100%}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>⚙️ Quản lý nội dung khóa học</h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="who" id="who"></span>
+    <a class="btn line sm" href="hoc-vien.html">← Học Viện</a>
+    <button class="btn red sm hidden" id="btn-out" onclick="signOut()">Đăng xuất</button>
+  </div>
+</div>
+
+<!-- GATE: chưa đăng nhập / không phải admin -->
+<div class="gate" id="gate">
+  <h2>Khu quản trị</h2>
+  <p id="gate-msg">Đăng nhập bằng tài khoản admin để quản lý video bài học.</p>
+  <button class="btn-g" id="btn-login" onclick="loginGoogle()">
+    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Đăng nhập với Google
+  </button>
+</div>
+
+<!-- APP: editor -->
+<div class="wrap hidden" id="app">
+  <div class="intro">
+    📺 Cách dùng: mở 1 combo → dán <b>link YouTube (Unlisted)</b> vào ô của từng bài → bấm <b>Lưu combo này</b>. Học viên sẽ xem được ngay. Dán link kiểu nào cũng được (youtu.be/… hoặc youtube.com/watch?v=…).
+  </div>
+  <div id="combos"></div>
+</div>
+
+<script>
+const WH = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+const ADMIN_FALLBACK = 'phongconson@gmail.com'; // chỉ để hiện thông báo; quyền ghi do webhook kiểm tra
+
+// Khung bài mặc định (để bạn điền link) — khớp 5 combo
+const DEFAULTS = {
+  c1:{name:'Mật Mã Tư Duy', lessons:[
+    {t:'Vì sao 95% người làm affiliate thất bại',d:'11:20'},
+    {t:'Cài đặt hệ điều hành tư duy mới',d:'14:05'},
+    {t:'Định luật đòn bẩy AI',d:'09:48'},
+    {t:'Tư duy hệ thống vs làm tay',d:'12:33'},
+    {t:'Cam kết & lộ trình 90 ngày',d:'08:15'}]},
+  c2:{name:'Mật Mã Affiliate Marketing', lessons:[
+    {t:'Bản đồ những ngách có tiền',d:'13:10'},
+    {t:'Dùng AI quét nhu cầu thị trường',d:'15:42'},
+    {t:'Chấm điểm ngách trong 10 phút',d:'10:05'},
+    {t:'Chọn sản phẩm affiliate chuẩn',d:'12:20'},
+    {t:'Xác thực ngách bằng dữ liệu',d:'09:30'},
+    {t:'Khóa ngách & định vị',d:'07:55'}]},
+  c3:{name:'Mật Mã Traffic', lessons:[
+    {t:'Nguyên lý cỗ máy content',d:'10:40'},
+    {t:'Thiết lập AI Agent viết bài',d:'16:25'},
+    {t:'Bộ prompt content thực chiến',d:'18:10'},
+    {t:'Lịch nội dung tự động',d:'11:05'},
+    {t:'Biến 1 ý tưởng thành 20 bài',d:'13:48'},
+    {t:'Tối ưu hook & tiêu đề',d:'09:22'},
+    {t:'Phân phối đa nền tảng',d:'12:15'},
+    {t:'Đo lường & nhân bản',d:'10:30'}]},
+  c4:{name:'Mật Mã Phễu — Master Sale', lessons:[
+    {t:'Giải phẫu phễu bán hàng AI',d:'12:50'},
+    {t:'Trang đích chuyển đổi cao',d:'15:18'},
+    {t:'Email & Zalo nuôi tự động',d:'14:02'},
+    {t:'Kéo traffic thụ động',d:'13:35'},
+    {t:'Chốt đơn bằng AI',d:'11:48'},
+    {t:'Tối ưu tỉ lệ chuyển đổi',d:'10:12'},
+    {t:'Lắp ráp phễu hoàn chỉnh',d:'16:40'}]},
+  c5:{name:'Mật Mã Tự Do', lessons:[
+    {t:'Tư duy scale hệ thống',d:'11:30'},
+    {t:'Build KOL AI nhận diện',d:'17:20'},
+    {t:'Sản xuất TVC bằng AI',d:'19:05'},
+    {t:'Tự động hóa toàn quy trình',d:'15:45'},
+    {t:'Giao việc cho AI Agent',d:'12:10'},
+    {t:'Dashboard theo dõi hệ thống',d:'10:35'},
+    {t:'Nhân bản sang nhiều ngách',d:'13:22'},
+    {t:'Dòng tiền thụ động',d:'11:08'},
+    {t:'Sống tự do — hệ thống chạy khi bạn ngủ',d:'09:50'}]}
+};
+const ORDER = ['c1','c2','c3','c4','c5'];
+
+let auth=null, userEmail=null;
+const state = {}; // cid -> [{t,d,yt,desc}]
+
+function ytId(s){ if(!s) return ''; const m=String(s).match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{6,})/); return m?m[1]:String(s).trim(); }
+
+// ── Firebase ──
+firebase.initializeApp({apiKey:"AIzaSyB5p0tjfsAVUaHzCrmFkAzMiwAsjiOwGc8",authDomain:"phongmenlyproduct-37e44.firebaseapp.com",projectId:"phongmenlyproduct-37e44",storageBucket:"phongmenlyproduct-37e44.firebasestorage.app",messagingSenderId:"322407876187",appId:"1:322407876187:web:fca389d542c409dbeca17e"});
+auth = firebase.auth();
+auth.onAuthStateChanged(u=>{
+  if(u){ userEmail=u.email; document.getElementById('who').textContent=u.email; document.getElementById('btn-out').classList.remove('hidden'); enterApp(); }
+  else { userEmail=null; document.getElementById('gate').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); document.getElementById('btn-out').classList.add('hidden'); document.getElementById('who').textContent=''; }
+});
+function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(()=>auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider())); }
+function signOut(){ auth.signOut(); }
+
+async function enterApp(){
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  for(const cid of ORDER){ await loadCombo(cid); }
+  render();
+}
+
+async function loadCombo(cid){
+  let lessons = null;
+  try{ const r=await fetch(WH+'?content='+cid); if(r.ok){ const d=await r.json(); if(Array.isArray(d.lessons)&&d.lessons.length) lessons=d.lessons; } }catch(e){}
+  if(!lessons) lessons = DEFAULTS[cid].lessons.map(l=>({t:l.t,d:l.d,yt:'',desc:''}));
+  else lessons = lessons.map(l=>({t:l.t||l.title||'',d:l.d||'',yt:l.yt||l.youtube||'',desc:l.desc||''}));
+  state[cid] = lessons;
+}
+
+function render(){
+  document.getElementById('combos').innerHTML = ORDER.map(cid=>{
+    const ls = state[cid], filled = ls.filter(l=>ytId(l.yt)).length;
+    return `<div class="combo" id="cb-${cid}">
+      <div class="combo-hd" onclick="document.getElementById('cb-${cid}').classList.toggle('open')">
+        <div><div class="t">${DEFAULTS[cid].name}</div><div class="meta">${ls.length} bài · ${filled} bài đã có video</div></div>
+        <span class="chev">▶</span>
+      </div>
+      <div class="combo-body">
+        <div id="ls-${cid}">${ls.map((l,i)=>lesRow(cid,l,i)).join('')}</div>
+        <div class="combo-foot">
+          <button class="btn line sm" onclick="addLes('${cid}')">+ Thêm bài</button>
+          <div style="display:flex;align-items:center;gap:14px">
+            <span class="save-stt" id="stt-${cid}"></span>
+            <button class="btn gold" onclick="saveCombo('${cid}')">💾 Lưu combo này</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function lesRow(cid,l,i){
+  return `<div class="les" data-i="${i}">
+    <div class="les-top"><span class="les-num">${i+1}</span>
+      <input placeholder="Tiêu đề bài học" value="${(l.t||'').replace(/"/g,'&quot;')}" oninput="upd('${cid}',${i},'t',this.value)"></div>
+    <div class="row2">
+      <div class="dur"><label>Thời lượng</label><input placeholder="12:30" value="${(l.d||'').replace(/"/g,'&quot;')}" oninput="upd('${cid}',${i},'d',this.value)"></div>
+      <div style="flex:1"><label>Link YouTube (Unlisted)</label>
+        <input placeholder="https://youtu.be/..." value="${(l.yt||'').replace(/"/g,'&quot;')}" oninput="upd('${cid}',${i},'yt',this.value);chkYt(this)">
+        <div class="yt-ok ${ytId(l.yt)?'show':''}">✓ Nhận diện video: ${ytId(l.yt)||''}</div></div>
+    </div>
+    <div><label>Mô tả (không bắt buộc)</label><textarea placeholder="Tóm tắt nội dung bài..." oninput="upd('${cid}',${i},'desc',this.value)">${(l.desc||'')}</textarea></div>
+    <div class="les-actions"><button class="btn red sm" onclick="delLes('${cid}',${i})">🗑 Xoá bài</button></div>
+  </div>`;
+}
+function chkYt(inp){ const box=inp.parentElement.querySelector('.yt-ok'); const id=ytId(inp.value); if(id){box.textContent='✓ Nhận diện video: '+id;box.classList.add('show');}else{box.classList.remove('show');} }
+function upd(cid,i,k,v){ state[cid][i][k]=v; }
+function addLes(cid){ state[cid].push({t:'Bài học mới',d:'',yt:'',desc:''}); renderCombo(cid,true); }
+function delLes(cid,i){ if(!confirm('Xoá bài này?'))return; state[cid].splice(i,1); renderCombo(cid,true); }
+function renderCombo(cid,keepOpen){ render(); if(keepOpen) document.getElementById('cb-'+cid).classList.add('open'); }
+
+async function saveCombo(cid){
+  const stt=document.getElementById('stt-'+cid); stt.style.color='var(--muted)'; stt.textContent='Đang lưu...';
+  const lessons = state[cid].map(l=>({t:l.t,d:l.d,yt:ytId(l.yt),desc:l.desc}));
+  try{
+    const r=await fetch(WH,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'save_content',email:userEmail,course:cid,lessons})});
+    const d=await r.json();
+    if(d&&d.success){ stt.style.color='var(--grn)'; stt.textContent='✓ Đã lưu '+d.count+' bài'; render(); document.getElementById('cb-'+cid).classList.add('open'); }
+    else { stt.style.color='#E53E3E'; stt.textContent = d&&d.error==='not admin' ? '✗ Tài khoản này không có quyền admin' : '✗ Lỗi lưu'; }
+  }catch(e){ stt.style.color='#E53E3E'; stt.textContent='✗ Lỗi kết nối'; }
+}
+</script>
+</body>
+</html>

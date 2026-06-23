@@ -250,7 +250,9 @@ function render(){
   document.getElementById('lh-title').textContent = les.t;
   document.getElementById('lh-dur').textContent = les.d;
   document.getElementById('lh-course').textContent = course.kick;
-  document.getElementById('lh-desc').textContent = 'Trong bài này bạn sẽ thực hành "'+les.t+'" theo từng bước cùng Phong Menly — kèm prompt/biểu mẫu áp dụng ngay. Hoàn thành bài để mở tiến độ và giữ nhịp lộ trình bản đồ.';
+  document.getElementById('lh-desc').textContent = les.desc && les.desc.trim()
+    ? les.desc
+    : 'Trong bài này bạn sẽ thực hành "'+les.t+'" theo từng bước cùng Phong Menly — kèm prompt/biểu mẫu áp dụng ngay. Hoàn thành bài để mở tiến độ và giữ nhịp lộ trình bản đồ.';
   // done button
   const bd = document.getElementById('btn-done');
   if(done.has(cur)){ bd.className='btn done'; bd.textContent='✓ Đã hoàn thành'; }
@@ -281,7 +283,21 @@ function toggleAside(forceClose){
   a.classList.toggle('open'); o.classList.toggle('open');
 }
 
-render();
+// Tải nội dung động từ hệ thống (admin gắn link video) — không có thì dùng mặc định
+async function loadContent(){
+  try{
+    const r = await fetch('https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook?content='+cid);
+    if(r.ok){
+      const d = await r.json();
+      if(d && Array.isArray(d.lessons) && d.lessons.length){
+        course.lessons = d.lessons.map(l=>({ t:l.t||l.title||'Bài học', d:l.d||l.dur||'', yt:l.yt||l.youtube||'', desc:l.desc||'' }));
+        if(cur > course.lessons.length-1) cur = 0;
+      }
+    }
+  }catch(e){}
+  render();
+}
+loadContent();
 </script>
 </body>
 </html>
