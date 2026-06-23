@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khu Học Viên — Phong Menly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--bg-s:#0d0d0d;--panel:#0f0f10;--card:#141416;--card-h:#1a1a1d;
+  --gold:#FFD700;--gold-l:#FFE566;--gold-d:rgba(255,215,0,.12);
+  --org:#FF7B00;--grn:#4ADE80;
+  --txt:#FFF;--muted:#A1A1AA;--dim:#52525B;
+  --bdr:rgba(255,215,0,.22);--bdr-s:rgba(255,255,255,.07);
+  --sbw:264px
+}
+html{scroll-behavior:smooth}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;min-height:100vh}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+.tgold{color:var(--gold)}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.side{width:var(--sbw);flex-shrink:0;background:var(--panel);border-right:1px solid var(--bdr-s);display:flex;flex-direction:column;padding:22px 18px;position:fixed;top:0;bottom:0;left:0;overflow-y:auto;z-index:50}
+.side-logo{font-family:'Dancing Script',cursive;font-size:30px;font-weight:700;color:#fff;letter-spacing:.5px;line-height:1;padding:0 6px 4px}
+.side-logo small{display:block;font-family:'Be Vietnam Pro';font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;margin-top:3px}
+.side-user{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--bdr-s);border-radius:14px;padding:11px;margin:18px 0 6px}
+.su-av{width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--bdr)}
+.su-av-ph{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#000;flex-shrink:0}
+.su-info{min-width:0;flex:1}
+.su-name{font-size:14px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.su-badge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.5px;padding:2px 8px;border-radius:50px;margin-top:4px}
+.su-badge.free{background:rgba(161,161,170,.16);color:#A1A1AA}
+.su-badge.vip{background:linear-gradient(135deg,rgba(255,215,0,.22),rgba(255,123,0,.16));color:var(--gold);border:1px solid var(--bdr)}
+.su-email{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.side-sec{font-size:10px;font-weight:800;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin:22px 8px 8px;opacity:.85}
+.side-link{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:11px;color:var(--muted);font-size:14px;font-weight:600;transition:.18s;cursor:pointer}
+.side-link svg{width:19px;height:19px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.9}
+.side-link:hover{background:rgba(255,255,255,.05);color:#fff}
+.side-link.active{background:linear-gradient(135deg,var(--gold-d),rgba(255,123,0,.06));color:var(--gold);border:1px solid var(--bdr)}
+.side-link.danger:hover{background:rgba(229,62,62,.1);color:#E53E3E}
+.side-spacer{flex:1}
+
+/* ── MAIN ── */
+.main{flex:1;margin-left:var(--sbw);min-width:0;display:flex;flex-direction:column}
+.topbar{height:68px;border-bottom:1px solid var(--bdr-s);background:rgba(8,8,8,.85);backdrop-filter:blur(16px);position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 32px}
+.topnav{display:flex;align-items:center;gap:6px}
+.topnav a{padding:8px 16px;border-radius:8px;font-size:13.5px;font-weight:700;color:var(--muted);letter-spacing:.4px;transition:.18s;text-transform:uppercase}
+.topnav a:hover{color:#fff;background:rgba(255,255,255,.05)}
+.topnav a.active{color:var(--gold)}
+.top-user{display:flex;align-items:center;gap:10px}
+.tu-meta{text-align:right;line-height:1.2}
+.tu-name{font-size:13px;font-weight:800;color:#fff}
+.tu-badge{font-size:9px;font-weight:800;color:var(--gold);letter-spacing:.5px}
+.tu-av{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr)}
+.tu-av-ph{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#000}
+.btn-login{background:var(--gold);color:#000;border:none;padding:9px 20px;border-radius:50px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+
+/* ── CONTENT ── */
+.content{padding:34px 32px 60px;max-width:1500px;width:100%}
+.page-head{margin-bottom:6px}
+.page-title{font-size:clamp(20px,2.2vw,28px);font-weight:800;letter-spacing:-.5px;line-height:1.15}
+.page-sub{font-size:13px;color:var(--muted);margin-top:6px;max-width:560px}
+.prog-bar{margin:22px 0 30px;background:var(--card);border:1px solid var(--bdr-s);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.prog-track{flex:1;min-width:180px;height:8px;background:rgba(255,255,255,.07);border-radius:50px;overflow:hidden}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--org));border-radius:50px;transition:width 1s ease}
+.prog-txt{font-size:13px;font-weight:700;color:var(--muted)}
+.prog-txt b{color:var(--gold)}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+@media(max-width:1280px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ── POSTER CARD ── */
+.pc{background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;overflow:hidden;transition:.25s;cursor:pointer;display:flex;flex-direction:column}
+.pc:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.18);box-shadow:0 24px 50px rgba(0,0,0,.6)}
+.pc-poster{position:relative;aspect-ratio:3/4;overflow:hidden;background-size:cover;background-position:center;background-color:#15110a}
+.pc-pricetag{position:absolute;bottom:11px;left:11px;z-index:3;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);border:1px solid var(--bdr);color:var(--gold);font-weight:900;font-size:14px;padding:7px 13px;border-radius:50px;box-shadow:0 4px 16px rgba(0,0,0,.45);white-space:nowrap}
+.pc-status{position:absolute;top:11px;right:11px;z-index:3;font-size:10.5px;font-weight:800;padding:6px 11px;border-radius:50px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:#fff;border:1px solid rgba(255,255,255,.2);white-space:nowrap}
+.pc-hover{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;transition:.25s}
+.pc:hover .pc-hover{opacity:1}
+.pc-hover-cta{background:linear-gradient(135deg,var(--gold),var(--org));color:#000;font-size:13px;font-weight:800;padding:12px 26px;border-radius:50px;box-shadow:0 10px 28px rgba(0,0,0,.5);transform:translateY(10px);transition:.25s;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.pc:hover .pc-hover-cta{transform:translateY(0)}
+.pc-body{padding:15px 16px 17px}
+.pc-name{font-size:15px;font-weight:800;color:#fff;line-height:1.35;margin-bottom:9px;min-height:40px;display:flex;align-items:flex-start}
+.pc-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pc-lessons{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.pc-lessons svg{width:18px;height:18px;fill:var(--gold)}
+.pc-price{font-size:13px;font-weight:800;color:var(--gold)}
+
+/* ── SPECIAL CARD ── */
+.pc.special{border:1.5px solid rgba(255,215,0,.5);background:linear-gradient(180deg,#15110a,#1d1500)}
+.pc.special:hover{border-color:var(--gold);box-shadow:0 24px 60px rgba(255,215,0,.14)}
+.pc.special .pc-name{color:var(--gold)}
+
+/* ── MOBILE ── */
+.menu-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;font-size:22px}
+.side-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:45}
+@media(max-width:860px){
+  .side{transform:translateX(-100%);transition:transform .25s;z-index:60}
+  .side.open{transform:translateX(0)}
+  .side-ov.open{display:block}
+  .main{margin-left:0}
+  .topbar{padding:0 14px;height:60px}
+  .topnav{display:none}
+  .menu-btn{display:block}
+  .content{padding:22px 14px 60px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:14px}
+}
+/* Mobile: GIỮ lưới như PC (2 cột), không co về 1 cột */
+@media(max-width:520px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .pc-poster{padding:12px}
+  .pc-bigtitle{font-size:16px}
+  .pc-kick{font-size:9px;letter-spacing:1.2px}
+  .pc-ch{font-size:8px;padding:4px 8px;letter-spacing:.8px}
+  .pc-try{font-size:9px;padding:5px 9px}
+  .pc-overlay-cta{font-size:10px;padding:8px 14px;bottom:40px}
+  .pc-author{font-size:14px}
+  .pc-name{font-size:13px;min-height:36px;margin-bottom:7px}
+  .pc-lessons{font-size:11px}.pc-price{font-size:11px}
+  .pc-body{padding:12px 12px 14px}
+  .tu-email{display:none}
+  .page-sub{font-size:13px}
+  .chat-fab{width:52px;height:52px;right:16px;bottom:16px}
+  .chat-fab svg{width:28px;height:28px}
+}
+
+/* ── UNLOCK BANNER (locked state) ── */
+.unlock-banner{background:linear-gradient(135deg,rgba(255,215,0,.07),rgba(255,123,0,.04));border:1px solid var(--bdr);border-radius:14px;padding:16px 22px;margin-bottom:26px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ub-l{font-size:14px;color:var(--muted)}
+.ub-l b{color:#fff;font-weight:800}
+.ub-acts{display:flex;gap:10px;flex-wrap:wrap}
+.ub-btn{padding:10px 20px;border-radius:50px;font-size:13px;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:.2s}
+.ub-btn.solid{background:linear-gradient(135deg,var(--gold),var(--org));color:#000}
+.ub-btn.line{background:transparent;border:1px solid var(--bdr);color:var(--gold)}
+.ub-btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+
+/* ── CĂN GIỮA HEADER ── */
+.page-head{text-align:center}
+.page-sub{margin-left:auto;margin-right:auto}
+.prog-bar{justify-content:center}
+
+/* ── EMAIL TRONG CHIP ── */
+.tu-sub{display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-top:2px}
+.tu-email{font-size:10px;color:var(--dim);max-width:104px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── KHỐI GIỚI THIỆU SÁCH (dưới cùng) ── */
+.book-cta{margin-top:48px;display:flex;align-items:center;gap:30px;background:linear-gradient(135deg,#15110a,#1d1500);border:1px solid var(--bdr);border-radius:20px;padding:30px 34px;overflow:hidden}
+.bc-cover{width:150px;flex-shrink:0;border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.6);transition:.3s}
+.book-cta:hover .bc-cover{transform:translateY(-4px) rotate(-1deg)}
+.bc-info{flex:1;min-width:0}
+.bc-kick{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.bc-h{font-size:clamp(19px,2.4vw,26px);font-weight:900;letter-spacing:-.5px;line-height:1.25;margin-bottom:10px}
+.bc-p{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:18px}
+.bc-p b{color:#fff;font-weight:700}
+.bc-btn{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;font-size:14.5px;font-weight:800;padding:13px 28px;border-radius:50px;transition:.2s}
+.bc-btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+@media(max-width:680px){.book-cta{flex-direction:column;text-align:center;padding:26px 22px;gap:20px}.bc-cover{width:120px}}
+
+/* ── NAV CĂN GIỮA ── */
+.topnav{position:absolute;left:50%;transform:translateX(-50%)}
+.top-user{margin-left:auto}
+
+/* ── BÓNG BÓNG CHAT ── */
+.chat-fab{position:fixed;right:22px;bottom:22px;z-index:8000;width:58px;height:58px;border-radius:50%;background:linear-gradient(160deg,#00C6FF 0%,#0078FF 40%,#A033FF 72%,#FF5E96 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,120,255,.45);transition:.2s;animation:fab-pop .5s ease}
+.chat-fab svg{width:32px;height:32px}
+.chat-fab:hover{transform:translateY(-3px) scale(1.05)}
+@keyframes fab-pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ── MODAL (login + mật mã) ── */
+.pm-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;z-index:9000;padding:20px}
+.pm-modal-overlay.show{display:flex}
+.pm-modal-box{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:32px;width:100%;max-width:420px;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.9)}
+.pm-modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.07);border:none;color:var(--muted);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.2s;font-family:inherit}
+.pm-modal-close:hover{background:rgba(255,255,255,.14);color:var(--txt)}
+.pm-modal-icon{width:72px;height:72px;border-radius:16px;overflow:hidden;margin:0 auto 18px;display:block;object-fit:cover}
+.pm-modal-title{font-size:22px;font-weight:800;color:var(--txt);margin-bottom:6px;text-align:center;line-height:1.3}
+.pm-modal-sub{font-size:14px;color:var(--muted);margin-bottom:24px;text-align:center}
+.pm-step{display:none}.pm-step.active{display:block}
+.pm-back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;padding:0 0 18px;font-family:inherit;transition:.2s}
+.pm-back-btn:hover{color:var(--txt)}
+.pm-input{width:100%;padding:14px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:var(--txt);font-size:15px;font-family:inherit;margin-bottom:12px;outline:none;transition:.2s;display:block}
+.pm-input:focus{border-color:rgba(255,215,0,.6);background:rgba(255,215,0,.03)}
+.pm-input::placeholder{color:var(--dim)}
+.pm-error{font-size:13px;color:#E53E3E;margin-bottom:10px;min-height:18px;text-align:center}
+.pm-btn-submit{width:100%;padding:14px 20px;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;transition:.2s;font-family:inherit}
+.pm-btn-submit:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.pm-btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.pm-btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 20px;background:rgba(255,255,255,.06);color:var(--txt);border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}
+.pm-btn-google:hover{background:rgba(255,255,255,.1)}
+.pm-btn-email-opt{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 20px;background:rgba(255,255,255,.06);color:var(--txt);border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit;margin-top:10px}
+.pm-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--dim);font-size:13px}
+.pm-divider::before,.pm-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.pm-switch-link{text-align:center;margin-top:18px;font-size:13px;color:var(--muted)}
+.pm-switch-link span{color:var(--gold);cursor:pointer;font-weight:700}
+.pm-switch-link span:hover{text-decoration:underline}
+.pm-pw-input{letter-spacing:3px;text-align:center}
+.pm-pw-input::placeholder{letter-spacing:0}
+</style>
+</head>
+<body>
+
+<div class="side-ov" id="side-ov" onclick="toggleSide()"></div>
+
+<div class="app">
+
+  <!-- ════ SIDEBAR ════ -->
+  <aside class="side" id="side">
+    <a href="index.html" class="side-logo">Phong Menly<small>MẬT MÃ TỰ DO</small></a>
+
+    <div class="side-user" id="side-user" style="display:none">
+      <img class="su-av" id="su-av" src="" alt="" style="display:none">
+      <div class="su-av-ph" id="su-av-ph">?</div>
+      <div class="su-info">
+        <div class="su-name" id="su-name">Khách</div>
+        <span class="su-badge free" id="su-badge">Chưa đăng nhập</span>
+        <div class="su-email" id="su-email"></div>
+      </div>
+    </div>
+
+    <div class="side-sec">Main Menu</div>
+    <a class="side-link active"><svg viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14.5"/><path d="M4 19.5A1.5 1.5 0 0 1 5.5 18H20"/></svg> Khóa học</a>
+    <a class="side-link" href="https://www.facebook.com/groups/808925604828645" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5"/></svg> Cộng đồng</a>
+    <a class="side-link" href="https://kolaisystemladipage.vercel.app" target="_blank"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2z"/></svg> Tư vấn</a>
+    <a class="side-link" href="index.html#faq"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3"/><line x1="12" y1="17" x2="12" y2="17"/></svg> Hỗ trợ</a>
+
+    <div class="side-spacer"></div>
+
+    <div class="side-sec">Tài khoản</div>
+    <a class="side-link" onclick="khOpenGate()"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Nhập mật mã</a>
+    <a class="side-link danger" id="btn-logout" onclick="hvSignOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Đăng xuất</a>
+  </aside>
+
+  <!-- ════ MAIN ════ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" onclick="toggleSide()">☰</button>
+      <nav class="topnav">
+        <a href="index.html">Trang chủ</a>
+        <a href="index.html#pricing">Sản phẩm</a>
+        <a href="hoc-vien.html" class="active">Học viện</a>
+      </nav>
+      <div class="top-user" id="top-user">
+        <button class="btn-login" id="top-login" onclick="pmOpenModal()">Đăng nhập</button>
+        <div class="tu-meta" id="tu-meta" style="display:none">
+          <div class="tu-name" id="tu-name"></div>
+          <div class="tu-sub"><span class="tu-badge" id="tu-badge"></span><span class="tu-email" id="tu-email"></span></div>
+        </div>
+        <img class="tu-av" id="tu-av" src="" alt="" style="display:none">
+        <div class="tu-av-ph" id="tu-av-ph" style="display:none">?</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="page-head">
+        <h1 class="page-title">Khóa học của tôi</h1>
+        <p class="page-sub">Tấm bản đồ đã mở. 5 combo theo 5 chương + cuốn đặc biệt KOL AI SYSTEM — học theo lộ trình, hệ thống chạy thật.</p>
+      </div>
+
+      <div class="unlock-banner" id="unlock-banner" style="display:none">
+        <div class="ub-l">🔒 Bạn chưa mở khóa. <b>Đã có sách Mật Mã Tự Do?</b> Nhập mật mã để mở trọn 5 combo — hoặc đặt sách để nhận mã.</div>
+        <div class="ub-acts">
+          <button class="ub-btn solid" onclick="khOpenGate()">🔓 Nhập mật mã</button>
+          <button class="ub-btn line" onclick="location.href='index.html#pricing'">📕 Đặt sách</button>
+        </div>
+      </div>
+
+      <div class="prog-bar">
+        <div class="prog-txt">Tiến độ bản đồ: <b id="prog-pct">0%</b></div>
+        <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="prog-txt" id="prog-count">0 / 6 cuốn</div>
+      </div>
+
+      <div class="grid" id="course-grid"></div>
+
+      <!-- GIỚI THIỆU SÁCH — DƯỚI CÙNG -->
+      <section class="book-cta">
+        <img class="bc-cover" src="images/book-cover-1.png" alt="Sách Mật Mã Tự Do">
+        <div class="bc-info">
+          <div class="bc-kick">📕 Tấm bản đồ hệ thống</div>
+          <h2 class="bc-h">Sở hữu sách Mật Mã Tự Do — mở khóa trọn bộ combo</h2>
+          <p class="bc-p">5 combo theo 5 chương (<b>1.189.000đ</b>) + cuốn đặc biệt KOL AI SYSTEM. Đặt sách chỉ <b>686.000đ</b> = mở khóa tất cả bằng mật mã, kèm 4 bonus và vé vào cộng đồng tinh hoa.</p>
+          <a class="bc-btn" href="index.html#pricing">📕 Đặt sách & nhận mật mã →</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+// ════ DỮ LIỆU KHÓA HỌC ════
+const COURSES = [
+  {id:'c1', ch:'Chương 1', name:'Mật Mã Tư Duy', lessons:5, price:'115.000đ', img:'images/bia-tu-duy.png'},
+  {id:'c2', ch:'Chương 2', name:'Mật Mã Affiliate Marketing', lessons:6, price:'189.000đ', img:'images/bia-affiliate-marketing.png'},
+  {id:'c3', ch:'Chương 3', name:'Mật Mã Traffic', lessons:8, price:'256.000đ', img:'images/bia-traffic.png'},
+  {id:'c4', ch:'Chương 4', name:'Mật Mã Phễu — Master Sale', lessons:7, price:'279.000đ', img:'images/bia-pheu-master-sale.png'},
+  {id:'c5', ch:'Chương 5', name:'Mật Mã Tự Do', lessons:9, price:'350.000đ', img:'images/bia-tu-do.png'},
+  {id:'sys', ch:'Số 1', name:'KOL AI SYSTEM', lessons:'∞', price:'Đặc biệt', img:'images/bia-kol-ai-system.png', special:true, url:'https://kolaisystemladipage.vercel.app'}
+];
+
+const PLAY_SVG = '<svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
+
+function renderCourses(unlocked){
+  const grid = document.getElementById('course-grid');
+  grid.innerHTML = COURSES.map(c => {
+    const priceBadge = c.special ? '🎁 Tặng kèm sách' : c.price;
+    const statusPill = c.special ? 'Đặc biệt' : (unlocked ? '✓ Đã mở' : '🔒 Khóa');
+    const ctaTxt = c.special ? 'Khám phá →' : (unlocked ? '▶ Vào học ngay' : '🔓 Mở khóa ngay');
+    const href = c.special ? c.url : (unlocked ? 'bai-hoc.html?c='+c.id : 'index.html#pricing');
+    const target = c.special ? ' target="_blank" rel="noopener"' : '';
+    const metaRight = c.special
+      ? '<span class="pc-price">Tặng sách</span>'
+      : (unlocked ? '<span class="pc-price">Đã mở</span>' : '<span class="pc-price">'+c.price+'</span>');
+    return `
+    <a class="pc${c.special?' special':''}" id="${c.id}" href="${href}"${target}>
+      <div class="pc-poster" style="background-image:url('${c.img}')">
+        <span class="pc-pricetag">${priceBadge}</span>
+        <span class="pc-status">${statusPill}</span>
+        <div class="pc-hover"><span class="pc-hover-cta">${ctaTxt}</span></div>
+      </div>
+      <div class="pc-body">
+        <div class="pc-name">${c.name}</div>
+        <div class="pc-meta">
+          <span class="pc-lessons">${PLAY_SVG} ${c.lessons} bài học</span>
+          ${metaRight}
+        </div>
+      </div>
+    </a>`;
+  }).join('');
+}
+
+function updateProgress(unlocked){
+  // Chỉ tính 5 cửa (combo học được) — KOL AI SYSTEM là ladipage, không tính.
+  const doors = COURSES.filter(c => !c.special);
+  let total = 0, done = 0, comboDone = 0;
+  doors.forEach(c => {
+    total += c.lessons;
+    let arr = []; try{ arr = JSON.parse(localStorage.getItem('done_'+c.id)||'[]'); }catch(e){}
+    const n = Math.min(arr.length, c.lessons);
+    done += n;
+    if(n >= c.lessons) comboDone++;
+  });
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('prog-pct').textContent = pct+'%';
+  document.getElementById('prog-count').textContent = comboDone+' / 5 cửa hoàn thành';
+  setTimeout(()=>{document.getElementById('prog-fill').style.width = pct+'%';}, 250);
+}
+
+function toggleSide(){
+  document.getElementById('side').classList.toggle('open');
+  document.getElementById('side-ov').classList.toggle('open');
+}
+
+// ════ FIREBASE AUTH ════
+const PM_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB5p0tjfsAVUaHzCrmFkAzMiwAsjiOwGc8",
+  authDomain: "phongmenlyproduct-37e44.firebaseapp.com",
+  projectId: "phongmenlyproduct-37e44",
+  storageBucket: "phongmenlyproduct-37e44.firebasestorage.app",
+  messagingSenderId: "322407876187",
+  appId: "1:322407876187:web:fca389d542c409dbeca17e"
+};
+let hvAuth = null;
+
+function hvIsVIP(email){ return localStorage.getItem('pm_vip_'+email)==='true'; }
+
+function applyState(){
+  const unlocked = localStorage.getItem('kh_unlocked')==='1';
+  renderCourses(unlocked);
+  updateProgress(unlocked);
+  document.getElementById('unlock-banner').style.display = unlocked ? 'none' : 'flex';
+}
+
+function hvInit(){
+  applyState();
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(PM_FIREBASE_CONFIG);
+    hvAuth = firebase.auth();
+    hvAuth.getRedirectResult().then(r => { if(r && r.user) pmCloseModal(); }).catch(()=>{});
+    hvAuth.onAuthStateChanged(user => {
+      if(user){
+        const name = user.displayName || user.email.split('@')[0];
+        const given = user.displayName ? user.displayName.split(' ')[0] : name;
+        showUser(given, user.email, user.photoURL, hvIsVIP(user.email));
+        pmCloseModal();
+        mmtdTrackReader(user.email, name, true);
+      } else {
+        showGuest();
+      }
+    });
+  }catch(e){ console.error('Firebase init error:', e); showGuest(); }
+}
+
+// ── Track reader vào Supabase (giống trang gốc) ──
+const _SB='https://ryhogciybrffiumuawrk.supabase.co';
+const _SK='sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
+const _SH={'Content-Type':'application/json','apikey':_SK,'Authorization':'Bearer '+_SK};
+async function mmtdTrackReader(email,name,isBuyer){
+  if(!email) return;
+  try{
+    const res=await fetch(`${_SB}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count,reader_status`,{headers:_SH});
+    const rows=await res.json();
+    if(rows&&rows.length>0){
+      const row=rows[0];
+      await fetch(`${_SB}/rest/v1/mmtd_readers?id=eq.${row.id}`,{method:'PATCH',headers:_SH,body:JSON.stringify({...(name&&{name}),visit_count:(row.visit_count||0)+1,last_seen:new Date().toISOString(),reader_status:isBuyer?'buyer':(row.reader_status||'reader')})});
+    }else{
+      await fetch(`${_SB}/rest/v1/mmtd_readers`,{method:'POST',headers:{..._SH,'Prefer':'return=minimal'},body:JSON.stringify({email,name:name||email.split('@')[0],visit_count:1,last_seen:new Date().toISOString(),reader_status:isBuyer?'buyer':'reader',referrer:document.referrer||null})});
+    }
+  }catch(e){ console.warn('[MMTD]',e); }
+}
+
+// ════ MODAL ĐĂNG NHẬP ════
+function pmOpenModal(step){ document.getElementById('pm-modal').classList.add('show'); pmShowStep(step||'welcome'); }
+function pmCloseModal(e){ if(!e||e.target===document.getElementById('pm-modal')) document.getElementById('pm-modal').classList.remove('show'); }
+function pmShowStep(step){
+  ['welcome','register','login'].forEach(s=>{const el=document.getElementById('pm-step-'+s);if(el)el.classList.toggle('active',s===step);});
+  ['pm-reg-error','pm-login-error'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='';});
+}
+async function pmRegister(){
+  const name=document.getElementById('pm-name-input').value.trim();
+  const email=document.getElementById('pm-reg-email').value.trim();
+  const pass=document.getElementById('pm-reg-pass').value;
+  const errEl=document.getElementById('pm-reg-error'); errEl.textContent='';
+  if(!name){errEl.textContent='Vui lòng nhập họ và tên.';return;}
+  if(!email.includes('@')){errEl.textContent='Email không hợp lệ.';return;}
+  if(pass.length<6){errEl.textContent='Mật khẩu phải có ít nhất 6 ký tự.';return;}
+  const btn=document.querySelector('#pm-step-register .pm-btn-submit'); btn.textContent='Đang đăng ký...'; btn.disabled=true;
+  try{ const cred=await hvAuth.createUserWithEmailAndPassword(email,pass); await cred.user.updateProfile({displayName:name}); await hvAuth.currentUser.reload(); pmCloseModal(); }
+  catch(e){ btn.textContent='Đăng ký'; btn.disabled=false; const m={'auth/email-already-in-use':'Email này đã được đăng ký.','auth/weak-password':'Mật khẩu phải có ít nhất 6 ký tự.','auth/invalid-email':'Email không hợp lệ.'}; errEl.textContent=m[e.code]||'Có lỗi xảy ra. Thử lại.'; }
+}
+async function pmLogin(){
+  const email=document.getElementById('pm-login-email').value.trim();
+  const pass=document.getElementById('pm-login-pass').value;
+  const errEl=document.getElementById('pm-login-error'); errEl.textContent='';
+  const btn=document.querySelector('#pm-step-login .pm-btn-submit'); btn.textContent='Đang đăng nhập...'; btn.disabled=true;
+  try{ await hvAuth.signInWithEmailAndPassword(email,pass); pmCloseModal(); }
+  catch(e){ btn.textContent='Đăng nhập'; btn.disabled=false; const m={'auth/wrong-password':'Mật khẩu không đúng.','auth/user-not-found':'Tài khoản không tồn tại.','auth/invalid-email':'Email không hợp lệ.','auth/invalid-credential':'Email hoặc mật khẩu không đúng.'}; errEl.textContent=m[e.code]||'Có lỗi xảy ra. Thử lại.'; }
+}
+async function pmSignInGoogle(){
+  if(!hvAuth){ alert('Đang tải... thử lại.'); return; }
+  const errEl=document.getElementById('pm-google-error'); if(errEl)errEl.textContent='';
+  try{ await hvAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); pmCloseModal(); }
+  catch(e){ if(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'){ if(errEl)errEl.textContent='Popup bị chặn — đang chuyển hướng...'; setTimeout(()=>hvAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()),800); } else if(e.code!=='auth/popup-closed-by-user'){ if(errEl)errEl.textContent='Đăng nhập thất bại. Thử lại.'; } }
+}
+
+// ════ CỔNG MẬT MÃ ════
+function khOpenGate(){ document.getElementById('kh-gate-modal').classList.add('show'); document.getElementById('kh-pw').focus(); document.getElementById('side').classList.remove('open'); document.getElementById('side-ov').classList.remove('open'); }
+function khCloseGate(e){ if(!e||e.target===document.getElementById('kh-gate-modal')) document.getElementById('kh-gate-modal').classList.remove('show'); }
+function khUnlock(){
+  const val=(document.getElementById('kh-pw').value||'').trim().toLowerCase();
+  if(val==='tudo'){
+    localStorage.setItem('kh_unlocked','1');
+    document.getElementById('gate-err').textContent='';
+    khCloseGate();
+    applyState();
+  }else{
+    document.getElementById('gate-err').textContent='Mật mã không đúng. Thử lại.';
+    document.getElementById('kh-pw').value=''; document.getElementById('kh-pw').focus();
+  }
+}
+
+function showUser(name, email, pic, vip){
+  // sidebar
+  document.getElementById('side-user').style.display = 'flex';
+  document.getElementById('su-name').textContent = name;
+  document.getElementById('su-email').textContent = email;
+  const sb = document.getElementById('su-badge');
+  sb.textContent = vip ? '⭐ VIP' : '🎟️ Học viên';
+  sb.className = 'su-badge ' + (vip?'vip':'free');
+  setAvatar('su-av','su-av-ph',pic,name);
+  // topbar
+  document.getElementById('top-login').style.display='none';
+  document.getElementById('tu-meta').style.display='block';
+  document.getElementById('tu-name').textContent = name;
+  document.getElementById('tu-badge').textContent = vip ? '⭐ VIP' : 'HỌC VIÊN';
+  document.getElementById('tu-email').textContent = email;
+  setAvatar('tu-av','tu-av-ph',pic,name);
+}
+
+function setAvatar(imgId, phId, pic, name){
+  const img=document.getElementById(imgId), ph=document.getElementById(phId);
+  if(pic){ img.src=pic; img.style.display='block'; ph.style.display='none';
+    img.onerror=()=>{img.style.display='none';ph.style.display='flex';ph.textContent=(name||'?')[0].toUpperCase();};
+  } else { img.style.display='none'; ph.style.display='flex'; ph.textContent=(name||'?')[0].toUpperCase(); }
+}
+
+function showGuest(){
+  document.getElementById('side-user').style.display='none';
+  document.getElementById('top-login').style.display='inline-block';
+  document.getElementById('tu-meta').style.display='none';
+  document.getElementById('tu-av').style.display='none';
+  document.getElementById('tu-av-ph').style.display='none';
+}
+
+function hvSignOut(){
+  if(hvAuth) hvAuth.signOut();
+  localStorage.removeItem('kh_unlocked');
+  showGuest();
+  applyState();
+}
+
+hvInit();
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); khCloseGate(); } });
+</script>
+
+<!-- MODAL: ĐĂNG NHẬP -->
+<div class="pm-modal-overlay" id="pm-modal" onclick="pmCloseModal(event)">
+  <div class="pm-modal-box">
+    <button class="pm-modal-close" onclick="pmCloseModal()">✕</button>
+    <div class="pm-step active" id="pm-step-welcome">
+      <img class="pm-modal-icon" src="images/logo-goglobal.png" alt="KOL AI Go Global">
+      <h3 class="pm-modal-title">Welcome to<br>KOL AI Go Global</h3>
+      <p class="pm-modal-sub">Đăng ký hoặc đăng nhập để vào Học Viện</p>
+      <button class="pm-btn-google" onclick="pmSignInGoogle()">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Tiếp tục với Google
+      </button>
+      <div id="pm-google-error" style="font-size:12px;color:#f87171;text-align:center;margin-top:8px;min-height:18px"></div>
+      <div class="pm-divider"><span>hoặc</span></div>
+      <button class="pm-btn-email-opt" onclick="pmShowStep('register')">✉ Đăng ký bằng Email</button>
+      <div class="pm-switch-link">Đã có tài khoản? <span onclick="pmShowStep('login')">Đăng nhập</span></div>
+    </div>
+    <div class="pm-step" id="pm-step-register">
+      <button class="pm-back-btn" onclick="pmShowStep('welcome')">← Quay lại</button>
+      <h3 class="pm-modal-title">Tạo tài khoản</h3>
+      <p class="pm-modal-sub">Điền thông tin để bắt đầu</p>
+      <input class="pm-input" type="text" id="pm-name-input" placeholder="Họ và tên...">
+      <input class="pm-input" type="email" id="pm-reg-email" placeholder="Email...">
+      <input class="pm-input" type="password" id="pm-reg-pass" placeholder="Mật khẩu (ít nhất 6 ký tự)..." onkeydown="if(event.key==='Enter')pmRegister()">
+      <div class="pm-error" id="pm-reg-error"></div>
+      <button class="pm-btn-submit" onclick="pmRegister()">Đăng ký</button>
+      <div class="pm-switch-link">Đã có tài khoản? <span onclick="pmShowStep('login')">Đăng nhập</span></div>
+    </div>
+    <div class="pm-step" id="pm-step-login">
+      <button class="pm-back-btn" onclick="pmShowStep('welcome')">← Quay lại</button>
+      <h3 class="pm-modal-title">Đăng nhập</h3>
+      <p class="pm-modal-sub">Chào mừng bạn quay lại</p>
+      <input class="pm-input" type="email" id="pm-login-email" placeholder="Email...">
+      <input class="pm-input" type="password" id="pm-login-pass" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')pmLogin()">
+      <div class="pm-error" id="pm-login-error"></div>
+      <button class="pm-btn-submit" onclick="pmLogin()">Đăng nhập</button>
+      <div class="pm-switch-link">Chưa có tài khoản? <span onclick="pmShowStep('register')">Đăng ký ngay</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NHẬP MẬT MÃ -->
+<div class="pm-modal-overlay" id="kh-gate-modal" onclick="khCloseGate(event)">
+  <div class="pm-modal-box">
+    <button class="pm-modal-close" onclick="khCloseGate()">✕</button>
+    <div style="font-size:44px;text-align:center;margin-bottom:12px">🔓</div>
+    <h3 class="pm-modal-title">Nhập mật mã</h3>
+    <p class="pm-modal-sub">Mật mã có trong sách Mật Mã Tự Do — nhập để mở trọn 5 combo.</p>
+    <input class="pm-input pm-pw-input" type="password" id="kh-pw" placeholder="Mật mã..." autocomplete="off" onkeydown="if(event.key==='Enter')khUnlock()">
+    <div class="pm-error" id="gate-err"></div>
+    <button class="pm-btn-submit" onclick="khUnlock()">Mở khóa</button>
+    <div class="pm-switch-link">Chưa có sách? <span onclick="location.href='index.html#pricing'">Đặt sách ngay</span></div>
+  </div>
+</div>
+
+<!-- BÓNG BÓNG CHAT (Messenger) -->
+<a class="chat-fab" href="https://www.facebook.com/groups/808925604828645" target="_blank" rel="noopener" title="Hỏi đáp cùng cộng đồng">
+  <svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.44 3.14 7.17.17.15.27.36.27.58l.05 1.77c.02.57.6.94 1.13.71l1.98-.87c.17-.08.36-.09.54-.04.91.25 1.88.39 2.82.39 5.64 0 10-4.13 10-9.71C22 6.13 17.64 2 12 2zm6.01 7.46l-2.94 4.66c-.47.74-1.47.93-2.18.4l-2.34-1.75a.6.6 0 0 0-.72 0l-3.16 2.4c-.42.32-.97-.18-.69-.63l2.94-4.66c.47-.74 1.47-.93 2.18-.4l2.34 1.75a.6.6 0 0 0 .72 0l3.16-2.4c.42-.31.97.18.69.63z"/></svg>
+</a>
+
+</body>
+</html>
