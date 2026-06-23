@@ -331,9 +331,9 @@ const COURSES = [
 const BANK = { bin:'970415', acc:'105887395942', name:'HO KINH DOANH LE DANG PHUONG' }; // VietinBank
 const MMTD_WEBHOOK = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
 const TIERS = [
-  {code:'M', label:'1 Tháng',  add:0,      note:'Truy cập 30 ngày'},
-  {code:'Y', label:'1 Năm',    add:99000,  note:'Tiết kiệm hơn · +99k', tag:'Phổ biến'},
-  {code:'L', label:'Trọn Đời', add:299000, note:'Học mãi mãi · +299k',  tag:'Tốt nhất'}
+  {code:'M', label:'1 Tháng',  add:0,      tag:''},
+  {code:'Y', label:'1 Năm',    add:99000,  tag:'Phổ biến'},
+  {code:'L', label:'Trọn Đời', add:299000, tag:'Đáng giá nhất'}
 ];
 const fmt = n => n.toLocaleString('vi-VN')+'đ';
 
@@ -561,11 +561,15 @@ function renderTiers(){
   const c = COURSES.find(x=>x.id===payCid);
   document.getElementById('tier-row').innerHTML = TIERS.map(t=>{
     const amt = c.base + t.add;
+    let note;
+    if(t.code==='M')       note = 'Truy cập 30 ngày';
+    else if(t.code==='Y'){ const pm = Math.round((amt/12)/1000)*1000; note = 'Chỉ ~'+fmt(pm)+'/tháng'; }
+    else                   note = 'Sở hữu vĩnh viễn';
     return `<div class="tier ${t.code===payTier?'active':''}" onclick="setTier('${t.code}')">
       ${t.tag?`<span class="tier-tag">${t.tag}</span>`:''}
       <div class="tier-label">${t.label}</div>
       <div class="tier-price">${fmt(amt)}</div>
-      <div class="tier-note">${t.note}</div>
+      <div class="tier-note">${note}</div>
     </div>`;
   }).join('');
 }
