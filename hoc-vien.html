@@ -90,16 +90,15 @@ a{text-decoration:none;color:inherit}
 .pc-hover-cta{background:linear-gradient(135deg,var(--gold),var(--org));color:#000;font-size:13px;font-weight:800;padding:12px 26px;border-radius:50px;box-shadow:0 10px 28px rgba(0,0,0,.5);transform:translateY(10px);transition:.25s;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
 .pc:hover .pc-hover-cta{transform:translateY(0)}
 .pc-body{padding:15px 16px 17px}
-.pc-name{font-size:15px;font-weight:800;color:#fff;line-height:1.35;margin-bottom:9px;min-height:40px;display:flex;align-items:flex-start}
-.pc-meta{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.pc-lessons{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--muted)}
-.pc-lessons svg{width:18px;height:18px;fill:var(--gold)}
-.pc-price{font-size:13px;font-weight:800;color:var(--gold)}
+.pc-name{font-size:15.5px;font-weight:700;color:#fff;line-height:1.4;letter-spacing:-.2px;margin-bottom:10px;min-height:42px;display:flex;align-items:flex-start}
+.pc-meta{display:flex;align-items:center;gap:10px}
+.pc-lessons{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:rgba(255,255,255,.5)}
+.pc-lessons svg{width:17px;height:17px;fill:var(--org)}
 
 /* ── SPECIAL CARD ── */
 .pc.special{border:1.5px solid rgba(255,215,0,.5);background:linear-gradient(180deg,#15110a,#1d1500)}
 .pc.special:hover{border-color:var(--gold);box-shadow:0 24px 60px rgba(255,215,0,.14)}
-.pc.special .pc-name{color:var(--gold)}
+.pc.special .pc-name{color:#fff}
 
 /* ── MOBILE ── */
 .menu-btn{display:none;background:none;border:none;color:#fff;cursor:pointer;font-size:22px}
@@ -316,9 +315,7 @@ function renderCourses(unlocked){
     const ctaTxt = c.special ? 'Khám phá →' : (unlocked ? '▶ Vào học ngay' : '🔓 Mở khóa ngay');
     const href = c.special ? c.url : (unlocked ? 'bai-hoc.html?c='+c.id : 'index.html#pricing');
     const target = c.special ? ' target="_blank" rel="noopener"' : '';
-    const metaRight = c.special
-      ? '<span class="pc-price">Tặng sách</span>'
-      : (unlocked ? '<span class="pc-price">Đã mở</span>' : '<span class="pc-price">'+c.price+'</span>');
+    const metaText = c.special ? '👑 Cộng đồng tinh hoa' : (PLAY_SVG+' '+c.lessons+' bài học');
     return `
     <a class="pc${c.special?' special':''}" id="${c.id}" href="${href}"${target}>
       <div class="pc-poster" style="background-image:url('${c.img}')">
@@ -328,10 +325,7 @@ function renderCourses(unlocked){
       </div>
       <div class="pc-body">
         <div class="pc-name">${c.name}</div>
-        <div class="pc-meta">
-          <span class="pc-lessons">${PLAY_SVG} ${c.lessons} bài học</span>
-          ${metaRight}
-        </div>
+        <div class="pc-meta"><span class="pc-lessons">${metaText}</span></div>
       </div>
     </a>`;
   }).join('');
