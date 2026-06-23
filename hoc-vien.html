@@ -108,9 +108,16 @@ a{text-decoration:none;color:inherit}
   .side.open{transform:translateX(0)}
   .side-ov.open{display:block}
   .main{margin-left:0}
-  .topbar{padding:0 14px;height:60px}
-  .topnav{display:none}
-  .menu-btn{display:block}
+  .topbar{padding:0 10px;height:58px;gap:6px}
+  /* Hiện tab Sản phẩm / Học viện trên mobile — thu gọn, cuộn ngang nếu chật */
+  .topnav{display:flex;position:static;transform:none;left:auto;gap:1px;flex:1;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .topnav::-webkit-scrollbar{display:none}
+  .topnav a{padding:6px 9px;font-size:11px;letter-spacing:.2px;white-space:nowrap}
+  .menu-btn{display:block;font-size:20px;flex-shrink:0;padding:0 2px}
+  /* Ẩn tên cạnh avatar — chỉ còn mặt người, bấm vào mới ra hồ sơ */
+  .tu-meta{display:none!important}
+  .top-user{gap:0;flex-shrink:0}
+  .tu-av,.tu-av-ph{width:34px;height:34px}
   .content{padding:22px 14px 60px}
   .grid{grid-template-columns:repeat(2,1fr);gap:14px}
 }
@@ -164,9 +171,21 @@ a{text-decoration:none;color:inherit}
 .bc-btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
 @media(max-width:680px){.book-cta{flex-direction:column;text-align:center;padding:26px 22px;gap:20px}.bc-cover{width:120px}}
 
-/* ── NAV CĂN GIỮA ── */
-.topnav{position:absolute;left:50%;transform:translateX(-50%)}
-.top-user{margin-left:auto}
+/* ── NAV CĂN GIỮA (chỉ desktop) ── */
+@media(min-width:861px){.topnav{position:absolute;left:50%;transform:translateX(-50%)}}
+.top-user{margin-left:auto;position:relative}
+
+/* ── HỒ SƠ POPOVER (bấm avatar mới hiện) ── */
+.tu-av,.tu-av-ph{cursor:pointer}
+.tu-pop{position:absolute;top:calc(100% + 12px);right:0;min-width:216px;background:#0f0f0f;border:1px solid var(--bdr);border-radius:14px;padding:8px;box-shadow:0 20px 54px rgba(0,0,0,.65);opacity:0;visibility:hidden;transform:translateY(-6px);transition:.16s;z-index:90}
+.top-user.open .tu-pop{opacity:1;visibility:visible;transform:translateY(0)}
+.tu-pop-hd{padding:10px 12px 12px;border-bottom:1px solid var(--bdr-s);margin-bottom:6px}
+.tu-pop-name{font-size:14px;font-weight:800;color:#fff;line-height:1.3}
+.tu-pop-email{font-size:11px;color:var(--dim);margin-top:3px;word-break:break-all}
+.tu-pop-badge{display:inline-block;margin-top:9px;font-size:9px;font-weight:800;color:var(--gold);letter-spacing:.5px;border:1px solid var(--bdr);padding:3px 9px;border-radius:50px}
+.tu-pop-link{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:9px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s}
+.tu-pop-link:hover{background:rgba(255,255,255,.06);color:#fff}
+.tu-pop-link.danger:hover{color:#ff6b6b}
 
 /* ── BÓNG BÓNG CHAT ── */
 .chat-fab{position:fixed;right:22px;bottom:22px;z-index:8000;width:58px;height:58px;border-radius:50%;background:linear-gradient(160deg,#00C6FF 0%,#0078FF 40%,#A033FF 72%,#FF5E96 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,120,255,.45);transition:.2s;animation:fab-pop .5s ease}
@@ -275,8 +294,17 @@ a{text-decoration:none;color:inherit}
           <div class="tu-name" id="tu-name"></div>
           <div class="tu-sub"><span class="tu-badge" id="tu-badge"></span><span class="tu-email" id="tu-email"></span></div>
         </div>
-        <img class="tu-av" id="tu-av" src="" alt="" style="display:none">
-        <div class="tu-av-ph" id="tu-av-ph" style="display:none">?</div>
+        <img class="tu-av" id="tu-av" src="" alt="" style="display:none" onclick="toggleUserPop(event)">
+        <div class="tu-av-ph" id="tu-av-ph" style="display:none" onclick="toggleUserPop(event)">?</div>
+        <div class="tu-pop" id="tu-pop">
+          <div class="tu-pop-hd">
+            <div class="tu-pop-name" id="tu-pop-name"></div>
+            <div class="tu-pop-email" id="tu-pop-email"></div>
+            <span class="tu-pop-badge" id="tu-pop-badge"></span>
+          </div>
+          <a class="tu-pop-link" onclick="closeUserPop();khOpenGate()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Nhập mật mã</a>
+          <a class="tu-pop-link danger" onclick="closeUserPop();hvSignOut()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Đăng xuất</a>
+        </div>
       </div>
     </header>
 
@@ -519,7 +547,15 @@ function showUser(name, email, pic, vip){
   document.getElementById('tu-badge').textContent = vip ? '⭐ VIP' : 'HỌC VIÊN';
   document.getElementById('tu-email').textContent = email;
   setAvatar('tu-av','tu-av-ph',pic,name);
+  // hồ sơ popover (mobile bấm avatar)
+  document.getElementById('tu-pop-name').textContent = name;
+  document.getElementById('tu-pop-email').textContent = email;
+  document.getElementById('tu-pop-badge').textContent = vip ? '⭐ VIP' : 'HỌC VIÊN';
 }
+
+function toggleUserPop(e){ if(e){e.stopPropagation();} document.getElementById('top-user').classList.toggle('open'); }
+function closeUserPop(){ document.getElementById('top-user').classList.remove('open'); }
+document.addEventListener('click', e=>{ const tu=document.getElementById('top-user'); if(tu && tu.classList.contains('open') && !tu.contains(e.target)) tu.classList.remove('open'); });
 
 function setAvatar(imgId, phId, pic, name){
   const img=document.getElementById(imgId), ph=document.getElementById(phId);
