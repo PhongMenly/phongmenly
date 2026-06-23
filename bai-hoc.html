@@ -35,6 +35,7 @@ img{max-width:100%;display:block}
 .main{flex:1;min-width:0;padding:26px 30px 60px;max-width:1100px;margin:0 auto;width:100%}
 .video-box{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden;border:1px solid var(--bdr-s);display:flex;align-items:center;justify-content:center}
 .video-box video{width:100%;height:100%;object-fit:contain;background:#000}
+.video-box iframe{width:100%;height:100%;border:0;display:block;background:#000}
 .vb-ph{text-align:center;padding:20px}
 .vb-ph .vb-ico{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 12px 36px rgba(255,123,0,.4)}
 .vb-ph .vb-ico svg{width:30px;height:30px;fill:#000;margin-left:4px}
@@ -217,6 +218,13 @@ let cur = Math.min(Math.max(parseInt(qs.get('l')||'0',10)||0,0), course.lessons.
 function doneSet(){ try{ return new Set(JSON.parse(localStorage.getItem('done_'+cid)||'[]')); }catch(e){ return new Set(); } }
 function saveDone(s){ localStorage.setItem('done_'+cid, JSON.stringify([...s])); }
 
+// Lấy ID video từ bất kỳ dạng link YouTube nào (hoặc chính ID)
+function ytId(s){
+  if(!s) return '';
+  const m = String(s).match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{6,})/);
+  return m ? m[1] : String(s).trim();
+}
+
 function render(){
   const done = doneSet();
   const L = course.lessons;
@@ -230,6 +238,14 @@ function render(){
   setTimeout(()=>{document.getElementById('tb-fill').style.width=pct+'%';},150);
   // lesson detail
   const les = L[cur];
+  // video YouTube (nếu có) — không thì placeholder
+  const vb = document.getElementById('video-box');
+  const id = ytId(les.yt);
+  if(id){
+    vb.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?rel=0&modestbranding=1" title="'+les.t.replace(/"/g,'')+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+  } else {
+    vb.innerHTML = '<div class="vb-ph"><div class="vb-ico"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg></div><h3>Bài học đang được cập nhật</h3><p>Video sẽ sẵn sàng khi khóa học ra mắt chính thức.</p></div>';
+  }
   document.getElementById('lh-kick').textContent = 'Bài '+(cur+1)+' / '+L.length;
   document.getElementById('lh-title').textContent = les.t;
   document.getElementById('lh-dur').textContent = les.d;
