@@ -949,6 +949,44 @@ body.flipping a[href="index.html"]{
 </head>
 <body>
 
+<!-- ════ GUARD: mở bằng trình duyệt thật để đăng nhập Google (tránh lỗi 403 disallowed_useragent khi mở trong app FB/Zalo/Messenger) ════ -->
+<div id="inapp-guard" style="display:none;position:fixed;inset:0;z-index:2147483647;background:#080808;color:#fff;padding:24px 20px;font-family:system-ui,sans-serif;overflow-y:auto;-webkit-overflow-scrolling:touch">
+  <div style="max-width:440px;margin:36px auto 0;text-align:center">
+    <div style="font-size:44px;margin-bottom:14px">🔓</div>
+    <h2 style="font-size:21px;font-weight:800;margin:0 0 12px;line-height:1.35">Mở bằng trình duyệt để đăng nhập</h2>
+    <p style="font-size:14.5px;color:#A1A1AA;line-height:1.7;margin:0 0 22px">Bạn đang mở trong ứng dụng (Facebook/Zalo/Messenger). Google <b style="color:#fff">không cho đăng nhập</b> tại đây. Hãy mở bằng <b style="color:#FFD700">Safari</b> hoặc <b style="color:#FFD700">Chrome</b>.</p>
+    <button onclick="inappOpenExternal()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF7B00);color:#000;border:none;padding:15px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:11px">🌐 Mở bằng trình duyệt</button>
+    <button onclick="inappCopyLink()" style="width:100%;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.16);padding:14px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📋 Sao chép liên kết</button>
+    <div id="inapp-copied" style="display:none;color:#4ADE80;font-size:13px;font-weight:700;margin-top:12px">✓ Đã sao chép — mở Safari/Chrome rồi dán vào ô địa chỉ</div>
+    <div style="margin-top:24px;text-align:left;background:#111;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 18px">
+      <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:#FFD700">Hoặc mở thủ công:</div>
+      <div style="font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">•••</b> (góc trên bên phải)<br>2. Chọn <b style="color:#fff">"Mở trong Safari"</b> / "Open in browser"<br>3. Đăng nhập Google như bình thường</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var ua = navigator.userAgent || navigator.vendor || '';
+  var inApp = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Line\/|Zalo|MicroMessenger|Messenger|Twitter|TikTok|musical_ly|Snapchat|KAKAOTALK/i.test(ua);
+  if (inApp) { var g=document.getElementById('inapp-guard'); if(g) g.style.display='block'; }
+})();
+function inappOpenExternal(){
+  var url = window.location.href, ua = navigator.userAgent || '';
+  if (/Android/i.test(ua)) {
+    window.location.href = 'intent://' + url.replace(/^https?:\/\//,'') + '#Intent;scheme=https;package=com.android.chrome;end';
+  } else {
+    window.location.href = url.replace(/^https:\/\//,'googlechromes://').replace(/^http:\/\//,'googlechrome://');
+    setTimeout(inappCopyLink, 1200);
+  }
+}
+function inappCopyLink(){
+  var url = window.location.href;
+  function done(){ var c=document.getElementById('inapp-copied'); if(c) c.style.display='block'; }
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url).then(done).catch(fb); } else fb();
+  function fb(){ var t=document.createElement('textarea'); t.value=url; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.focus(); t.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(t); done(); }
+}
+</script>
+
 <!-- AUTH GATE OVERLAY -->
 <div id="auth-gate">
   <div class="gate-box">
@@ -2002,6 +2040,8 @@ function gateShowStep(s){
 }
 async function gateGoogle(){
   const p=new firebase.auth.GoogleAuthProvider();
+  // Mobile: dùng redirect (popup hay bị chặn trên iOS Safari)
+  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){ gateAuth.signInWithRedirect(p); return; }
   try{ await gateAuth.signInWithPopup(p); }catch(e){ console.error(e); }
 }
 async function gateEmailLogin(){
