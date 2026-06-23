@@ -174,6 +174,28 @@ a{text-decoration:none;color:inherit}
 .chat-fab:hover{transform:translateY(-3px) scale(1.05)}
 @keyframes fab-pop{from{transform:scale(0)}to{transform:scale(1)}}
 
+/* ── MODAL THANH TOÁN (3 gói + QR) ── */
+.pay-box{max-width:460px}
+.tier-row{display:flex;gap:10px;margin:20px 0 6px}
+.tier{flex:1;border:1.5px solid var(--bdr-s);border-radius:14px;padding:15px 8px 13px;text-align:center;cursor:pointer;transition:.16s;position:relative;background:rgba(255,255,255,.03)}
+.tier:hover{border-color:var(--bdr)}
+.tier.active{border-color:var(--gold);background:var(--gold-d)}
+.tier-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;padding:2px 9px;border-radius:50px;white-space:nowrap;letter-spacing:.3px}
+.tier-label{font-size:12.5px;font-weight:800;color:#fff}
+.tier-price{font-size:15px;font-weight:900;color:var(--gold);margin-top:5px}
+.tier-note{font-size:9.5px;color:var(--muted);margin-top:4px;line-height:1.3}
+.pay-amount{font-size:15px;color:var(--muted);text-align:center;margin:14px 0 8px}
+.pay-amount b{font-size:24px;font-weight:900;color:#fff;display:block;margin-top:2px}
+.qr-wrap{background:#fff;border-radius:16px;padding:12px;margin:0 auto;width:226px}
+.qr-wrap img{width:202px;height:202px;display:block;border-radius:8px}
+.pay-info{margin-top:14px;background:rgba(255,255,255,.04);border:1px solid var(--bdr-s);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--muted);line-height:1.8}
+.pay-info b{color:#fff}
+.pay-info .copy{color:var(--gold);cursor:pointer;font-weight:700;margin-left:6px}
+.pay-status{display:flex;align-items:center;justify-content:center;gap:9px;font-size:13.5px;font-weight:700;color:var(--gold);margin-top:16px}
+.pay-spin{width:15px;height:15px;border:2px solid rgba(255,215,0,.3);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pay-hint{text-align:center;font-size:11.5px;color:var(--dim);margin-top:8px;line-height:1.6}
+
 /* ── MODAL (login + mật mã) ── */
 .pm-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;z-index:9000;padding:20px}
 .pm-modal-overlay.show{display:flex}
@@ -297,27 +319,45 @@ a{text-decoration:none;color:inherit}
 <script>
 // ════ DỮ LIỆU KHÓA HỌC ════
 const COURSES = [
-  {id:'c1', ch:'Chương 1', name:'Mật Mã Tư Duy', lessons:5, price:'115.000đ', img:'images/bia-tu-duy.png'},
-  {id:'c2', ch:'Chương 2', name:'Mật Mã Affiliate Marketing', lessons:6, price:'189.000đ', img:'images/bia-affiliate-marketing.png'},
-  {id:'c3', ch:'Chương 3', name:'Mật Mã Traffic', lessons:8, price:'256.000đ', img:'images/bia-traffic.png'},
-  {id:'c4', ch:'Chương 4', name:'Mật Mã Phễu — Master Sale', lessons:7, price:'279.000đ', img:'images/bia-pheu-master-sale.png'},
-  {id:'c5', ch:'Chương 5', name:'Mật Mã Tự Do', lessons:9, price:'350.000đ', img:'images/bia-tu-do.png'},
+  {id:'c1', ch:'Chương 1', name:'Mật Mã Tư Duy', lessons:5, base:115000, price:'115.000đ', img:'images/bia-tu-duy.png'},
+  {id:'c2', ch:'Chương 2', name:'Mật Mã Affiliate Marketing', lessons:6, base:189000, price:'189.000đ', img:'images/bia-affiliate-marketing.png'},
+  {id:'c3', ch:'Chương 3', name:'Mật Mã Traffic', lessons:8, base:256000, price:'256.000đ', img:'images/bia-traffic.png'},
+  {id:'c4', ch:'Chương 4', name:'Mật Mã Phễu — Master Sale', lessons:7, base:279000, price:'279.000đ', img:'images/bia-pheu-master-sale.png'},
+  {id:'c5', ch:'Chương 5', name:'Mật Mã Tự Do', lessons:9, base:350000, price:'350.000đ', img:'images/bia-tu-do.png'},
   {id:'sys', ch:'Số 1', name:'KOL AI SYSTEM', lessons:'∞', price:'Đặc biệt', img:'images/bia-kol-ai-system.png', special:true, url:'https://kolaisystemladipage.vercel.app'}
 ];
 
+// Cấu hình thanh toán
+const BANK = { bin:'970415', acc:'105887395942', name:'HO KINH DOANH LE DANG PHUONG' }; // VietinBank
+const TIERS = [
+  {code:'M', label:'1 Tháng',  add:0,      note:'Truy cập 30 ngày'},
+  {code:'Y', label:'1 Năm',    add:99000,  note:'Tiết kiệm hơn · +99k', tag:'Phổ biến'},
+  {code:'L', label:'Trọn Đời', add:299000, note:'Học mãi mãi · +299k',  tag:'Tốt nhất'}
+];
+const fmt = n => n.toLocaleString('vi-VN')+'đ';
+
 const PLAY_SVG = '<svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
 
-function renderCourses(unlocked){
+function isCourseUnlocked(cid){
+  if(localStorage.getItem('kh_unlocked')==='1') return true; // mật mã = mở tất cả (mua sách)
+  try{ const u=JSON.parse(localStorage.getItem('unlk_'+cid)||'null'); if(u && (!u.exp || u.exp>Date.now())) return true; }catch(e){}
+  return false;
+}
+
+function renderCourses(){
   const grid = document.getElementById('course-grid');
   grid.innerHTML = COURSES.map(c => {
+    const open = c.special ? true : isCourseUnlocked(c.id);
     const priceBadge = c.special ? '🎁 Tặng kèm sách' : c.price;
-    const statusPill = c.special ? 'Đặc biệt' : (unlocked ? '✓ Đã mở' : '🔒 Khóa');
-    const ctaTxt = c.special ? 'Khám phá →' : (unlocked ? '▶ Vào học ngay' : '🔓 Mở khóa ngay');
-    const href = c.special ? c.url : (unlocked ? 'bai-hoc.html?c='+c.id : 'index.html#pricing');
-    const target = c.special ? ' target="_blank" rel="noopener"' : '';
+    const statusPill = c.special ? 'Đặc biệt' : (open ? '✓ Đã mở' : '🔒 Khóa');
+    const ctaTxt = c.special ? 'Khám phá →' : (open ? '▶ Vào học ngay' : '🔓 Mở khóa ngay');
     const metaText = c.special ? '👑 Cộng đồng tinh hoa' : (PLAY_SVG+' '+c.lessons+' bài học');
+    let attrs;
+    if(c.special) attrs = `href="${c.url}" target="_blank" rel="noopener"`;
+    else if(open) attrs = `href="bai-hoc.html?c=${c.id}"`;
+    else attrs = `href="javascript:void(0)" onclick="openPay('${c.id}')"`;
     return `
-    <a class="pc${c.special?' special':''}" id="${c.id}" href="${href}"${target}>
+    <a class="pc${c.special?' special':''}" id="${c.id}" ${attrs}>
       <div class="pc-poster" style="background-image:url('${c.img}')">
         <span class="pc-pricetag">${priceBadge}</span>
         <span class="pc-status">${statusPill}</span>
@@ -331,7 +371,7 @@ function renderCourses(unlocked){
   }).join('');
 }
 
-function updateProgress(unlocked){
+function updateProgress(){
   // Chỉ tính 5 cửa (combo học được) — KOL AI SYSTEM là ladipage, không tính.
   const doors = COURSES.filter(c => !c.special);
   let total = 0, done = 0, comboDone = 0;
@@ -367,10 +407,10 @@ let hvAuth = null;
 function hvIsVIP(email){ return localStorage.getItem('pm_vip_'+email)==='true'; }
 
 function applyState(){
-  const unlocked = localStorage.getItem('kh_unlocked')==='1';
-  renderCourses(unlocked);
-  updateProgress(unlocked);
-  document.getElementById('unlock-banner').style.display = unlocked ? 'none' : 'flex';
+  renderCourses();
+  updateProgress();
+  const master = localStorage.getItem('kh_unlocked')==='1';
+  document.getElementById('unlock-banner').style.display = master ? 'none' : 'flex';
 }
 
 function hvInit(){
@@ -386,6 +426,7 @@ function hvInit(){
         showUser(given, user.email, user.photoURL, hvIsVIP(user.email));
         pmCloseModal();
         mmtdTrackReader(user.email, name, true);
+        syncEntitlements(user.email);
       } else {
         showGuest();
       }
@@ -501,8 +542,92 @@ function hvSignOut(){
   applyState();
 }
 
+// ════ THANH TOÁN QR (mở khóa từng combo) ════
+let payCid=null, payTier='M', payCode='', payPoll=null;
+
+function openPay(cid){
+  if(!hvAuth || !hvAuth.currentUser){ pmOpenModal(); return; } // bắt buộc đăng nhập (không cần form)
+  payCid = cid; payTier = 'M';
+  const c = COURSES.find(x=>x.id===cid);
+  document.getElementById('pay-title').textContent = 'Mở khóa: ' + c.name;
+  renderTiers();
+  document.getElementById('pay-spin').style.display = '';
+  document.getElementById('pay-stt').textContent = 'Đang chờ thanh toán…';
+  document.getElementById('pay-modal').classList.add('show');
+  payRefresh();
+}
+function renderTiers(){
+  const c = COURSES.find(x=>x.id===payCid);
+  document.getElementById('tier-row').innerHTML = TIERS.map(t=>{
+    const amt = c.base + t.add;
+    return `<div class="tier ${t.code===payTier?'active':''}" onclick="setTier('${t.code}')">
+      ${t.tag?`<span class="tier-tag">${t.tag}</span>`:''}
+      <div class="tier-label">${t.label}</div>
+      <div class="tier-price">${fmt(amt)}</div>
+      <div class="tier-note">${t.note}</div>
+    </div>`;
+  }).join('');
+}
+function setTier(t){ payTier=t; renderTiers(); payRefresh(); }
+function payAmount(){ const c=COURSES.find(x=>x.id===payCid),t=TIERS.find(x=>x.code===payTier); return c.base+t.add; }
+function payRefresh(){
+  const amt = payAmount();
+  const uid = (hvAuth.currentUser.email||'').replace(/[^a-zA-Z0-9]/g,'').slice(0,6).toUpperCase();
+  payCode = ('MAP'+payCid.replace('c','')+payTier+uid).toUpperCase().slice(0,22);
+  document.getElementById('pay-amt').textContent = fmt(amt);
+  document.getElementById('pay-content').textContent = payCode;
+  document.getElementById('pay-qr').src =
+    `https://img.vietqr.io/image/${BANK.bin}-${BANK.acc}-compact2.png?amount=${amt}&addInfo=${encodeURIComponent(payCode)}&accountName=${encodeURIComponent(BANK.name)}`;
+  createOrder(amt);
+  startPoll();
+}
+async function createOrder(amt){
+  try{
+    await fetch(`${_SB}/rest/v1/course_orders`,{method:'POST',headers:{..._SH,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({code:payCode,email:hvAuth.currentUser.email,course:payCid,tier:payTier,amount:amt,status:'pending',created_at:new Date().toISOString()})});
+  }catch(e){ /* bảng chưa có cũng không sao — QR vẫn dùng được */ }
+}
+function startPoll(){
+  clearInterval(payPoll);
+  const code = payCode, started = Date.now();
+  payPoll = setInterval(async ()=>{
+    if(Date.now()-started > 10*60*1000){ clearInterval(payPoll); return; }
+    try{
+      const r = await fetch(`${_SB}/rest/v1/course_orders?code=eq.${code}&status=eq.paid&select=code`,{headers:_SH});
+      const rows = await r.json();
+      if(rows && rows.length){ clearInterval(payPoll); grantUnlock(payCid, payTier); }
+    }catch(e){}
+  }, 4000);
+}
+function grantUnlock(cid, tier){
+  const now = Date.now();
+  const exp = tier==='M' ? now+30*864e5 : tier==='Y' ? now+365*864e5 : 0; // 0 = trọn đời
+  localStorage.setItem('unlk_'+cid, JSON.stringify({tier,exp}));
+  document.getElementById('pay-spin').style.display='none';
+  document.getElementById('pay-stt').textContent = '✓ Đã nhận thanh toán — mở khóa!';
+  setTimeout(()=>{ payClose(); applyState(); location.href='bai-hoc.html?c='+cid; }, 1300);
+}
+function payCopy(){ try{ navigator.clipboard.writeText(payCode); }catch(e){} }
+function payClose(e){ if(!e || e.target===document.getElementById('pay-modal')){ document.getElementById('pay-modal').classList.remove('show'); clearInterval(payPoll); } }
+
+// Khôi phục entitlement từ Supabase theo email (nếu đã mua trước đó)
+async function syncEntitlements(email){
+  try{
+    const r = await fetch(`${_SB}/rest/v1/course_orders?email=eq.${encodeURIComponent(email)}&status=eq.paid&select=course,tier,paid_at`,{headers:_SH});
+    const rows = await r.json();
+    if(Array.isArray(rows)){
+      rows.forEach(o=>{
+        const now=Date.now();
+        const exp = o.tier==='M' ? now+30*864e5 : o.tier==='Y' ? now+365*864e5 : 0;
+        localStorage.setItem('unlk_'+o.course, JSON.stringify({tier:o.tier,exp}));
+      });
+      if(rows.length) applyState();
+    }
+  }catch(e){}
+}
+
 hvInit();
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); khCloseGate(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); khCloseGate(); payClose(); } });
 </script>
 
 <!-- MODAL: ĐĂNG NHẬP -->
@@ -557,6 +682,24 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
     <div class="pm-error" id="gate-err"></div>
     <button class="pm-btn-submit" onclick="khUnlock()">Mở khóa</button>
     <div class="pm-switch-link">Chưa có sách? <span onclick="location.href='index.html#pricing'">Đặt sách ngay</span></div>
+  </div>
+</div>
+
+<!-- MODAL: THANH TOÁN QR -->
+<div class="pm-modal-overlay" id="pay-modal" onclick="payClose(event)">
+  <div class="pm-modal-box pay-box">
+    <button class="pm-modal-close" onclick="payClose()">✕</button>
+    <h3 class="pm-modal-title" id="pay-title">Mở khóa combo</h3>
+    <p class="pm-modal-sub">Chọn gói truy cập — thanh toán QR tự động, không cần điền thông tin.</p>
+    <div class="tier-row" id="tier-row"></div>
+    <div class="pay-amount">Số tiền chuyển<b id="pay-amt">—</b></div>
+    <div class="qr-wrap"><img id="pay-qr" src="" alt="QR thanh toán"></div>
+    <div class="pay-info">
+      Nội dung CK: <b id="pay-content">—</b><span class="copy" onclick="payCopy()">Sao chép</span><br>
+      Số TK: <b>105887395942</b> · VietinBank · LE DANG PHUONG
+    </div>
+    <div class="pay-status"><span class="pay-spin" id="pay-spin"></span><span id="pay-stt">Đang chờ thanh toán…</span></div>
+    <div class="pay-hint">Mở app ngân hàng → quét QR → giữ nguyên số tiền & nội dung. Hệ thống tự mở khóa khi nhận được tiền.</div>
   </div>
 </div>
 

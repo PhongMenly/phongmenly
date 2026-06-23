@@ -201,8 +201,13 @@ const qs = new URLSearchParams(location.search);
 let cid = qs.get('c') || 'c1';
 if(!COURSES[cid]) cid = 'c1';
 
-// Gate: chưa mở khóa thì quay lại Học Viện
-if(localStorage.getItem('kh_unlocked') !== '1'){
+// Gate: cho vào nếu có mật mã (mở tất cả) HOẶC đã mua riêng combo này
+function courseUnlocked(id){
+  if(localStorage.getItem('kh_unlocked')==='1') return true;
+  try{ const u=JSON.parse(localStorage.getItem('unlk_'+id)||'null'); if(u && (!u.exp || u.exp>Date.now())) return true; }catch(e){}
+  return false;
+}
+if(!courseUnlocked(cid)){
   location.replace('hoc-vien.html');
 }
 
