@@ -41,6 +41,8 @@ img{max-width:100%;display:block}
 .vb-ph .vb-ico svg{width:30px;height:30px;fill:#000;margin-left:4px}
 .vb-ph h3{font-size:18px;font-weight:800;margin-bottom:6px}
 .vb-ph p{font-size:13.5px;color:var(--muted)}
+.vb-tip{margin-top:10px;font-size:13px;line-height:1.5;color:var(--muted);background:var(--bg-s,rgba(255,255,255,.04));border:1px solid var(--bdr-s);border-radius:10px;padding:9px 13px}
+.vb-tip b{color:var(--txt,#fff);font-weight:700}
 .lesson-head{margin:24px 0 4px}
 .lh-kick{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase}
 .lh-title{font-size:clamp(20px,2.6vw,28px);font-weight:900;letter-spacing:-.5px;line-height:1.2;margin-top:6px}
@@ -117,6 +119,7 @@ img{max-width:100%;display:block}
         <p>Video sẽ sẵn sàng khi khóa học ra mắt chính thức.</p>
       </div>
     </div>
+    <div class="vb-tip" id="vb-tip" style="display:none">💡 Xem nét nhất: bấm <b>⚙️</b> ở góc phải video → chọn <b>1080p</b>. Mạng yếu thì chọn mức thấp hơn cho mượt.</div>
 
     <div class="lesson-head">
       <div class="lh-kick" id="lh-kick">Bài 1</div>
@@ -241,10 +244,13 @@ function render(){
   // video YouTube (nếu có) — không thì placeholder
   const vb = document.getElementById('video-box');
   const id = ytId(les.yt);
+  const tip = document.getElementById('vb-tip');
   if(id){
     vb.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?rel=0&modestbranding=1&vq=hd1080&hd=1" title="'+les.t.replace(/"/g,'')+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    if(tip) tip.style.display = 'block';
   } else {
     vb.innerHTML = '<div class="vb-ph"><div class="vb-ico"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg></div><h3>Bài học đang được cập nhật</h3><p>Video sẽ sẵn sàng khi khóa học ra mắt chính thức.</p></div>';
+    if(tip) tip.style.display = 'none';
   }
   document.getElementById('lh-kick').textContent = 'Bài '+(cur+1)+' / '+L.length;
   document.getElementById('lh-title').textContent = les.t;
