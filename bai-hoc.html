@@ -125,8 +125,9 @@ img{max-width:100%;display:block}
 .sup-links a{font-size:13.5px;font-weight:700;color:var(--muted);transition:.16s}
 .sup-links a:hover{color:var(--gold)}
 
-.site-footer{border-top:1px solid var(--bdr-s);background:var(--panel);padding:46px 30px 26px}
-.ft-in{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1.3fr;gap:34px}
+.site-footer{position:relative;overflow:hidden;border-top:1px solid var(--bdr-s);padding:66px 30px 30px;min-height:320px;background:#080808 url('images/kol-ai-system-banner.jpg') center right/cover no-repeat}
+.site-footer::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#080808 0%,rgba(8,8,8,.82) 22%,rgba(8,8,8,.74) 58%,rgba(8,8,8,.95) 100%),linear-gradient(90deg,rgba(8,8,8,.9) 0%,rgba(8,8,8,.55) 56%,rgba(8,8,8,.28) 100%)}
+.ft-in{position:relative;z-index:1;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1.3fr;gap:34px}
 .ft-brandrow{display:flex;align-items:center;gap:13px}
 .ft-ava{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr);flex-shrink:0}
 .ft-brand{font-family:'Dancing Script',cursive;font-size:26px;font-weight:700;color:#fff;display:flex;flex-direction:column;line-height:1}
@@ -145,11 +146,7 @@ img{max-width:100%;display:block}
 .ft-col li{margin-bottom:10px;font-size:13.5px;color:var(--muted)}
 .ft-col a{color:var(--muted);transition:.16s}
 .ft-col a:hover{color:var(--gold)}
-.ft-bot{max-width:1180px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--bdr-s);font-size:12px;color:var(--dim);text-align:center}
-
-/* BANNER BÌA CUỐI TRANG (full-bleed, ảnh sạch không chữ đè) */
-.hero-banner{display:block;width:100%;line-height:0;border-top:1px solid var(--bdr-s)}
-.hero-banner img{width:100%;height:auto;display:block}
+.ft-bot{position:relative;z-index:1;max-width:1180px;margin:32px auto 0;padding-top:20px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;color:var(--muted);text-align:center}
 
 /* Zalo chat bubble */
 .chat-fab{position:fixed;right:22px;bottom:22px;z-index:8000;width:58px;height:58px;border-radius:50%;background:linear-gradient(160deg,#00C6FF,#0078FF 45%,#0068FF);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,120,255,.45);transition:.2s;animation:fab-pop .5s ease}
@@ -166,7 +163,7 @@ img{max-width:100%;display:block}
 @media(max-width:980px){
   .rel-grid{grid-template-columns:repeat(2,1fr)}
   .xsec{padding:38px 18px}
-  .site-footer{padding:36px 18px 22px}
+  .site-footer{padding:48px 18px 24px;background-position:center}
   .ft-in{grid-template-columns:1fr 1fr;gap:28px}
   .ft-brand-col{grid-column:1/-1}
 }
@@ -176,6 +173,8 @@ img{max-width:100%;display:block}
   .ft-in{grid-template-columns:1fr;gap:26px}
   .chat-label{right:74px;bottom:26px;font-size:12px;padding:6px 10px}
   .sup-card .btn{width:100%;justify-content:center}
+  .site-footer{padding:40px 18px 22px;min-height:0;background-position:center}
+  .site-footer::before{background:linear-gradient(180deg,#080808 0%,rgba(8,8,8,.84) 30%,rgba(8,8,8,.9) 100%)}
 }
 </style>
 </head>
@@ -308,12 +307,6 @@ img{max-width:100%;display:block}
   </div>
   <div class="ft-bot">© 2026 Phong Menly · Mật Mã Tự Do · Mọi quyền được bảo lưu</div>
 </footer>
-
-<!-- ════ BANNER BÌA CUỐI TRANG ════ -->
-<a class="hero-banner" href="https://kolaisystemladipage.vercel.app" target="_blank" rel="noopener" title="KOL AI SYSTEM">
-  <img src="images/kol-ai-system-banner.jpg" alt="KOL AI SYSTEM" loading="lazy"
-       onerror="this.closest('.hero-banner').style.display='none'">
-</a>
 
 <!-- Zalo chat bubble -->
 <a class="chat-label" href="https://zalo.me/0978076936" target="_blank" rel="noopener"><span class="dot"></span>Nhắn Zalo · Rep ngay 24/7</a>
