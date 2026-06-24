@@ -98,8 +98,9 @@ img{max-width:100%;display:block}
 /* ════ SECTIONS: KHÓA HỌC LIÊN QUAN / HỖ TRỢ / FOOTER ════ */
 .xsec{padding:46px 30px;border-top:1px solid var(--bdr-s)}
 .xsec-in{max-width:1180px;margin:0 auto}
-.xsec-title{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.5px}
-.xsec-sub{color:var(--muted);font-size:14px;margin-top:6px}
+.xsec-title{font-size:clamp(22px,3vw,30px);font-weight:900;letter-spacing:-.5px;position:relative;padding-left:16px}
+.xsec-title::before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:5px;border-radius:4px;background:linear-gradient(var(--gold),var(--org))}
+.xsec-sub{color:var(--muted);font-size:14px;margin-top:6px;padding-left:16px}
 .rel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:26px}
 .rel-card{background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;overflow:hidden;transition:.2s;display:flex;flex-direction:column}
 .rel-card:hover{transform:translateY(-4px);border-color:var(--bdr);box-shadow:0 18px 40px rgba(0,0,0,.45)}
@@ -146,6 +147,14 @@ img{max-width:100%;display:block}
 .ft-col a:hover{color:var(--gold)}
 .ft-bot{max-width:1180px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--bdr-s);font-size:12px;color:var(--dim);text-align:center}
 
+/* HERO BÌA CUỐI TRANG */
+.hero-band{position:relative;min-height:360px;display:flex;align-items:center;overflow:hidden;border-top:1px solid var(--bdr-s);background:#000 url('images/author-phong-menly.jpg') right -10px center/auto 135% no-repeat}
+.hero-ov{position:absolute;inset:0;background:linear-gradient(90deg,#070707 0%,rgba(7,7,7,.93) 36%,rgba(7,7,7,.5) 68%,rgba(7,7,7,.12) 100%)}
+.hero-in{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:48px 30px;width:100%}
+.hero-eyebrow{font-size:12px;letter-spacing:4px;font-weight:800;color:var(--gold);text-transform:uppercase}
+.hero-script{font-family:'Dancing Script',cursive;font-size:clamp(46px,9vw,104px);font-weight:700;color:#fff;line-height:.95;margin-top:8px;text-shadow:0 10px 50px rgba(0,0,0,.7)}
+.hero-tag{font-size:clamp(13px,1.6vw,16px);color:var(--muted);margin:14px 0 24px;max-width:440px;line-height:1.7}
+
 /* Zalo chat bubble */
 .chat-fab{position:fixed;right:22px;bottom:22px;z-index:8000;width:58px;height:58px;border-radius:50%;background:linear-gradient(160deg,#00C6FF,#0078FF 45%,#0068FF);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,120,255,.45);transition:.2s;animation:fab-pop .5s ease}
 .chat-fab:hover{transform:translateY(-3px) scale(1.05)}
@@ -164,6 +173,8 @@ img{max-width:100%;display:block}
   .site-footer{padding:36px 18px 22px}
   .ft-in{grid-template-columns:1fr 1fr;gap:28px}
   .ft-brand-col{grid-column:1/-1}
+  .hero-band{background-position:right -60px center;background-size:auto 120%}
+  .hero-in{padding:40px 18px}
 }
 @media(max-width:560px){
   .rel-grid{grid-template-columns:1fr 1fr;gap:12px}
@@ -171,6 +182,8 @@ img{max-width:100%;display:block}
   .ft-in{grid-template-columns:1fr;gap:26px}
   .chat-label{right:74px;bottom:26px;font-size:12px;padding:6px 10px}
   .sup-card .btn{width:100%;justify-content:center}
+  .hero-band{min-height:300px;background-position:center top;background-size:cover}
+  .hero-ov{background:linear-gradient(180deg,rgba(7,7,7,.55) 0%,rgba(7,7,7,.82) 60%,rgba(7,7,7,.95) 100%)}
 }
 </style>
 </head>
@@ -254,6 +267,17 @@ img{max-width:100%;display:block}
       <a href="hoc-vien.html">📚 Về Học Viện</a>
       <a href="index.html">🏠 Trang chủ</a>
     </div>
+  </div>
+</section>
+
+<!-- ════ HERO BÌA CUỐI TRANG ════ -->
+<section class="hero-band">
+  <div class="hero-ov"></div>
+  <div class="hero-in">
+    <div class="hero-eyebrow">Khu Học Viện · Mật Mã Tự Do</div>
+    <div class="hero-script">Phong Menly</div>
+    <p class="hero-tag">Affiliate × AI — học theo lộ trình, xây dòng tiền tự do cùng cộng đồng.</p>
+    <a class="btn gold" href="hoc-vien.html">← Quay lại Học Viện</a>
   </div>
 </section>
 
