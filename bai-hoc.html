@@ -124,14 +124,27 @@ img{max-width:100%;display:block}
 .sup-links a{font-size:13.5px;font-weight:700;color:var(--muted);transition:.16s}
 .sup-links a:hover{color:var(--gold)}
 
-.site-footer{border-top:1px solid var(--bdr-s);background:var(--panel);padding:34px 30px}
-.ft-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.site-footer{border-top:1px solid var(--bdr-s);background:var(--panel);padding:46px 30px 26px}
+.ft-in{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1.3fr;gap:34px}
+.ft-brandrow{display:flex;align-items:center;gap:13px}
+.ft-ava{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr);flex-shrink:0}
 .ft-brand{font-family:'Dancing Script',cursive;font-size:26px;font-weight:700;color:#fff;display:flex;flex-direction:column;line-height:1}
 .ft-brand span{font-family:'Be Vietnam Pro',sans-serif;font-size:10px;letter-spacing:3px;color:var(--gold);font-weight:800;margin-top:3px}
-.ft-nav{display:flex;gap:26px;flex-wrap:wrap}
-.ft-nav a{font-size:14px;font-weight:700;color:var(--muted);transition:.16s}
-.ft-nav a:hover{color:#fff}
-.ft-copy{font-size:12px;color:var(--dim)}
+.ft-tag{font-size:13px;color:var(--muted);line-height:1.7;margin-top:14px;max-width:360px}
+.soc-row{display:flex;gap:10px;margin-top:16px}
+.soc{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid var(--bdr-s);display:flex;align-items:center;justify-content:center;transition:.2s}
+.soc svg{width:18px;height:18px;fill:var(--muted);transition:fill .2s}
+.soc:hover{transform:translateY(-2px);border-color:transparent}
+.soc-yt:hover{background:#FF0000}.soc-yt:hover svg{fill:#fff}
+.soc-fb:hover{background:#1877F2}.soc-fb:hover svg{fill:#fff}
+.soc-tt:hover{background:#000}.soc-tt:hover svg{fill:#fff}
+.soc-za:hover{background:#0068FF}.soc-za:hover svg{fill:#fff}
+.ft-col h4{font-size:14px;font-weight:800;color:#fff;margin-bottom:14px}
+.ft-col ul{list-style:none}
+.ft-col li{margin-bottom:10px;font-size:13.5px;color:var(--muted)}
+.ft-col a{color:var(--muted);transition:.16s}
+.ft-col a:hover{color:var(--gold)}
+.ft-bot{max-width:1180px;margin:32px auto 0;padding-top:20px;border-top:1px solid var(--bdr-s);font-size:12px;color:var(--dim);text-align:center}
 
 /* Zalo chat bubble */
 .chat-fab{position:fixed;right:22px;bottom:22px;z-index:8000;width:58px;height:58px;border-radius:50%;background:linear-gradient(160deg,#00C6FF,#0078FF 45%,#0068FF);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,120,255,.45);transition:.2s;animation:fab-pop .5s ease}
@@ -148,12 +161,14 @@ img{max-width:100%;display:block}
 @media(max-width:980px){
   .rel-grid{grid-template-columns:repeat(2,1fr)}
   .xsec{padding:38px 18px}
-  .site-footer{padding:30px 18px}
+  .site-footer{padding:36px 18px 22px}
+  .ft-in{grid-template-columns:1fr 1fr;gap:28px}
+  .ft-brand-col{grid-column:1/-1}
 }
 @media(max-width:560px){
   .rel-grid{grid-template-columns:1fr 1fr;gap:12px}
   .rel-name{font-size:14px;min-height:36px}
-  .ft-in{flex-direction:column;text-align:center}
+  .ft-in{grid-template-columns:1fr;gap:26px}
   .chat-label{right:74px;bottom:26px;font-size:12px;padding:6px 10px}
   .sup-card .btn{width:100%;justify-content:center}
 }
@@ -245,14 +260,47 @@ img{max-width:100%;display:block}
 <!-- ════ FOOTER ════ -->
 <footer class="site-footer">
   <div class="ft-in">
-    <div class="ft-brand">Phong Menly<span>MẬT MÃ TỰ DO</span></div>
-    <nav class="ft-nav">
-      <a href="index.html">Trang chủ</a>
-      <a href="hoc-vien.html">Học Viện</a>
-      <a href="https://zalo.me/0978076936" target="_blank" rel="noopener">Hỗ trợ</a>
-    </nav>
-    <div class="ft-copy">© 2026 Phong Menly · Mật Mã Tự Do</div>
+    <div class="ft-brand-col">
+      <div class="ft-brandrow">
+        <img class="ft-ava" src="images/author-phong-menly.jpg" alt="Phong Menly" loading="lazy">
+        <div class="ft-brand">Phong Menly<span>MẬT MÃ TỰ DO</span></div>
+      </div>
+      <p class="ft-tag">Hệ thống học Affiliate × AI — xây dòng tiền tự do cùng Phong Menly. Kết nối với mình qua:</p>
+      <div class="soc-row">
+        <a href="https://www.youtube.com/@Phongmenlyaigoglobalus" target="_blank" rel="noopener" class="soc soc-yt" title="YouTube">
+          <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6a3 3 0 0 0-2.1 2.1C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.75 15.5V8.5l6.25 3.5-6.25 3.5z"/></svg>
+        </a>
+        <a href="https://web.facebook.com/phong.menly.2024/" target="_blank" rel="noopener" class="soc soc-fb" title="Facebook">
+          <svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.27h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@phongmenlyai" target="_blank" rel="noopener" class="soc soc-tt" title="TikTok">
+          <svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+        </a>
+        <a href="https://zalo.me/0978076936" target="_blank" rel="noopener" class="soc soc-za" title="Zalo">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 5.8 2 10.5c0 2.6 1.4 4.9 3.5 6.5-.1 1-.6 2.4-1.4 3.4-.3.4 0 .9.5.8 1.9-.4 3.4-1.1 4.3-1.7.9.2 2 .3 3.1.3 5.5 0 10-3.8 10-8.5S17.5 2 12 2z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="ft-col">
+      <h4>Khám phá</h4>
+      <ul>
+        <li><a href="index.html">Trang chủ</a></li>
+        <li><a href="hoc-vien.html">Khu Học Viện</a></li>
+        <li><a href="index.html#san-pham">Sản phẩm</a></li>
+        <li><a href="https://www.facebook.com/groups/808925604828645" target="_blank" rel="noopener">Cộng đồng</a></li>
+      </ul>
+    </div>
+    <div class="ft-col">
+      <h4>Liên hệ</h4>
+      <ul>
+        <li><a href="tel:0978076936">📞 0978 076 936</a></li>
+        <li><a href="https://zalo.me/0978076936" target="_blank" rel="noopener">💬 Zalo tư vấn</a></li>
+        <li><a href="mailto:phongtyphu95@gmail.com">📧 phongtyphu95@gmail.com</a></li>
+        <li>⏰ Phản hồi 24/24</li>
+      </ul>
+    </div>
   </div>
+  <div class="ft-bot">© 2026 Phong Menly · Mật Mã Tự Do · Mọi quyền được bảo lưu</div>
 </footer>
 
 <!-- Zalo chat bubble -->
