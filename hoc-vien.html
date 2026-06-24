@@ -447,6 +447,23 @@ function renderCourses(){
   }).join('');
 }
 
+// Đồng nhất số bài với nội dung admin đã lưu (course_content). Có lưu thì lấy số bài thực tế.
+async function syncCourseCounts(){
+  await Promise.all(COURSES.filter(c=>!c.special).map(async c=>{
+    try{
+      const r = await fetch(MMTD_WEBHOOK+'?content='+c.id);
+      if(!r.ok) return;
+      const d = await r.json();
+      if(d && Array.isArray(d.lessons) && d.lessons.length){
+        c.lessons = d.lessons.length;
+        const el = document.querySelector('#'+c.id+' .pc-lessons');
+        if(el) el.innerHTML = PLAY_SVG+' '+c.lessons+' bài học';
+      }
+    }catch(e){}
+  }));
+  updateProgress();
+}
+
 function updateProgress(){
   // Chỉ tính 5 cửa (combo học được) — KOL AI SYSTEM là ladipage, không tính.
   const doors = COURSES.filter(c => !c.special);
@@ -485,6 +502,7 @@ function hvIsVIP(email){ return localStorage.getItem('pm_vip_'+email)==='true'; 
 function applyState(){
   renderCourses();
   updateProgress();
+  syncCourseCounts();
   const master = localStorage.getItem('kh_unlocked')==='1';
   document.getElementById('unlock-banner').style.display = master ? 'none' : 'flex';
 }
