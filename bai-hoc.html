@@ -242,7 +242,7 @@ function render(){
   const vb = document.getElementById('video-box');
   const id = ytId(les.yt);
   if(id){
-    vb.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?rel=0&modestbranding=1" title="'+les.t.replace(/"/g,'')+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    vb.innerHTML = '<iframe src="https://www.youtube.com/embed/'+id+'?rel=0&modestbranding=1&vq=hd1080&hd=1" title="'+les.t.replace(/"/g,'')+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
   } else {
     vb.innerHTML = '<div class="vb-ph"><div class="vb-ico"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg></div><h3>Bài học đang được cập nhật</h3><p>Video sẽ sẵn sàng khi khóa học ra mắt chính thức.</p></div>';
   }
