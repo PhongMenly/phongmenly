@@ -714,7 +714,7 @@ function hvSignOut(){
 }
 
 // ════ THANH TOÁN QR (mở khóa từng combo) ════
-let payCid=null, payTier='M', payCode='', payPoll=null;
+let payCid=null, payTier='M', payCode='', payContent='', payPoll=null;
 
 function openPay(cid){
   if(!hvAuth || !hvAuth.currentUser){ pmOpenModal(); return; } // bắt buộc đăng nhập (không cần form)
@@ -749,10 +749,13 @@ function payRefresh(){
   const amt = payAmount();
   const uid = (hvAuth.currentUser.email||'').replace(/[^a-zA-Z0-9]/g,'').slice(0,6).toUpperCase();
   payCode = ('MAP'+payCid.replace('c','')+payTier+uid).toUpperCase().slice(0,22);
+  // VietinBank BẮT BUỘC nội dung CK bắt đầu bằng "SEVQR" thì SePay mới nhận được giao dịch.
+  // Mã đơn (MAP...) vẫn nằm trong nội dung để webhook đối chiếu đúng đơn (webhook tự bỏ tiền tố SEVQR).
+  payContent = 'SEVQR ' + payCode;
   document.getElementById('pay-amt').textContent = fmt(amt);
-  document.getElementById('pay-content').textContent = payCode;
+  document.getElementById('pay-content').textContent = payContent;
   document.getElementById('pay-qr').src =
-    `https://img.vietqr.io/image/${BANK.bin}-${BANK.acc}-compact2.png?amount=${amt}&addInfo=${encodeURIComponent(payCode)}&accountName=${encodeURIComponent(BANK.name)}`;
+    `https://img.vietqr.io/image/${BANK.bin}-${BANK.acc}-compact2.png?amount=${amt}&addInfo=${encodeURIComponent(payContent)}&accountName=${encodeURIComponent(BANK.name)}`;
   createOrder(amt);
   startPoll();
 }
@@ -784,7 +787,7 @@ function grantUnlock(cid, tier){
   document.getElementById('pay-stt').textContent = '✓ Đã nhận thanh toán — mở khóa!';
   setTimeout(()=>{ payClose(); applyState(); location.href='bai-hoc.html?c='+cid; }, 1300);
 }
-function payCopy(){ try{ navigator.clipboard.writeText(payCode); }catch(e){} }
+function payCopy(){ try{ navigator.clipboard.writeText(payContent || payCode); }catch(e){} }
 function payClose(e){ if(!e || e.target===document.getElementById('pay-modal')){ document.getElementById('pay-modal').classList.remove('show'); clearInterval(payPoll); } }
 
 // Khôi phục entitlement theo email (đã mua combo trước đó, kể cả máy khác)
@@ -795,6 +798,11 @@ async function syncEntitlements(email){
     const d = await r.json();
     const codes = (d && d.codes) || [];
     let changed = false;
+    // Mua trọn bộ sách (mã BOOK đã thanh toán) → mở toàn bộ 5 khóa
+    if(d && d.book && localStorage.getItem('kh_unlocked')!=='1'){
+      localStorage.setItem('kh_unlocked','1');
+      changed = true;
+    }
     codes.forEach(code=>{
       // code = MAP <digit course> <tier M/Y/L> <uid>
       const m = String(code).toUpperCase().match(/^MAP(\d)([MYL])/);

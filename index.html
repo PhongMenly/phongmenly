@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mật Mã Tự Do — Affiliate AI | Phong Menly</title>
+<meta name="description" content="5 Cánh Cửa Định Mệnh - Làm Chủ Hệ Thống Affiliate x AI - Mở Ra Cánh Cửa Tự Do">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kolaisystem.com/mat-ma-tu-do/index.html">
+<meta property="og:title" content="Mật Mã Tự Do — Affiliate AI | Phong Menly">
+<meta property="og:description" content="5 Cánh Cửa Định Mệnh - Làm Chủ Hệ Thống Affiliate x AI - Mở Ra Cánh Cửa Tự Do">
+<meta property="og:image" content="https://kolaisystem.com/mat-ma-tu-do/images/book-stacked.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mật Mã Tự Do — Affiliate AI | Phong Menly">
+<meta name="twitter:description" content="5 Cánh Cửa Định Mệnh - Làm Chủ Hệ Thống Affiliate x AI - Mở Ra Cánh Cửa Tự Do">
+<meta name="twitter:image" content="https://kolaisystem.com/mat-ma-tu-do/images/book-stacked.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1768,6 +1778,7 @@ const MMTD_BANK     = 'ICB';
 const MMTD_ACC      = '105887395942';
 const MMTD_HOLDER   = 'HO KINH DOANH LE DANG PHUONG';
 let mmtdRef = '';
+let mmtdPayContent = '';  // nội dung CK thực tế (có tiền tố SEVQR cho VietinBank)
 let mmtdPoll = null;
 
 // ─── Affiliate tracking: cookie 45 ngày + localStorage dự phòng ───
@@ -1860,9 +1871,12 @@ function mmtdSubmit(e){
   btn.textContent = 'Đang tạo...'; btn.disabled = true;
 
   mmtdRef = mmtdGenCode(name);
-  const qr = `https://img.vietqr.io/image/${MMTD_BANK}-${MMTD_ACC}-compact2.png?amount=${MMTD_PRICE}&addInfo=${encodeURIComponent(mmtdRef)}&accountName=${encodeURIComponent(MMTD_HOLDER)}`;
+  // VietinBank BẮT BUỘC nội dung CK bắt đầu bằng "SEVQR" thì SePay mới nhận được biến động số dư.
+  // Mã đơn (BOOK...) vẫn nằm trong nội dung để webhook đối chiếu đúng đơn (webhook tự bỏ tiền tố SEVQR).
+  mmtdPayContent = 'SEVQR ' + mmtdRef;
+  const qr = `https://img.vietqr.io/image/${MMTD_BANK}-${MMTD_ACC}-compact2.png?amount=${MMTD_PRICE}&addInfo=${encodeURIComponent(mmtdPayContent)}&accountName=${encodeURIComponent(MMTD_HOLDER)}`;
   document.getElementById('mmtd-qr').src = qr;
-  document.getElementById('mmtd-ref').textContent = mmtdRef;
+  document.getElementById('mmtd-ref').textContent = mmtdPayContent;
 
   document.getElementById('mmtd-step-form').style.display = 'none';
   document.getElementById('mmtd-step-qr').style.display   = 'block';
@@ -1892,7 +1906,7 @@ function mmtdSubmit(e){
 }
 
 function mmtdCopyRef(){
-  navigator.clipboard?.writeText(mmtdRef).catch(()=>{});
+  navigator.clipboard?.writeText(mmtdPayContent || mmtdRef).catch(()=>{});
   const b=document.getElementById('mmtd-copy-ref');
   if(b){ b.textContent='✓'; setTimeout(()=>b.textContent='Copy',1500); }
 }
