@@ -2159,9 +2159,27 @@ function showSachLock(){
 }
 function hideSachLock(){ const ov=document.getElementById('sach-lock'); if(ov) ov.style.display='none'; }
 
+// ── Ghi nhận độc giả vào Supabase (giống hoc-vien/index) ──
+const _SB_TR='https://ryhogciybrffiumuawrk.supabase.co';
+const _SK_TR='sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
+const _SH_TR={'Content-Type':'application/json','apikey':_SK_TR,'Authorization':'Bearer '+_SK_TR};
+async function mmtdTrackReader(email,name){
+  if(!email) return;
+  try{
+    const res=await fetch(`${_SB_TR}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count`,{headers:_SH_TR});
+    const rows=await res.json();
+    if(rows&&rows.length>0){
+      await fetch(`${_SB_TR}/rest/v1/mmtd_readers?id=eq.${rows[0].id}`,{method:'PATCH',headers:_SH_TR,body:JSON.stringify({...(name&&{name}),visit_count:(rows[0].visit_count||0)+1,last_seen:new Date().toISOString()})});
+    }else{
+      await fetch(`${_SB_TR}/rest/v1/mmtd_readers`,{method:'POST',headers:{..._SH_TR,'Prefer':'return=minimal'},body:JSON.stringify({email,name:name||email.split('@')[0],visit_count:1,last_seen:new Date().toISOString(),reader_status:'reader',referrer:document.referrer||null})});
+    }
+  }catch(e){ console.warn('[MMTD]',e); }
+}
+
 gateAuth.onAuthStateChanged(async user=>{
   if(!user){ gateEl.style.display='flex'; hideSachLock(); return; }
   gateEl.style.display='none';
+  mmtdTrackReader(user.email, user.displayName||user.email.split('@')[0]);   // ghi nhận độc giả đã đăng nhập
   if(!isBookUnlocked()) await syncBookEntitlement(user.email);   // thử khôi phục quyền theo email
   if(isBookUnlocked()) hideSachLock(); else showSachLock();      // có quyền → đọc; chưa → chặn
 });
