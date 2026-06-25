@@ -603,7 +603,7 @@ function hvInit(){
         const given = user.displayName ? user.displayName.split(' ')[0] : name;
         showUser(given, user.email, user.photoURL, hvIsVIP(user.email));
         pmCloseModal();
-        mmtdTrackReader(user.email, name, true);
+        mmtdTrackReader(user.email, name);   // 1 luồng: chỉ ghi nhận đăng nhập; "Đã mua" do mua thật/admin cấp
         syncEntitlements(user.email);
       } else {
         showGuest();
