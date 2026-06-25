@@ -263,13 +263,13 @@ a{text-decoration:none;color:inherit}
   <div style="max-width:440px;margin:36px auto 0;text-align:center">
     <div style="font-size:44px;margin-bottom:14px">🔓</div>
     <h2 style="font-size:21px;font-weight:800;margin:0 0 12px;line-height:1.35">Mở bằng trình duyệt để đăng nhập</h2>
-    <p style="font-size:14.5px;color:#A1A1AA;line-height:1.7;margin:0 0 22px">Bạn đang mở trong ứng dụng (Facebook/Zalo/Messenger). Google <b style="color:#fff">không cho đăng nhập</b> tại đây. Hãy mở bằng <b style="color:#FFD700">Safari</b> hoặc <b style="color:#FFD700">Chrome</b>.</p>
-    <button onclick="inappOpenExternal()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF7B00);color:#000;border:none;padding:15px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:11px">🌐 Mở bằng trình duyệt</button>
+    <p style="font-size:14.5px;color:#A1A1AA;line-height:1.7;margin:0 0 22px">Bạn đang mở trong ứng dụng (Facebook/Zalo/Messenger). Google <b style="color:#fff">không cho đăng nhập</b> tại đây. Hãy mở bằng <b style="color:#FFD700">Google Chrome</b> (không phải Safari).</p>
+    <button onclick="inappOpenExternal()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF7B00);color:#000;border:none;padding:15px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:11px">🌐 Mở bằng Google Chrome</button>
     <button onclick="inappCopyLink()" style="width:100%;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.16);padding:14px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📋 Sao chép liên kết</button>
-    <div id="inapp-copied" style="display:none;color:#4ADE80;font-size:13px;font-weight:700;margin-top:12px">✓ Đã sao chép — mở Safari/Chrome rồi dán vào ô địa chỉ</div>
+    <div id="inapp-copied" style="display:none;color:#4ADE80;font-size:13px;font-weight:700;margin-top:12px">✓ Đã sao chép — mở Google Chrome rồi dán vào ô địa chỉ</div>
     <div style="margin-top:24px;text-align:left;background:#111;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 18px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:#FFD700">Hoặc mở thủ công:</div>
-      <div style="font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">•••</b> (góc trên bên phải)<br>2. Chọn <b style="color:#fff">"Mở trong Safari"</b> / "Open in browser"<br>3. Đăng nhập Google như bình thường</div>
+      <div style="font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">•••</b> (góc trên bên phải)<br>2. Chọn <b style="color:#fff">"Mở trong Chrome"</b> / "Open in browser"<br>3. Đăng nhập Google như bình thường</div>
     </div>
   </div>
 </div>
@@ -635,7 +635,7 @@ function pmOpenModal(step){ document.getElementById('pm-modal').classList.add('s
 function pmCloseModal(e){ if(!e||e.target===document.getElementById('pm-modal')) document.getElementById('pm-modal').classList.remove('show'); }
 function pmShowStep(step){
   ['welcome','register','login'].forEach(s=>{const el=document.getElementById('pm-step-'+s);if(el)el.classList.toggle('active',s===step);});
-  ['pm-reg-error','pm-login-error'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='';});
+  ['pm-reg-error','pm-login-error'].forEach(id=>{const e=document.getElementById(id);if(e){e.textContent='';e.style.color='';}});
 }
 async function pmRegister(){
   const name=document.getElementById('pm-name-input').value.trim();
@@ -649,10 +649,17 @@ async function pmRegister(){
   try{ const cred=await hvAuth.createUserWithEmailAndPassword(email,pass); await cred.user.updateProfile({displayName:name}); await hvAuth.currentUser.reload(); pmCloseModal(); }
   catch(e){ btn.textContent='Đăng ký'; btn.disabled=false; const m={'auth/email-already-in-use':'Email này đã được đăng ký.','auth/weak-password':'Mật khẩu phải có ít nhất 6 ký tự.','auth/invalid-email':'Email không hợp lệ.'}; errEl.textContent=m[e.code]||'Có lỗi xảy ra. Thử lại.'; }
 }
+async function pmForgot(){
+  const email=document.getElementById("pm-login-email").value.trim();
+  const errEl=document.getElementById("pm-login-error"); errEl.style.color=""; errEl.textContent="";
+  if(!email.includes("@")){ errEl.textContent="Nhập email phía trên để nhận liên kết đặt lại mật khẩu."; return; }
+  try{ await hvAuth.sendPasswordResetEmail(email); errEl.style.color="#4ADE80"; errEl.textContent="✓ Đã gửi email đặt lại mật khẩu — kiểm tra hộp thư (cả Spam)."; }
+  catch(e){ errEl.style.color=""; const m={"auth/user-not-found":"Email chưa được đăng ký.","auth/invalid-email":"Email không hợp lệ."}; errEl.textContent=m[e.code]||"Có lỗi xảy ra. Thử lại."; }
+}
 async function pmLogin(){
   const email=document.getElementById('pm-login-email').value.trim();
   const pass=document.getElementById('pm-login-pass').value;
-  const errEl=document.getElementById('pm-login-error'); errEl.textContent='';
+  const errEl=document.getElementById('pm-login-error'); errEl.style.color=''; errEl.textContent='';
   const btn=document.querySelector('#pm-step-login .pm-btn-submit'); btn.textContent='Đang đăng nhập...'; btn.disabled=true;
   try{ await hvAuth.signInWithEmailAndPassword(email,pass); pmCloseModal(); }
   catch(e){ btn.textContent='Đăng nhập'; btn.disabled=false; const m={'auth/wrong-password':'Mật khẩu không đúng.','auth/user-not-found':'Tài khoản không tồn tại.','auth/invalid-email':'Email không hợp lệ.','auth/invalid-credential':'Email hoặc mật khẩu không đúng.'}; errEl.textContent=m[e.code]||'Có lỗi xảy ra. Thử lại.'; }
@@ -939,6 +946,7 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
       <input class="pm-input" type="email" id="pm-login-email" placeholder="Email...">
       <input class="pm-input" type="password" id="pm-login-pass" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')pmLogin()">
       <div class="pm-error" id="pm-login-error"></div>
+      <div class="pm-switch-link" style="text-align:right;margin:-2px 0 10px"><span onclick="pmForgot()">Quên mật khẩu?</span></div>
       <button class="pm-btn-submit" onclick="pmLogin()">Đăng nhập</button>
       <div class="pm-switch-link">Chưa có tài khoản? <span onclick="pmShowStep('register')">Đăng ký ngay</span></div>
     </div>

@@ -954,13 +954,13 @@ body.flipping a[href="index.html"]{
   <div style="max-width:440px;margin:36px auto 0;text-align:center">
     <div style="font-size:44px;margin-bottom:14px">🔓</div>
     <h2 style="font-size:21px;font-weight:800;margin:0 0 12px;line-height:1.35">Mở bằng trình duyệt để đăng nhập</h2>
-    <p style="font-size:14.5px;color:#A1A1AA;line-height:1.7;margin:0 0 22px">Bạn đang mở trong ứng dụng (Facebook/Zalo/Messenger). Google <b style="color:#fff">không cho đăng nhập</b> tại đây. Hãy mở bằng <b style="color:#FFD700">Safari</b> hoặc <b style="color:#FFD700">Chrome</b>.</p>
-    <button onclick="inappOpenExternal()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF7B00);color:#000;border:none;padding:15px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:11px">🌐 Mở bằng trình duyệt</button>
+    <p style="font-size:14.5px;color:#A1A1AA;line-height:1.7;margin:0 0 22px">Bạn đang mở trong ứng dụng (Facebook/Zalo/Messenger). Google <b style="color:#fff">không cho đăng nhập</b> tại đây. Hãy mở bằng <b style="color:#FFD700">Google Chrome</b> (không phải Safari).</p>
+    <button onclick="inappOpenExternal()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF7B00);color:#000;border:none;padding:15px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:11px">🌐 Mở bằng Google Chrome</button>
     <button onclick="inappCopyLink()" style="width:100%;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.16);padding:14px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📋 Sao chép liên kết</button>
-    <div id="inapp-copied" style="display:none;color:#4ADE80;font-size:13px;font-weight:700;margin-top:12px">✓ Đã sao chép — mở Safari/Chrome rồi dán vào ô địa chỉ</div>
+    <div id="inapp-copied" style="display:none;color:#4ADE80;font-size:13px;font-weight:700;margin-top:12px">✓ Đã sao chép — mở Google Chrome rồi dán vào ô địa chỉ</div>
     <div style="margin-top:24px;text-align:left;background:#111;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 18px">
       <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:#FFD700">Hoặc mở thủ công:</div>
-      <div style="font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">•••</b> (góc trên bên phải)<br>2. Chọn <b style="color:#fff">"Mở trong Safari"</b> / "Open in browser"<br>3. Đăng nhập Google như bình thường</div>
+      <div style="font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">•••</b> (góc trên bên phải)<br>2. Chọn <b style="color:#fff">"Mở trong Chrome"</b> / "Open in browser"<br>3. Đăng nhập Google như bình thường</div>
     </div>
   </div>
 </div>
@@ -1011,6 +1011,7 @@ function inappCopyLink(){
       <input class="gate-input" type="email" id="gate-login-email" placeholder="Email...">
       <input class="gate-input" type="password" id="gate-login-pass" placeholder="Mật khẩu...">
       <div class="gate-error" id="gate-login-err"></div>
+      <div class="gate-switch" style="text-align:right;margin-bottom:8px"><span onclick="gateForgot()">Quên mật khẩu?</span></div>
       <button class="gate-btn-submit" onclick="gateEmailLogin()">Đăng nhập</button>
       <div class="gate-switch">Chưa có tài khoản? <span onclick="gateShowStep('register')">Đăng ký</span></div>
       <a href="index.html" class="gate-home">← Về trang chủ</a>
@@ -2083,11 +2084,18 @@ async function gateGoogle(){
   if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){ gateAuth.signInWithRedirect(p); return; }
   try{ await gateAuth.signInWithPopup(p); }catch(e){ console.error(e); }
 }
+async function gateForgot(){
+  const email=document.getElementById("gate-login-email").value.trim();
+  const err=document.getElementById("gate-login-err"); err.style.color=""; err.textContent="";
+  if(!email.includes("@")){ err.textContent="Nhập email phía trên để nhận liên kết đặt lại mật khẩu."; return; }
+  try{ await gateAuth.sendPasswordResetEmail(email); err.style.color="#4ADE80"; err.textContent="✓ Đã gửi email đặt lại mật khẩu — kiểm tra hộp thư (cả Spam)."; }
+  catch(e){ err.style.color=""; err.textContent=e.code==="auth/user-not-found"?"Email chưa được đăng ký.":(e.code==="auth/invalid-email"?"Email không hợp lệ.":"Có lỗi xảy ra. Thử lại."); }
+}
 async function gateEmailLogin(){
   const email=document.getElementById('gate-login-email').value.trim();
   const pass =document.getElementById('gate-login-pass').value;
   const err  =document.getElementById('gate-login-err');
-  err.textContent='';
+  err.style.color=''; err.textContent='';
   try{ await gateAuth.signInWithEmailAndPassword(email,pass); }
   catch(e){
     err.textContent=e.code==='auth/wrong-password'||e.code==='auth/user-not-found'
