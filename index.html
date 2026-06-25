@@ -1779,6 +1779,22 @@ const MMTD_ACC      = '105887395942';
 const MMTD_HOLDER   = 'HO KINH DOANH LE DANG PHUONG';
 let mmtdRef = '';
 let mmtdPayContent = '';  // nội dung CK thực tế (có tiền tố SEVQR cho VietinBank)
+
+// Ngày ra mắt chính thức — sau khi thanh toán xong hiện thông báo + đếm ngược tới mốc này
+const MMTD_LAUNCH = new Date('2026-07-01T00:00:00+07:00');
+let mmtdOkTimer = null;
+function mmtdStartOkCountdown(){
+  const tick = ()=>{
+    const el = document.getElementById('mmtd-ok-cd'); if(!el) return;
+    let diff = MMTD_LAUNCH - new Date();
+    if(diff <= 0){ el.innerHTML = '<span style="color:#4ADE80;font-weight:700">🎉 Đã ra mắt! Đăng nhập để vào học.</span>'; if(mmtdOkTimer){clearInterval(mmtdOkTimer);mmtdOkTimer=null;} return; }
+    const d=Math.floor(diff/864e5); diff-=d*864e5; const h=Math.floor(diff/36e5); diff-=h*36e5; const m=Math.floor(diff/6e4); diff-=m*6e4; const s=Math.floor(diff/1e3);
+    const cell=(n,l)=>`<div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.22);border-radius:10px;padding:7px 0;min-width:52px"><div style="color:#FFD700;font-size:1.3rem;font-weight:900;line-height:1">${String(n).padStart(2,'0')}</div><div style="color:#A1A1AA;font-size:.6rem;letter-spacing:.4px;margin-top:3px">${l}</div></div>`;
+    el.innerHTML = cell(d,'NGÀY')+cell(h,'GIỜ')+cell(m,'PHÚT')+cell(s,'GIÂY');
+  };
+  if(mmtdOkTimer) clearInterval(mmtdOkTimer);
+  tick(); mmtdOkTimer = setInterval(tick, 1000);
+}
 let mmtdPoll = null;
 
 // ─── Affiliate tracking: cookie 45 ngày + localStorage dự phòng ───
@@ -1858,6 +1874,7 @@ function mmtdClose(){
   document.getElementById('mmtd-ov').style.display = 'none';
   document.body.style.overflow = '';
   if (mmtdPoll){ clearInterval(mmtdPoll); mmtdPoll = null; }
+  if (mmtdOkTimer){ clearInterval(mmtdOkTimer); mmtdOkTimer = null; }
 }
 
 function mmtdSubmit(e){
@@ -1897,6 +1914,7 @@ function mmtdSubmit(e){
         clearInterval(mmtdPoll); mmtdPoll=null;
         document.getElementById('mmtd-step-qr').style.display='none';
         document.getElementById('mmtd-step-ok').style.display='block';
+        mmtdStartOkCountdown();
         fetch(MMTD_WEBHOOK,{ method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ action:'order_confirmed', ref:mmtdRef, product:'Mật Mã Tự Do' })
         }).catch(()=>{});
@@ -2026,11 +2044,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     <!-- BƯỚC 3: Thành công -->
     <div id="mmtd-step-ok" style="display:none;text-align:center">
-      <div style="font-size:3.5rem;margin-bottom:16px">🎉</div>
-      <h2 style="font-size:1.2rem;font-weight:900;margin-bottom:10px;color:#fff">Thanh toán thành công!</h2>
-      <p style="font-size:.88rem;color:#A1A1AA;margin-bottom:8px;line-height:1.7">Sách + toàn bộ bonus sẽ được gửi về email của bạn <strong style="color:#fff">trong 24 giờ</strong>.</p>
-      <p style="font-size:.8rem;color:#52525B;margin-bottom:24px">Nhớ kiểm tra hòm thư spam nếu không thấy nhé!</p>
-      <button onclick="mmtdClose()" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:12px 28px;font-size:.92rem;font-weight:800;cursor:pointer;font-family:inherit">Đóng</button>
+      <div style="font-size:3.2rem;margin-bottom:10px">🎉</div>
+      <h2 style="font-size:1.2rem;font-weight:900;margin-bottom:8px;color:#fff">Đặt sách thành công!</h2>
+      <p style="font-size:.86rem;color:#A1A1AA;margin-bottom:16px;line-height:1.7">Cảm ơn bạn! <strong style="color:#FFD700">Mật Mã Tự Do</strong> &amp; trọn bộ 5 khóa học chính thức ra mắt ngày <strong style="color:#fff">01/07/2026</strong>. Sách + toàn bộ bonus sẽ được gửi về email của bạn khi ra mắt.</p>
+      <div style="font-size:.72rem;color:#FFD700;font-weight:700;letter-spacing:.6px;margin-bottom:10px">⏳ ĐẾM NGƯỢC RA MẮT</div>
+      <div id="mmtd-ok-cd" style="display:flex;gap:7px;justify-content:center;margin-bottom:20px"></div>
+      <p style="font-size:.82rem;color:#C4C4D4;margin-bottom:14px;line-height:1.6">Trong lúc chờ, hãy <strong style="color:#fff">đọc thử sách</strong> để bắt đầu trước nhé 👇</p>
+      <button onclick="openDocThu()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:10px">📖 Đọc thử ngay</button>
+      <button onclick="mmtdClose()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>
     </div>
   </div>
 </div>
