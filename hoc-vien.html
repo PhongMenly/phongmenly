@@ -84,6 +84,7 @@ a{text-decoration:none;color:inherit}
 .pc:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.18);box-shadow:0 24px 50px rgba(0,0,0,.6)}
 .pc-poster{position:relative;aspect-ratio:3/4;overflow:hidden;background-size:cover;background-position:center;background-color:#15110a}
 .pc-pricetag{position:absolute;bottom:11px;left:11px;z-index:3;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);border:1px solid var(--bdr);color:var(--gold);font-weight:900;font-size:14px;padding:7px 13px;border-radius:50px;box-shadow:0 4px 16px rgba(0,0,0,.45);white-space:nowrap}
+.pc-pricetag.pc-unlocked{background:rgba(34,197,94,.92);border-color:rgba(74,222,128,.55);color:#fff;font-size:13px}
 .pc-status{position:absolute;top:11px;right:11px;z-index:3;font-size:10.5px;font-weight:800;padding:6px 11px;border-radius:50px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:#fff;border:1px solid rgba(255,255,255,.2);white-space:nowrap}
 .pc-hover{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;transition:.25s}
 .pc:hover .pc-hover{opacity:1}
@@ -461,6 +462,7 @@ function inappCopyLink(){
 <script>
 // ════ DỮ LIỆU KHÓA HỌC ════
 const COURSES = [
+  {id:'book', ch:'Sách', name:'Sách Mật Mã Tự Do', price:'686.000đ', img:'images/book-cover-1.png', book:true},
   {id:'c1', ch:'Chương 1', name:'Mật Mã Tư Duy', lessons:5, base:115000, price:'115.000đ', img:'images/bia-tu-duy.png'},
   {id:'c2', ch:'Chương 2', name:'Mật Mã Affiliate Marketing', lessons:6, base:189000, price:'189.000đ', img:'images/bia-affiliate-marketing.png'},
   {id:'c3', ch:'Chương 3', name:'Mật Mã Traffic', lessons:8, base:256000, price:'256.000đ', img:'images/bia-traffic.png'},
@@ -482,6 +484,8 @@ const fmt = n => n.toLocaleString('vi-VN')+'đ';
 const PLAY_SVG = '<svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>';
 
 function isCourseUnlocked(cid){
+  // Sách: mở khi có full access (mua sách/mật mã) HOẶC được cấp riêng quyền đọc sách
+  if(cid==='book') return localStorage.getItem('kh_unlocked')==='1' || localStorage.getItem('book_unlocked')==='1';
   if(localStorage.getItem('kh_unlocked')==='1') return true; // mật mã = mở tất cả (mua sách)
   try{ const u=JSON.parse(localStorage.getItem('unlk_'+cid)||'null'); if(u && (!u.exp || u.exp>Date.now())) return true; }catch(e){}
   return false;
@@ -491,20 +495,31 @@ function renderCourses(){
   const grid = document.getElementById('course-grid');
   grid.innerHTML = COURSES.map(c => {
     const open = c.special ? true : isCourseUnlocked(c.id);
-    const priceBadge = c.special ? '🎁 Tặng kèm sách' : c.price;
+    const priceBadge = c.special ? '🎁 Tặng kèm sách' : (open ? '✓ Mở khóa thành công' : c.price);
     const statusPill = c.special ? 'Đặc biệt' : (open ? '✓ Đã mở' : '🔒 Khóa');
-    const ctaTxt = c.special ? 'Khám phá →' : (open ? '▶ Vào học ngay' : '🔓 Mở khóa ngay');
-    const metaText = c.special ? '👑 Cộng đồng tinh hoa' : (PLAY_SVG+' '+c.lessons+' bài học');
-    let attrs;
-    if(c.special) attrs = `href="${c.url}" target="_blank" rel="noopener"`;
-    else if(open) attrs = (new Date() < new Date('2026-07-01T00:00:00+07:00'))
-      ? `href="javascript:void(0)" onclick="showLaunchSuccess()"`   // đã mua nhưng chưa tới 1/7 → thông báo + đếm ngược
-      : `href="bai-hoc.html?c=${c.id}"`;                            // đã ra mắt → vào học
-    else attrs = `href="javascript:void(0)" onclick="openPay('${c.id}')"`;
+    const metaText = c.special ? '👑 Cộng đồng tinh hoa' : c.book ? '📖 Đọc sách' : (PLAY_SVG+' '+c.lessons+' bài học');
+    let ctaTxt, attrs;
+    if(c.special){
+      ctaTxt = 'Khám phá →';
+      attrs = `href="${c.url}" target="_blank" rel="noopener"`;
+    } else if(c.book){
+      ctaTxt = open ? '📖 Đọc sách' : '📕 Đặt sách';
+      attrs = open
+        ? `href="javascript:void(0)" onclick="showBookSoon()"`        // có sách → trang đọc đang hoàn thiện
+        : `href="index.html#pricing"`;                               // chưa có → đặt sách
+    } else {
+      ctaTxt = open ? '▶ Vào học ngay' : '🔓 Mở khóa ngay';
+      attrs = open
+        ? ((new Date() < new Date('2026-07-01T00:00:00+07:00'))
+            ? `href="javascript:void(0)" onclick="showLaunchSuccess()"`   // đã mua nhưng chưa tới 1/7 → thông báo + đếm ngược
+            : `href="bai-hoc.html?c=${c.id}"`)                           // đã ra mắt → vào học
+        : `href="javascript:void(0)" onclick="openPay('${c.id}')"`;
+    }
+    const tagCls = (open && !c.special) ? ' pc-unlocked' : '';
     return `
-    <a class="pc${c.special?' special':''}" id="${c.id}" ${attrs}>
+    <a class="pc${c.special?' special':''}${c.book?' book':''}" id="${c.id}" ${attrs}>
       <div class="pc-poster" style="background-image:url('${c.img}')">
-        <span class="pc-pricetag">${priceBadge}</span>
+        <span class="pc-pricetag${tagCls}">${priceBadge}</span>
         <span class="pc-status">${statusPill}</span>
         <div class="pc-hover"><span class="pc-hover-cta">${ctaTxt}</span></div>
       </div>
@@ -518,7 +533,7 @@ function renderCourses(){
 
 // Đồng nhất số bài với nội dung admin đã lưu (course_content). Có lưu thì lấy số bài thực tế.
 async function syncCourseCounts(){
-  await Promise.all(COURSES.filter(c=>!c.special).map(async c=>{
+  await Promise.all(COURSES.filter(c=>!c.special && !c.book).map(async c=>{
     try{
       const r = await fetch(MMTD_WEBHOOK+'?content='+c.id);
       if(!r.ok) return;
@@ -535,7 +550,7 @@ async function syncCourseCounts(){
 
 function updateProgress(){
   // Chỉ tính 5 cửa (combo học được) — KOL AI SYSTEM là ladipage, không tính.
-  const doors = COURSES.filter(c => !c.special);
+  const doors = COURSES.filter(c => !c.special && !c.book);
   let total = 0, done = 0, comboDone = 0;
   doors.forEach(c => {
     total += c.lessons;
@@ -818,6 +833,27 @@ function showLaunchSuccess(){
 }
 function closeLaunchSuccess(){ const ov=document.getElementById('hv-ok-ov'); if(ov) ov.style.display='none'; if(hvOkTimer){clearInterval(hvOkTimer);hvOkTimer=null;} }
 
+// Thông báo khi bấm vào Sách đã mở khóa (trang đọc sách online đang hoàn thiện)
+function showBookSoon(){
+  let ov = document.getElementById('hv-book-ov');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'hv-book-ov';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px';
+    ov.innerHTML = `<div style="background:#111;border:1px solid rgba(255,215,0,.3);border-radius:20px;max-width:420px;width:100%;padding:30px 26px;text-align:center;position:relative;font-family:inherit">
+      <button onclick="document.getElementById('hv-book-ov').style.display='none'" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer">✕</button>
+      <div style="font-size:3rem;margin-bottom:10px">📖</div>
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:900;margin-bottom:8px">Đã mở khóa Sách!</h2>
+      <p style="color:#A1A1AA;font-size:.86rem;line-height:1.7;margin-bottom:16px">Trang đọc sách online đang được hoàn thiện và sẽ sớm ra mắt. Trong lúc chờ, bạn có thể <b style="color:#fff">đọc thử</b> trước nhé.</p>
+      <a href="doc-thu.html" style="display:block;text-decoration:none;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border-radius:12px;padding:14px;font-size:.95rem;font-weight:800;margin-bottom:10px">📖 Đọc thử ngay</a>
+      <button onclick="document.getElementById('hv-book-ov').style.display='none'" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click', e=>{ if(e.target===ov) ov.style.display='none'; });
+  }
+  ov.style.display = 'flex';
+}
+
 function grantUnlock(cid, tier){
   const now = Date.now();
   const exp = tier==='M' ? now+30*864e5 : tier==='Y' ? now+365*864e5 : 0; // 0 = trọn đời
@@ -850,6 +886,11 @@ async function syncEntitlements(email){
       // code = MAP <digit course> <tier M/Y/L> <uid>
       const m = String(code).toUpperCase().match(/^MAP(\d)([MYL])/);
       if(!m) return;
+      // Digit 6 = quyền ĐỌC SÁCH riêng (admin cấp) — mở thẻ Sách, KHÔNG mở 5 khóa học
+      if(m[1]==='6'){
+        if(localStorage.getItem('book_unlocked')!=='1'){ localStorage.setItem('book_unlocked','1'); changed = true; }
+        return;
+      }
       const cid = 'c'+m[1], tier = m[2], now = Date.now();
       const exp = tier==='M' ? now+30*864e5 : tier==='Y' ? now+365*864e5 : 0;
       localStorage.setItem('unlk_'+cid, JSON.stringify({tier,exp}));
