@@ -505,7 +505,7 @@ function renderCourses(){
     } else if(c.book){
       ctaTxt = open ? '📖 Đọc sách' : '📕 Đặt sách';
       attrs = open
-        ? `href="javascript:void(0)" onclick="showBookSoon()"`        // có sách → trang đọc đang hoàn thiện
+        ? `href="doc-sach.html"`                                      // đã mở khóa → đọc bản đầy đủ
         : `href="index.html#pricing"`;                               // chưa có → đặt sách
     } else {
       ctaTxt = open ? '▶ Vào học ngay' : '🔓 Mở khóa ngay';
