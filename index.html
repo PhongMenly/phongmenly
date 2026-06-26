@@ -515,6 +515,15 @@ function inappCopyLink(){
 }
 </script>
 
+<!-- ZALO BUYER NOTIFICATION (one-time, existing buyers) -->
+<div id="zalo-notify" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9999;max-width:320px;background:linear-gradient(135deg,#0a2540,#0f3460);border:1px solid rgba(0,120,255,.4);border-radius:16px;padding:16px 18px;box-shadow:0 8px 32px rgba(0,0,0,.5);font-family:inherit">
+  <button onclick="localStorage.setItem('zalo_joined','1');document.getElementById('zalo-notify').style.display='none'" style="position:absolute;top:10px;right:12px;background:none;border:none;color:#888;font-size:1.1rem;cursor:pointer;line-height:1">✕</button>
+  <div style="font-size:.72rem;font-weight:800;color:#60a5fa;letter-spacing:.5px;margin-bottom:4px">💬 DÀNH CHO BẠN ĐỌC</div>
+  <div style="font-size:.88rem;font-weight:800;color:#fff;margin-bottom:5px">Vào Nhóm Hỏi Đáp Trực Tiếp Với Tác Giả & Chuyên Gia</div>
+  <div style="font-size:.75rem;color:#94a3b8;margin-bottom:11px">Nhóm Zalo hỗ trợ độc quyền cho độc giả đã đặt sách.</div>
+  <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1');document.getElementById('zalo-notify').style.display='none'" style="display:block;background:#0068FF;color:#fff;text-decoration:none;text-align:center;border-radius:10px;padding:10px;font-size:.85rem;font-weight:800">🔵 Vào Nhóm Zalo</a>
+</div>
+
 <!-- ANNOUNCEMENT BAR -->
 <div class="ann">
   <span class="ann-title" id="ann-title">MẬT MÃ TỰ DO — Affiliate x AI</span>
@@ -1790,6 +1799,53 @@ function mmtdStartOkCountdown(){
 }
 let mmtdPoll = null;
 
+// ─── Modal chờ ra mắt cho người đã mua sách ───
+let bookWaitTimer = null;
+function showBookWaiting(){
+  const launch = new Date('2026-07-01T00:00:00+07:00');
+  if(new Date() >= launch){ window.location.href='doc-sach.html'; return; }
+  let ov = document.getElementById('book-wait-ov');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'book-wait-ov';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:6000;display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit';
+    ov.innerHTML = `<div style="background:#111;border:1px solid rgba(255,215,0,.3);border-radius:20px;max-width:420px;width:100%;padding:30px 26px;text-align:center;position:relative">
+      <button onclick="closeBookWaiting()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer">✕</button>
+      <div style="font-size:3rem;margin-bottom:10px">📖</div>
+      <h2 style="color:#fff;font-size:1.2rem;font-weight:900;margin-bottom:8px">Cảm ơn bạn đã đặt sách!</h2>
+      <p style="color:#A1A1AA;font-size:.86rem;line-height:1.7;margin-bottom:16px">Sách chính thức ra mắt ngày <b style="color:#fff">01/07/2026</b>. Bạn sẽ đọc được ngay khi ra mắt.</p>
+      <div style="font-size:.72rem;color:#FFD700;font-weight:700;letter-spacing:.6px;margin-bottom:10px">⏳ ĐẾM NGƯỢC RA MẮT</div>
+      <div id="bw-cd" style="display:flex;gap:7px;justify-content:center;margin-bottom:18px"></div>
+      <div id="bw-zalo-section" style="background:rgba(0,104,255,.1);border:1px solid rgba(0,104,255,.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:left">
+        <div style="font-size:.72rem;font-weight:800;color:#60a5fa;margin-bottom:3px">💬 CỘNG ĐỒNG ĐỘC GIẢ</div>
+        <div style="font-size:.85rem;font-weight:800;color:#fff;margin-bottom:5px">Vào Nhóm Hỏi Đáp Trực Tiếp Với Tác Giả & Chuyên Gia</div>
+        <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1');document.getElementById('bw-zalo-section').style.display='none'" style="display:block;background:#0068FF;color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:10px;font-size:.85rem;font-weight:800">🔵 Vào Nhóm Zalo Ngay</a>
+      </div>
+      <button onclick="openDocThu()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:14px;font-size:.9rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:10px">📖 Đọc thử sách ngay</button>
+      <button onclick="closeBookWaiting()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click', e=>{ if(e.target===ov) closeBookWaiting(); });
+  }
+  ov.style.display = 'flex';
+  const bwz = document.getElementById('bw-zalo-section');
+  if(bwz) bwz.style.display = localStorage.getItem('zalo_joined') ? 'none' : 'block';
+  const bwTick = ()=>{
+    const el = document.getElementById('bw-cd'); if(!el) return;
+    let diff = launch - new Date();
+    if(diff <= 0){ el.innerHTML = '<span style="color:#4ADE80;font-weight:700">🎉 Đã ra mắt!</span>'; if(bookWaitTimer){clearInterval(bookWaitTimer);bookWaitTimer=null;} return; }
+    const d=Math.floor(diff/864e5); diff-=d*864e5; const h=Math.floor(diff/36e5); diff-=h*36e5; const m=Math.floor(diff/6e4); diff-=m*6e4; const s=Math.floor(diff/1e3);
+    const cell=(n,l)=>`<div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.22);border-radius:10px;padding:7px 0;min-width:52px"><div style="color:#FFD700;font-size:1.3rem;font-weight:900;line-height:1">${String(n).padStart(2,'0')}</div><div style="color:#A1A1AA;font-size:.6rem;letter-spacing:.4px;margin-top:3px">${l}</div></div>`;
+    el.innerHTML = cell(d,'NGÀY')+cell(h,'GIỜ')+cell(m,'PHÚT')+cell(s,'GIÂY');
+  };
+  if(bookWaitTimer) clearInterval(bookWaitTimer);
+  bwTick(); bookWaitTimer = setInterval(bwTick, 1000);
+}
+function closeBookWaiting(){
+  const ov = document.getElementById('book-wait-ov'); if(ov) ov.style.display='none';
+  if(bookWaitTimer){ clearInterval(bookWaitTimer); bookWaitTimer=null; }
+}
+
 // ─── Affiliate tracking: cookie 45 ngày + localStorage dự phòng ───
 const MMTD_REF_KEY = 'mmtd_ref';
 const MMTD_REF_TTL = 45 * 24 * 60 * 60 * 1000; // 45 ngày (ms)
@@ -1873,12 +1929,27 @@ function updateBuyButton(){
   if(isBookUnlocked()){
     btn.textContent = '📖 Đọc sách ngay';
     btn.removeAttribute('data-i18n');
-    btn.onclick = function(e){ e.preventDefault(); window.location.href='doc-sach.html'; };
+    btn.onclick = function(e){
+      e.preventDefault();
+      const launch = new Date('2026-07-01T00:00:00+07:00');
+      if(new Date() >= launch){ window.location.href='doc-sach.html'; }
+      else { showBookWaiting(); }
+    };
+    // Show one-time Zalo notification for existing buyers (until launch day)
+    const launchDay = new Date('2026-07-01T23:59:59');
+    if(!localStorage.getItem('zalo_joined') && Date.now() < launchDay.getTime()){
+      const nb = document.getElementById('zalo-notify');
+      if(nb) setTimeout(function(){ nb.style.display='block'; }, 2000);
+    }
   }
 }
 
 function mmtdOpenCheckout(){
-  if(isBookUnlocked()){ window.location.href='doc-sach.html'; return; }
+  if(isBookUnlocked()){
+    const launch = new Date('2026-07-01T00:00:00+07:00');
+    if(new Date() >= launch){ window.location.href='doc-sach.html'; } else { showBookWaiting(); }
+    return;
+  }
   if(!pmAuth || !pmAuth.currentUser){
     localStorage.setItem('pm_after_checkout','1');
     pmOpenModal('welcome');
@@ -2111,6 +2182,13 @@ document.addEventListener('DOMContentLoaded',()=>{
       <p style="font-size:.86rem;color:#A1A1AA;margin-bottom:16px;line-height:1.7">Cảm ơn bạn! <strong style="color:#FFD700">Mật Mã Tự Do</strong> &amp; trọn bộ 5 khóa học chính thức ra mắt ngày <strong style="color:#fff">01/07/2026</strong>. Sách + toàn bộ bonus sẽ được gửi về email của bạn khi ra mắt.</p>
       <div style="font-size:.72rem;color:#FFD700;font-weight:700;letter-spacing:.6px;margin-bottom:10px">⏳ ĐẾM NGƯỢC RA MẮT</div>
       <div id="mmtd-ok-cd" style="display:flex;gap:7px;justify-content:center;margin-bottom:20px"></div>
+      <!-- Zalo group -->
+      <div style="background:rgba(0,120,255,.1);border:1px solid rgba(0,120,255,.3);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:.78rem;font-weight:800;color:#60a5fa;margin-bottom:4px">💬 BƯỚC TIẾP THEO</div>
+        <div style="font-size:.9rem;font-weight:800;color:#fff;margin-bottom:6px">Vào Nhóm Hỏi Đáp Trực Tiếp Với Tác Giả & Chuyên Gia</div>
+        <div style="font-size:.78rem;color:#A1A1AA;margin-bottom:10px">Tham gia nhóm để được hỗ trợ và cập nhật trước khi sách ra mắt.</div>
+        <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1')" style="display:block;width:100%;background:linear-gradient(135deg,#0068FF,#0052cc);color:#fff;border:none;border-radius:10px;padding:12px;font-size:.92rem;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;text-align:center;box-sizing:border-box">🔵 Vào Nhóm Zalo Ngay</a>
+      </div>
       <p style="font-size:.82rem;color:#C4C4D4;margin-bottom:14px;line-height:1.6">Trong lúc chờ, hãy <strong style="color:#fff">đọc thử sách</strong> để bắt đầu trước nhé 👇</p>
       <button onclick="openDocThu()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:14px;font-size:.95rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:10px">📖 Đọc thử ngay</button>
       <button onclick="mmtdClose()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>
