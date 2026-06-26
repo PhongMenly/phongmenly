@@ -2158,6 +2158,52 @@ function showSachLock(){
 }
 function hideSachLock(){ const ov=document.getElementById('sach-lock'); if(ov) ov.style.display='none'; }
 
+// ── Màn chờ ra mắt (đã mua nhưng chưa tới ngày) ──
+const SACH_LAUNCH = new Date('2026-07-01T00:00:00+07:00');
+let sachWaitTimer = null;
+function showSachWaiting(){
+  let ov = document.getElementById('sach-wait-ov');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'sach-wait-ov';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(8,8,8,.97);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Montserrat,system-ui,sans-serif';
+    ov.innerHTML = `<div style="max-width:420px;width:100%;text-align:center;color:#fff">
+      <div style="font-size:3rem;margin-bottom:12px">🎉</div>
+      <h2 style="font-size:1.3rem;font-weight:900;margin:0 0 8px;color:#fff">Cảm ơn bạn đã đặt sách!</h2>
+      <p style="font-size:.86rem;color:#A1A1AA;line-height:1.7;margin:0 0 16px">Bản đầy đủ "Mật Mã Tự Do" sẽ mở ngày <b style="color:#fff">01/07/2026</b>.<br>Trong lúc chờ, hãy tham gia nhóm Zalo và đọc thử trước nhé!</p>
+      <div style="font-size:.72rem;color:#FFD700;font-weight:700;letter-spacing:.6px;margin-bottom:10px">⏳ ĐẾM NGƯỢC RA MẮT</div>
+      <div id="sw-cd" style="display:flex;gap:8px;justify-content:center;margin-bottom:20px"></div>
+      <div id="sw-zalo" style="background:rgba(0,104,255,.12);border:1px solid rgba(0,104,255,.35);border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:left">
+        <div style="font-size:.72rem;font-weight:800;color:#60a5fa;letter-spacing:.5px;margin-bottom:4px">💬 CỘNG ĐỒNG ĐỘC GIẢ</div>
+        <div style="font-size:.9rem;font-weight:800;color:#fff;margin-bottom:6px">Vào Nhóm Hỏi Đáp Trực Tiếp Với Tác Giả & Chuyên Gia</div>
+        <div style="font-size:.76rem;color:#94a3b8;margin-bottom:10px">Tham gia để được hỗ trợ và cập nhật trước ngày ra mắt.</div>
+        <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1');document.getElementById('sw-zalo').style.display='none'" style="display:block;background:#0068FF;color:#fff;text-decoration:none;text-align:center;border-radius:10px;padding:12px;font-size:.9rem;font-weight:800">🔵 Vào Nhóm Zalo Ngay</a>
+      </div>
+      <a href="doc-thu.html" style="display:block;text-decoration:none;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border-radius:50px;padding:15px;font-size:.95rem;font-weight:800;margin-bottom:10px">📖 Đọc thử sách ngay</a>
+      <a href="hoc-vien.html" style="font-size:.82rem;color:rgba(255,255,255,.35);text-decoration:none">← Về Học Viện</a>
+    </div>`;
+    document.body.appendChild(ov);
+  }
+  ov.style.display = 'flex';
+  const swz = document.getElementById('sw-zalo');
+  if(swz) swz.style.display = localStorage.getItem('zalo_joined') ? 'none' : 'block';
+  const tick = ()=>{
+    const el = document.getElementById('sw-cd'); if(!el) return;
+    let diff = SACH_LAUNCH - new Date();
+    if(diff <= 0){
+      el.innerHTML = '<span style="color:#4ADE80;font-weight:700;font-size:1rem">🎉 Sách đã ra mắt! Đang tải...</span>';
+      if(sachWaitTimer){ clearInterval(sachWaitTimer); sachWaitTimer=null; }
+      setTimeout(()=>{ ov.style.display='none'; }, 1200);
+      return;
+    }
+    const d=Math.floor(diff/864e5); diff-=d*864e5; const h=Math.floor(diff/36e5); diff-=h*36e5; const m=Math.floor(diff/6e4); diff-=m*6e4; const s=Math.floor(diff/1e3);
+    const cell=(n,l)=>`<div style="background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.22);border-radius:10px;padding:8px 0;min-width:56px"><div style="color:#FFD700;font-size:1.4rem;font-weight:900;line-height:1">${String(n).padStart(2,'0')}</div><div style="color:#A1A1AA;font-size:.6rem;letter-spacing:.4px;margin-top:3px">${l}</div></div>`;
+    el.innerHTML = cell(d,'NGÀY')+cell(h,'GIỜ')+cell(m,'PHÚT')+cell(s,'GIÂY');
+  };
+  if(sachWaitTimer) clearInterval(sachWaitTimer);
+  tick(); sachWaitTimer = setInterval(tick, 1000);
+}
+
 // ── Ghi nhận độc giả vào Supabase (giống hoc-vien/index) ──
 const _MMTD_WH='https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
 async function mmtdTrackReader(email,name){
@@ -2173,7 +2219,9 @@ gateAuth.onAuthStateChanged(async user=>{
   gateEl.style.display='none';
   mmtdTrackReader(user.email, user.displayName||user.email.split('@')[0]);   // ghi nhận độc giả đã đăng nhập
   if(!isBookUnlocked()) await syncBookEntitlement(user.email);   // thử khôi phục quyền theo email
-  if(isBookUnlocked()) hideSachLock(); else showSachLock();      // có quyền → đọc; chưa → chặn
+  if(isBookUnlocked()){
+    if(new Date() < SACH_LAUNCH) showSachWaiting(); else hideSachLock();
+  } else { showSachLock(); }
 });
 </script>
 </body>
