@@ -232,6 +232,18 @@ a{text-decoration:none;color:inherit}
 .pay-add-cart:hover{background:rgba(255,215,0,.2)}
 .pay-add-cart:disabled{opacity:.5;pointer-events:none}
 .pay-cart-hint{text-align:center;font-size:12px;color:var(--dim);margin-top:10px;line-height:1.6}
+/* ── MUA TẶNG ── */
+.pay-gift-row{margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr-s)}
+.pay-gift-btn{width:100%;padding:10px;background:transparent;border:1px dashed rgba(255,215,0,.35);color:rgba(255,215,0,.75);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;letter-spacing:.2px}
+.pay-gift-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,.05)}
+.gift-field{margin-bottom:14px}
+.gift-field label{display:block;font-size:11px;color:var(--dim);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.gift-field input{width:100%;background:#111;border:1px solid var(--bdr);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;transition:.2s}
+.gift-field input:focus{border-color:var(--gold)}
+.gift-code-inp{width:100%;background:#111;border:2px solid var(--bdr);border-radius:12px;padding:14px 16px;color:#FFD700;font-size:20px;font-family:monospace;letter-spacing:4px;outline:none;box-sizing:border-box;text-transform:uppercase;text-align:center;transition:.2s;margin:14px 0 4px}
+.gift-code-inp:focus{border-color:var(--gold)}
+.gift-act-btn-top{display:none;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,215,0,.35);border-radius:50px;padding:6px 14px;color:rgba(255,215,0,.8);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0}
+.gift-act-btn-top:hover{color:var(--gold);border-color:var(--gold);background:rgba(255,215,0,.05)}
 
 /* ── GIỎ HÀNG ── */
 .cart-btn{display:none;align-items:center;gap:8px;background:rgba(255,215,0,.1);border:1px solid var(--bdr);border-radius:50px;padding:8px 16px;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0}
@@ -379,6 +391,7 @@ function inappCopyLink(){
         <a href="index.html#pricing">Sản phẩm</a>
         <a href="hoc-vien.html" class="active">Học viện</a>
       </nav>
+      <button class="gift-act-btn-top" id="gift-act-btn-top" onclick="openGiftActModal()">🎁 Kích hoạt quà</button>
       <button class="cart-btn" id="cart-btn" onclick="openCart()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Giỏ hàng <span class="cart-badge" id="cart-badge">0</span></button>
       <div class="top-user" id="top-user">
         <button class="btn-login" id="top-login" onclick="pmOpenModal()">Đăng nhập</button>
@@ -742,6 +755,9 @@ function showUser(name, email, pic, vip){
   document.getElementById('tu-badge').textContent = vip ? '⭐ VIP' : 'HỌC VIÊN';
   document.getElementById('tu-email').textContent = email;
   setAvatar('tu-av','tu-av-ph',pic,name);
+  // hiện nút kích hoạt quà khi đã đăng nhập
+  const gab=document.getElementById('gift-act-btn-top');
+  if(gab) gab.style.display='flex';
   // hồ sơ popover (mobile bấm avatar)
   document.getElementById('tu-pop-name').textContent = name;
   document.getElementById('tu-pop-email').textContent = email;
@@ -1034,6 +1050,145 @@ async function buyNow(){
   openCartPay(payCode, tempItem);
 }
 
+// ══ MUA TẶNG ══
+let giftOrderCode = '';
+let currentGiftCode = '';
+
+function generateGiftCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // bỏ ký tự dễ nhầm (0,O,I,1)
+  let c='GIFT';
+  for(let i=0;i<8;i++) c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+
+function openGiftFlow(){
+  if(!hvAuth||!hvAuth.currentUser){ pmOpenModal(); return; }
+  payClose();
+  const c=COURSES.find(x=>x.id===payCid);
+  const t=TIERS.find(x=>x.code===payTier);
+  document.getElementById('gift-modal-sub').textContent=c.name+' · '+t.label;
+  document.getElementById('gift-modal-amt').textContent=fmt(payAmount());
+  document.getElementById('gift-recip-email').value='';
+  document.getElementById('gift-recip-phone').value='';
+  const btn=document.getElementById('gift-pay-btn');
+  btn.disabled=true; btn.style.opacity='.5'; btn.textContent='⚡ Tiến hành thanh toán';
+  document.getElementById('gift-modal').classList.add('show');
+}
+
+function closeGiftModal(e){
+  if(!e||e.target===document.getElementById('gift-modal'))
+    document.getElementById('gift-modal').classList.remove('show');
+}
+
+function giftValidate(){
+  const email=document.getElementById('gift-recip-email').value.trim();
+  const phone=document.getElementById('gift-recip-phone').value.trim();
+  const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)&&phone.replace(/\D/g,'').length>=9;
+  const btn=document.getElementById('gift-pay-btn');
+  btn.disabled=!ok; btn.style.opacity=ok?'1':'.5';
+}
+
+async function proceedGiftPayment(){
+  if(!hvAuth||!hvAuth.currentUser){ pmOpenModal(); return; }
+  const recipEmail=document.getElementById('gift-recip-email').value.trim().toLowerCase();
+  const recipPhone=document.getElementById('gift-recip-phone').value.trim();
+  const c=COURSES.find(x=>x.id===payCid);
+  const t=TIERS.find(x=>x.code===payTier);
+  const amt=payAmount();
+  const uid=(hvAuth.currentUser.email||'').replace(/[^a-zA-Z0-9]/g,'').slice(0,6).toUpperCase();
+
+  currentGiftCode=generateGiftCode();
+  giftOrderCode=('GFT'+payCid.replace('c','')+payTier+uid+currentGiftCode.slice(-4)).toUpperCase().slice(0,22);
+
+  const btn=document.getElementById('gift-pay-btn');
+  btn.disabled=true; btn.textContent='Đang tạo…';
+
+  try{
+    await fetch(MMTD_WEBHOOK,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        action:'create_gift',
+        order_code: giftOrderCode,
+        gift_code:  currentGiftCode,
+        cid:        payCid,
+        tier:       payTier,
+        amount:     amt,
+        product:    c.name,
+        tier_label: t.label,
+        recipient_email: recipEmail,
+        recipient_phone: recipPhone,
+        sender_email:    hvAuth.currentUser.email,
+      }),
+    });
+  }catch(e){}
+
+  closeGiftModal();
+  const tempItem={
+    cid:payCid, tier:payTier, amount:amt,
+    payCode:giftOrderCode,
+    product:'🎁 Tặng: '+c.name,
+    tierLabel:t.label,
+    isGift:true,
+    recipientEmail:recipEmail,
+  };
+  openCartPay(giftOrderCode, tempItem);
+}
+
+// Kích hoạt mã quà tặng
+function openGiftActModal(){
+  if(!hvAuth||!hvAuth.currentUser){ pmOpenModal(); return; }
+  document.getElementById('gift-act-code').value='';
+  document.getElementById('gift-act-status').textContent='';
+  document.getElementById('gift-act-status').style.color='var(--dim)';
+  const btn=document.getElementById('gift-act-confirm-btn');
+  btn.disabled=false; btn.textContent='Kích hoạt ngay';
+  document.getElementById('gift-act-modal').classList.add('show');
+  // hiện nút topbar sau khi đăng nhập
+  const topBtn=document.getElementById('gift-act-btn-top');
+  if(topBtn) topBtn.style.display='flex';
+}
+
+function closeGiftActModal(e){
+  if(!e||e.target===document.getElementById('gift-act-modal'))
+    document.getElementById('gift-act-modal').classList.remove('show');
+}
+
+async function activateGiftCode(){
+  const code=document.getElementById('gift-act-code').value.trim().toUpperCase();
+  if(!code||code.length<8){
+    document.getElementById('gift-act-status').textContent='Vui lòng nhập đầy đủ mã kích hoạt.';
+    document.getElementById('gift-act-status').style.color='#f87171';
+    return;
+  }
+  if(!hvAuth||!hvAuth.currentUser){ pmOpenModal(); return; }
+
+  const btn=document.getElementById('gift-act-confirm-btn');
+  const stt=document.getElementById('gift-act-status');
+  btn.disabled=true; btn.textContent='Đang kiểm tra…';
+  stt.textContent=''; stt.style.color='var(--dim)';
+
+  try{
+    const r=await fetch(MMTD_WEBHOOK,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'activate_gift', gift_code:code, activated_by:hvAuth.currentUser.email}),
+    });
+    const d=await r.json();
+    if(d&&d.success){
+      stt.style.color='#4ADE80';
+      stt.textContent='✓ Kích hoạt thành công! Đang mở khóa…';
+      setTimeout(()=>{ closeGiftActModal(); grantUnlockQuiet(d.cid, d.tier); }, 800);
+    }else{
+      btn.disabled=false; btn.textContent='Kích hoạt ngay';
+      stt.style.color='#f87171';
+      stt.textContent=d.error||'Mã không hợp lệ. Vui lòng kiểm tra lại.';
+    }
+  }catch(e){
+    btn.disabled=false; btn.textContent='Kích hoạt ngay';
+    stt.style.color='#f87171';
+    stt.textContent='Lỗi kết nối. Thử lại sau.';
+  }
+}
+
 async function removeFromCart(code){
   try{
     await fetch(MMTD_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -1124,11 +1279,16 @@ function startCpPoll(item){
       if(d && d.paid){
         clearInterval(cpPoll); cpPoll=null;
         document.getElementById('cp-spin').style.display='none';
-        document.getElementById('cp-stt').textContent='✓ Đã nhận thanh toán — mở khóa!';
-        cart = cart.filter(x=>x.payCode!==code);
-        localStorage.setItem('mmtd_cart', JSON.stringify(cart));
-        updateCartBtn();
-        setTimeout(()=>{ closeCartPay(); grantUnlockQuiet(item.cid, item.tier); }, 900);
+        if(item.isGift){
+          document.getElementById('cp-stt').innerHTML='🎁 Đã gửi mã kích hoạt tới <b>'+item.recipientEmail+'</b>!';
+          document.getElementById('cp-stt').style.color='#4ADE80';
+        }else{
+          document.getElementById('cp-stt').textContent='✓ Đã nhận thanh toán — mở khóa!';
+          cart = cart.filter(x=>x.payCode!==code);
+          localStorage.setItem('mmtd_cart', JSON.stringify(cart));
+          updateCartBtn();
+          setTimeout(()=>{ closeCartPay(); grantUnlockQuiet(item.cid, item.tier); }, 900);
+        }
       }
     }catch(e){}
   }, 4000);
@@ -1238,6 +1398,42 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
       <button class="pay-add-cart" id="pay-add-btn" onclick="addToCart()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Vào giỏ</button>
     </div>
     <p class="pay-cart-hint">⚡ <b>Mua ngay</b> → hiện QR thanh toán ngay · <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> <b>Vào giỏ</b> → chọn nhiều combo rồi thanh toán sau</p>
+    <div class="pay-gift-row">
+      <button class="pay-gift-btn" onclick="openGiftFlow()">🎁 Mua tặng cho người thân / bạn bè</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: MUA TẶNG -->
+<div class="pm-modal-overlay" id="gift-modal" onclick="closeGiftModal(event)">
+  <div class="pm-modal-box pay-box">
+    <button class="pm-modal-close" onclick="closeGiftModal()">✕</button>
+    <h3 class="pm-modal-title">🎁 Mua tặng</h3>
+    <p class="pm-modal-sub" id="gift-modal-sub">Điền thông tin người nhận — hệ thống tự gửi mã kích hoạt qua email.</p>
+    <div class="gift-field">
+      <label>Email người nhận *</label>
+      <input type="email" id="gift-recip-email" placeholder="email@example.com" oninput="giftValidate()">
+    </div>
+    <div class="gift-field">
+      <label>Số điện thoại người nhận *</label>
+      <input type="tel" id="gift-recip-phone" placeholder="09xx xxx xxx" oninput="giftValidate()">
+    </div>
+    <div class="pay-amount" style="margin-top:4px">Số tiền<b id="gift-modal-amt">—</b></div>
+    <button class="pay-buy-now" id="gift-pay-btn" onclick="proceedGiftPayment()" disabled style="margin-top:14px;opacity:.5">⚡ Tiến hành thanh toán</button>
+    <p class="pay-cart-hint" style="margin-top:10px">Sau khi thanh toán xong, hệ thống tự gửi mã kích hoạt + hướng dẫn tới email người nhận. Hỗ trợ thêm: Zalo <b style="color:var(--gold)">0978076936</b></p>
+  </div>
+</div>
+
+<!-- MODAL: KÍCH HOẠT QUÀ TẶNG -->
+<div class="pm-modal-overlay" id="gift-act-modal" onclick="closeGiftActModal(event)">
+  <div class="pm-modal-box pay-box">
+    <button class="pm-modal-close" onclick="closeGiftActModal()">✕</button>
+    <h3 class="pm-modal-title">🎁 Kích hoạt quà tặng</h3>
+    <p class="pm-modal-sub">Nhập mã kích hoạt từ email bạn nhận được.</p>
+    <input type="text" id="gift-act-code" class="gift-code-inp" placeholder="GIFT••••••••" maxlength="16" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+    <button class="pay-buy-now" id="gift-act-confirm-btn" onclick="activateGiftCode()" style="margin-top:8px">Kích hoạt ngay</button>
+    <p id="gift-act-status" style="text-align:center;font-size:13px;margin-top:12px;min-height:20px;line-height:1.5;color:var(--dim)"></p>
+    <p class="pay-cart-hint">Cần hỗ trợ? Zalo: <b style="color:var(--gold)">0978076936</b></p>
   </div>
 </div>
 
