@@ -1850,8 +1850,9 @@ function closeBookWaiting(){
 const MMTD_REF_KEY = 'mmtd_ref';
 const MMTD_REF_TTL = 45 * 24 * 60 * 60 * 1000; // 45 ngày (ms)
 
-// Lưu mã ref kèm hạn 45 ngày (cookie + localStorage). Last-click wins: lần click mới reset lại 45 ngày.
+// Lưu mã ref — first-click wins: chỉ lưu nếu chưa có ref hợp lệ (không ghi đè lần đầu).
 function mmtdSaveRef(code){
+  if (mmtdGetAff()) return; // đã có ref → giữ nguyên (first-click wins)
   const data = { ref: code, exp: Date.now() + MMTD_REF_TTL };
   try { localStorage.setItem(MMTD_REF_KEY, JSON.stringify(data)); } catch(e){}
   document.cookie = MMTD_REF_KEY + '=' + encodeURIComponent(code) +
@@ -1870,9 +1871,11 @@ function mmtdGetAff(){
           localStorage.removeItem(MMTD_REF_KEY); // hết hạn
         }
       } else if (/^[a-z0-9_-]+$/i.test(raw)) {
-        // dữ liệu cũ dạng chuỗi thuần → nâng cấp sang format có hạn
-        mmtdSaveRef(raw.toLowerCase());
-        return raw.toLowerCase();
+        // dữ liệu cũ dạng chuỗi thuần → nâng cấp inline (tránh gọi mmtdSaveRef gây vòng lặp)
+        const code = raw.toLowerCase();
+        const newData = { ref: code, exp: Date.now() + MMTD_REF_TTL };
+        try { localStorage.setItem(MMTD_REF_KEY, JSON.stringify(newData)); } catch(e){}
+        return code;
       }
     }
   } catch(e){}
