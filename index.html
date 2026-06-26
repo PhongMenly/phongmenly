@@ -1325,8 +1325,13 @@ function pmInitFirebase() {
         if(localStorage.getItem('pm_after_checkout')){
           localStorage.removeItem('pm_after_checkout');
           pmCloseModal({target:document.getElementById('pm-modal')});
-          if(isBookUnlocked()){ window.location.href='doc-sach.html'; }
+          if(isBookUnlocked()){ showBookOwnerChoice(); }
           else { setTimeout(mmtdShowQRDirect, 300); }
+        }
+        if(localStorage.getItem('pm_after_gift')){
+          localStorage.removeItem('pm_after_gift');
+          pmCloseModal({target:document.getElementById('pm-modal')});
+          setTimeout(()=>{ document.getElementById('book-gift-modal').style.display='flex'; }, 300);
         }
       } else {
         pmShowLogin();
@@ -1948,11 +1953,7 @@ function updateBuyButton(){
 }
 
 function mmtdOpenCheckout(){
-  if(isBookUnlocked()){
-    const launch = new Date('2026-07-01T00:00:00+07:00');
-    if(new Date() >= launch){ window.location.href='doc-sach.html'; } else { showBookWaiting(); }
-    return;
-  }
+  if(isBookUnlocked()){ showBookOwnerChoice(); return; }
   if(!pmAuth || !pmAuth.currentUser){
     localStorage.setItem('pm_after_checkout','1');
     pmOpenModal('welcome');
@@ -2009,6 +2010,97 @@ function mmtdClose(){
   document.body.style.overflow = '';
   if (mmtdPoll){ clearInterval(mmtdPoll); mmtdPoll = null; }
   if (mmtdOkTimer){ clearInterval(mmtdOkTimer); mmtdOkTimer = null; }
+}
+
+// ── Book: đã mua → chọn đọc sách hoặc tặng bạn bè ─────────────────────
+function showBookOwnerChoice(){
+  document.getElementById('book-choice-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeBookChoice(){
+  document.getElementById('book-choice-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function readBookNow(){
+  closeBookChoice();
+  const launch=new Date('2026-07-01T00:00:00+07:00');
+  if(new Date()>=launch){ window.location.href='doc-sach.html'; } else { showBookWaiting(); }
+}
+function openBookGift(){
+  closeBookChoice();
+  if(!pmAuth||!pmAuth.currentUser){
+    localStorage.setItem('pm_after_gift','1');
+    pmOpenModal('welcome');
+    return;
+  }
+  document.getElementById('book-gift-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeBookGift(){
+  document.getElementById('book-gift-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function bookGiftValidate(){
+  const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(document.getElementById('bg-email').value.trim())
+    &&document.getElementById('bg-phone').value.replace(/\D/g,'').length>=9;
+  const btn=document.getElementById('bg-pay-btn');
+  btn.disabled=!ok; btn.style.opacity=ok?'1':'.5';
+}
+function generateBookGiftCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s='GIFT'; for(let i=0;i<8;i++) s+=c[Math.floor(Math.random()*c.length)];
+  return s;
+}
+async function proceedBookGift(){
+  const user=pmAuth&&pmAuth.currentUser; if(!user) return;
+  const recipEmail=document.getElementById('bg-email').value.trim().toLowerCase();
+  const recipPhone=document.getElementById('bg-phone').value.trim();
+  const uid=(user.email||'').replace(/[^a-zA-Z0-9]/g,'').slice(0,6).toUpperCase();
+  const giftCode=generateBookGiftCode();
+  const giftOrderCode=('GFTBOOK'+uid+giftCode.slice(-4)).slice(0,22);
+  const btn=document.getElementById('bg-pay-btn');
+  btn.disabled=true; btn.textContent='Đang tạo…';
+  try{
+    await fetch(MMTD_WEBHOOK,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'create_gift',order_code:giftOrderCode,gift_code:giftCode,
+        cid:'book',tier:'L',amount:MMTD_PRICE,product:'Sách Mật Mã Tự Do',tier_label:'Trọn đời',
+        recipient_email:recipEmail,recipient_phone:recipPhone,sender_email:user.email})
+    });
+  }catch(e){}
+  closeBookGift();
+  mmtdRef=giftOrderCode;
+  mmtdPayContent='SEVQR '+giftOrderCode;
+  const ov=document.getElementById('mmtd-ov');
+  ov.style.display='flex';
+  document.getElementById('mmtd-step-form').style.display='none';
+  document.getElementById('mmtd-step-qr').style.display='block';
+  document.getElementById('mmtd-step-ok').style.display='none';
+  document.body.style.overflow='hidden';
+  const qr=`https://img.vietqr.io/image/${MMTD_BANK}-${MMTD_ACC}-compact2.png?amount=${MMTD_PRICE}&addInfo=${encodeURIComponent(mmtdPayContent)}&accountName=${encodeURIComponent(MMTD_HOLDER)}`;
+  document.getElementById('mmtd-qr').src=qr;
+  document.getElementById('mmtd-ref').textContent=mmtdPayContent;
+  if(mmtdPoll) clearInterval(mmtdPoll);
+  mmtdPoll=setInterval(async()=>{
+    try{
+      const r=await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(giftOrderCode)}`);
+      if(r.ok){ const d=await r.json(); if(d?.paid){
+        clearInterval(mmtdPoll); mmtdPoll=null;
+        document.getElementById('mmtd-step-qr').style.display='none';
+        document.getElementById('mmtd-step-ok').style.display='block';
+        document.getElementById('mmtd-step-ok').innerHTML=`
+          <div style="font-size:2.8rem;margin-bottom:10px">🎁</div>
+          <h2 style="font-size:1.1rem;font-weight:900;margin-bottom:8px;color:#4ADE80">Đã gửi quà tặng thành công!</h2>
+          <p style="font-size:.85rem;color:#A1A1AA;margin-bottom:4px;line-height:1.7">Chúng tôi đã gửi email đến tri kỷ của bạn.</p>
+          <p style="font-size:.85rem;color:#A1A1AA;margin-bottom:14px;line-height:1.7">Mã kích hoạt đã gửi tới <b style="color:#FFD700">${recipEmail}</b>.</p>
+          <div style="background:rgba(0,104,255,.1);border:1px solid rgba(0,104,255,.3);border-radius:12px;padding:14px 16px;margin-bottom:16px;text-align:left">
+            <p style="font-size:.8rem;color:#c4c4d4;margin:0 0 10px;line-height:1.6">Để đảm bảo quà được gửi ngay đến người ấy, hãy xác nhận qua Zalo nhé:</p>
+            <a href="https://zalo.me/0978076936" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#0068FF,#0052cc);color:#fff;border-radius:10px;padding:12px;font-size:.9rem;font-weight:800;text-decoration:none">🔵 Nhắn Zalo: 0978076936</a>
+          </div>
+          <button onclick="mmtdClose()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>`;
+      }}
+    }catch(e){}
+  },4000);
 }
 
 function mmtdSubmit(e){
@@ -2121,6 +2213,39 @@ document.addEventListener('DOMContentLoaded',()=>{
       <button class="pm-btn-submit" onclick="pmLogin()" data-i18n="mod.l.btn">Đăng nhập</button>
       <div class="pm-switch-link" data-i18n="mod.l.switch">Chưa có tài khoản? <span onclick="pmShowStep('register')">Đăng ký ngay</span></div>
     </div>
+  </div>
+</div>
+<!-- BOOK: ĐÃ MUA — chọn đọc sách hay tặng bạn bè -->
+<div id="book-choice-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3000;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#111;border:1px solid rgba(255,215,0,.22);border-radius:20px;width:100%;max-width:360px;padding:28px;position:relative;text-align:center">
+    <button onclick="closeBookChoice()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;line-height:1">✕</button>
+    <div style="font-size:2.6rem;margin-bottom:10px">📖</div>
+    <h3 style="color:#fff;font-size:1.05rem;font-weight:800;margin-bottom:6px">Bạn đã sở hữu cuốn sách này</h3>
+    <p style="color:#777;font-size:.82rem;margin-bottom:20px">Bạn muốn làm gì tiếp theo?</p>
+    <button onclick="readBookNow()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:14px;font-size:.92rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:10px">📖 Đọc Sách Ngay</button>
+    <button onclick="openBookGift()" style="width:100%;background:rgba(255,215,0,.07);border:1px dashed rgba(255,215,0,.4);color:rgba(255,215,0,.85);border-radius:12px;padding:13px;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit">🎁 Tặng cho Bạn bè / Người thân</button>
+  </div>
+</div>
+<!-- BOOK GIFT MODAL — nhập thông tin người nhận -->
+<div id="book-gift-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3000;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#111;border:1px solid rgba(255,215,0,.22);border-radius:20px;width:100%;max-width:400px;padding:28px;position:relative">
+    <button onclick="closeBookGift()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer;line-height:1">✕</button>
+    <h3 style="color:#FFD700;font-size:1.05rem;font-weight:800;margin-bottom:4px">🎁 Tặng sách cho người thân</h3>
+    <p style="color:#777;font-size:.8rem;margin-bottom:20px">Sách Mật Mã Tự Do · 686.000đ</p>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Email người nhận *</label>
+      <input type="email" id="bg-email" placeholder="email@example.com" oninput="bookGiftValidate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="display:block;font-size:11px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Số điện thoại người nhận *</label>
+      <input type="tel" id="bg-phone" placeholder="09xx xxx xxx" oninput="bookGiftValidate()" style="width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+    </div>
+    <div style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.18);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <span style="color:#888;font-size:13px">Số tiền</span>
+      <b style="color:#FFD700;font-size:18px">686.000đ</b>
+    </div>
+    <button id="bg-pay-btn" onclick="proceedBookGift()" disabled style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:12px;padding:14px;font-size:.92rem;font-weight:800;cursor:pointer;font-family:inherit;opacity:.5">⚡ Tiến hành thanh toán</button>
+    <p style="text-align:center;font-size:11px;color:#555;margin-top:10px;line-height:1.5">Mã kích hoạt tự động gửi tới email người nhận sau thanh toán</p>
   </div>
 </div>
 <!-- CHECKOUT MODAL — Mật Mã Tự Do -->
