@@ -528,7 +528,7 @@ function inappCopyLink(){
 
 <!-- ANNOUNCEMENT BAR -->
 <div class="ann">
-  <span class="ann-title" id="ann-title">MẬT MÃ TỰ DO — Affiliate x AI</span>
+  <span class="ann-title" id="ann-title">MẬT MÃ TỰ DO Tặng Combo 5 chìa khóa</span>
   <span class="ann-dot">·</span>
   <span id="ann-label" data-i18n="ann.ends">Kết thúc sau:</span>
   <span class="ann-timer">
@@ -1142,75 +1142,37 @@ function inappCopyLink(){
 </footer>
 
 <script>
-// Countdown — launch July 1 2027, then rolling 24h sale from July 2
-const LAUNCH     = new Date('2027-07-01T23:59:59');
-const POST_LAUNCH= new Date('2027-07-02T00:00:00');
+// Evergreen countdown — luôn 3 ngày từ lần đầu user vào, tự reset khi hết
 const pad = n => String(n).padStart(2,'0');
 const $   = id => document.getElementById(id);
 
-function setupPostLaunchUI() {
-  // Announcement bar: switch label & hide "ngày"
-  const annTitle = $('ann-title');
-  if (annTitle) annTitle.textContent = 'ƯU ĐÃI RA MẮT — Affiliate x AI';
-  const annLabel = $('ann-label');
-  if (annLabel) annLabel.textContent = 'Kết thúc sau:';
-  const annDW = $('ann-d-wrap');
-  if (annDW) annDW.style.display = 'none';          // hide "XX ngày" in ann bar
-  // Pricing box: relabel units (repurpose NGÀY→GIỜ, GIỜ→PHÚT, PHÚT→GIÂY, hide GIÂY slot)
-  const cdUnits = document.querySelectorAll('.cd-lbl');
-  const labels = ['GIỜ','PHÚT','GIÂY'];
-  cdUnits.forEach((el,i)=>{ if(labels[i]) el.textContent=labels[i]; });
-  const cdSecp = document.querySelectorAll('.cd-unit')[3];
-  if (cdSecp) cdSecp.style.display = 'none';
-  // Pricing label
-  const pcdLbl = document.querySelector('.p-cd-lbl');
-  if (pcdLbl) pcdLbl.textContent = '⏰ Ưu đãi ra mắt kết thúc sau:';
-  // Hero badge
-  const badge = $('hero-badge');
-  if (badge) badge.textContent = '✦ Ưu Đãi Ra Mắt';
-}
-
-function nextMidnight() {
-  const t = new Date();
-  t.setHours(23,59,59,999);
-  return t;
+function getDeadline() {
+  const key = 'mmtd_ev_dl';
+  let dl = parseInt(localStorage.getItem(key) || '0');
+  if (!dl || dl < Date.now()) {
+    dl = Date.now() + 3 * 24 * 60 * 60 * 1000;
+    localStorage.setItem(key, String(dl));
+  }
+  return dl;
 }
 
 function tick() {
-  const now = Date.now();
-  const postLaunch = now >= POST_LAUNCH.getTime();
-  let diff = postLaunch ? (nextMidnight() - now) : (LAUNCH - now);
+  let diff = getDeadline() - Date.now();
   if (diff < 0) diff = 0;
-
-  if (!postLaunch) {
-    /* Pre-launch: show days + hh:mm:ss */
-    const d = Math.floor(diff / 864e5);
-    const h = Math.floor((diff % 864e5) / 36e5);
-    const m = Math.floor((diff % 36e5) / 6e4);
-    const s = Math.floor((diff % 6e4) / 1e3);
-    if($('cd-d')) $('cd-d').textContent=pad(d);
-    if($('cd-h')) $('cd-h').textContent=pad(h);
-    if($('cd-m')) $('cd-m').textContent=pad(m);
-    if($('cd-s')) $('cd-s').textContent=pad(s);
-    if($('an-d')) $('an-d').textContent=pad(d);
-    if($('an-h')) $('an-h').textContent=pad(h);
-    if($('an-m')) $('an-m').textContent=pad(m);
-    if($('an-s')) $('an-s').textContent=pad(s);
-  } else {
-    /* Post-launch: rolling 24h — show hh:mm:ss only */
-    const h = Math.floor(diff / 36e5);
-    const m = Math.floor((diff % 36e5) / 6e4);
-    const s = Math.floor((diff % 6e4) / 1e3);
-    if($('cd-d')) $('cd-d').textContent=pad(h);
-    if($('cd-h')) $('cd-h').textContent=pad(m);
-    if($('cd-m')) $('cd-m').textContent=pad(s);
-    if($('an-h')) $('an-h').textContent=pad(h);
-    if($('an-m')) $('an-m').textContent=pad(m);
-    if($('an-s')) $('an-s').textContent=pad(s);
-  }
+  const d = Math.floor(diff / 864e5);
+  const h = Math.floor((diff % 864e5) / 36e5);
+  const m = Math.floor((diff % 36e5) / 6e4);
+  const s = Math.floor((diff % 6e4) / 1e3);
+  if($('cd-d')) $('cd-d').textContent=pad(d);
+  if($('cd-h')) $('cd-h').textContent=pad(h);
+  if($('cd-m')) $('cd-m').textContent=pad(m);
+  if($('cd-s')) $('cd-s').textContent=pad(s);
+  if($('an-d')) $('an-d').textContent=pad(d);
+  if($('an-h')) $('an-h').textContent=pad(h);
+  if($('an-m')) $('an-m').textContent=pad(m);
+  if($('an-s')) $('an-s').textContent=pad(s);
 }
 
-if (Date.now() >= POST_LAUNCH.getTime()) setupPostLaunchUI();
 tick();
 setInterval(tick, 1000);
 
