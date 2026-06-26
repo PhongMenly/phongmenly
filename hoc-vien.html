@@ -970,20 +970,8 @@ function renderCart(){
         <div><div class="ci-name">${item.product}</div><div class="ci-tier-lbl">${item.tierLabel}</div></div>
         <button class="ci-del" onclick="removeFromCart('${item.payCode}')">Xóa</button>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button onclick="openCartPay('${item.payCode}')" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s">QR Thanh toán</button>
-      </div>
-      <div class="ci-row">
-        <div class="ci-qr"><img src="https://img.vietqr.io/image/${BANK.bin}-${BANK.acc}-compact2.png?amount=${item.amount}&addInfo=${encodeURIComponent('SEVQR '+item.payCode)}&accountName=${encodeURIComponent(BANK.name)}" alt="QR"></div>
-        <div class="ci-info">
-          <div class="ci-amt">${fmt(item.amount)}</div>
-          <div class="ci-ct">Nội dung CK: <b>SEVQR ${item.payCode}</b>
-            <button class="ci-cp" onclick="cartCopy('SEVQR ${item.payCode}')">Sao chép</button>
-          </div>
-          <div class="ci-bank">TK: 105887395942 · VietinBank · LE DANG PHUONG</div>
-          <div class="ci-stt" id="ci-stt-${item.payCode}"><span class="ci-spin"></span> Đang chờ thanh toán…</div>
-        </div>
-      </div>
+      <div class="ci-amt" style="margin-bottom:10px">${fmt(item.amount)}</div>
+      <button onclick="openCartPay('${item.payCode}')" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:10px;padding:12px 14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s">QR Thanh toán</button>
     </div>`).join('');
 }
 
@@ -1240,11 +1228,12 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
     <div class="pay-amount">Số tiền chuyển<b id="cp-amt">—</b></div>
     <div class="qr-wrap"><img id="cp-qr" src="" alt="QR thanh toán"></div>
     <div class="pay-info">
-      Nội dung CK: <b id="cp-content">—</b><span class="copy" onclick="copyCartPay()">Sao chép</span><br>
-      Số TK: <b>105887395942</b> · VietinBank · LE DANG PHUONG
+      <div style="color:#4ADE80;font-weight:700;margin-bottom:6px;font-size:12.5px">✓ Quét QR — nội dung & số tiền tự động điền, <u>không cần sửa</u></div>
+      Số TK: <b>105887395942</b> · VietinBank · LE DANG PHUONG<br>
+      Nội dung CK: <b id="cp-content">—</b>
     </div>
     <div class="pay-status"><span class="pay-spin" id="cp-spin"></span><span id="cp-stt">Đang chờ thanh toán…</span></div>
-    <div class="pay-hint">Mở app ngân hàng → quét QR → giữ nguyên số tiền & nội dung. Hệ thống tự mở khóa khi nhận được tiền.</div>
+    <div class="pay-hint">Mở app ngân hàng → quét QR → xác nhận chuyển tiền. Hệ thống tự mở khóa ngay khi nhận được tiền.</div>
   </div>
 </div>
 
