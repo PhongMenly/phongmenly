@@ -184,7 +184,7 @@ auth.onAuthStateChanged(u=>{
   if(u){ userEmail=u.email; document.getElementById('who').textContent=u.email; document.getElementById('btn-out').classList.remove('hidden'); enterApp(); }
   else { userEmail=null; document.getElementById('gate').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); document.getElementById('btn-out').classList.add('hidden'); document.getElementById('who').textContent=''; }
 });
-function loginGoogle(){ var p=new firebase.auth.GoogleAuthProvider(); if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){ auth.signInWithRedirect(p); return; } auth.signInWithPopup(p).catch(()=>auth.signInWithRedirect(p)); }
+function loginGoogle(){ var p=new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(function(e){ if(e.code==='auth/popup-blocked') auth.signInWithRedirect(p); }); }
 function signOut(){ auth.signOut(); }
 
 async function enterApp(){

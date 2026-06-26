@@ -660,7 +660,6 @@ async function pmSignInGoogle(){
   if(!hvAuth){ alert('Đang tải... thử lại.'); return; }
   const errEl=document.getElementById('pm-google-error'); if(errEl)errEl.textContent='';
   // Mobile: dùng redirect (popup hay bị chặn trên iOS Safari)
-  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){ hvAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); return; }
   try{ await hvAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); pmCloseModal(); }
   catch(e){ if(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'){ if(errEl)errEl.textContent='Popup bị chặn — đang chuyển hướng...'; setTimeout(()=>hvAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()),800); } else if(e.code!=='auth/popup-closed-by-user'){ if(errEl)errEl.textContent='Đăng nhập thất bại. Thử lại.'; } }
 }

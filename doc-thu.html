@@ -2041,9 +2041,8 @@ function gateShowStep(s){
 }
 async function gateGoogle(){
   const p=new firebase.auth.GoogleAuthProvider();
-  // Mobile: dùng redirect (popup hay bị chặn trên iOS Safari)
-  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){ gateAuth.signInWithRedirect(p); return; }
-  try{ await gateAuth.signInWithPopup(p); }catch(e){ console.error(e); }
+  try{ await gateAuth.signInWithPopup(p); }
+  catch(e){ if(e.code==='auth/popup-blocked') gateAuth.signInWithRedirect(p); else console.error(e); }
 }
 async function gateForgot(){
   const email=document.getElementById("gate-login-email").value.trim();

@@ -1445,8 +1445,6 @@ async function pmLogin() {
 async function pmSignInGoogle() {
   if (!pmAuth) { alert('Đang tải... thử lại.'); return; }
   const provider = new firebase.auth.GoogleAuthProvider();
-  // Mobile: dùng redirect (popup hay bị chặn trên iOS Safari)
-  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) { pmAuth.signInWithRedirect(provider); return; }
   const btn = document.querySelector('.pm-btn-google');
   if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
   try {
