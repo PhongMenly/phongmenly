@@ -613,20 +613,12 @@ function hvInit(){
 }
 
 // ── Track reader vào Supabase (giống trang gốc) ──
-const _SB='https://ryhogciybrffiumuawrk.supabase.co';
-const _SK='sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
-const _SH={'Content-Type':'application/json','apikey':_SK,'Authorization':'Bearer '+_SK};
-async function mmtdTrackReader(email,name,isBuyer){
+const _MMTD_WH='https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+async function mmtdTrackReader(email,name){
   if(!email) return;
   try{
-    const res=await fetch(`${_SB}/rest/v1/mmtd_readers?email=eq.${encodeURIComponent(email)}&select=id,visit_count,reader_status`,{headers:_SH});
-    const rows=await res.json();
-    if(rows&&rows.length>0){
-      const row=rows[0];
-      await fetch(`${_SB}/rest/v1/mmtd_readers?id=eq.${row.id}`,{method:'PATCH',headers:_SH,body:JSON.stringify({...(name&&{name}),visit_count:(row.visit_count||0)+1,last_seen:new Date().toISOString(),reader_status:isBuyer?'buyer':(row.reader_status||'reader')})});
-    }else{
-      await fetch(`${_SB}/rest/v1/mmtd_readers`,{method:'POST',headers:{..._SH,'Prefer':'return=minimal'},body:JSON.stringify({email,name:name||email.split('@')[0],visit_count:1,last_seen:new Date().toISOString(),reader_status:isBuyer?'buyer':'reader',referrer:document.referrer||null})});
-    }
+    await fetch(_MMTD_WH,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'reader_login',email,name:name||email.split('@')[0]})});
   }catch(e){ console.warn('[MMTD]',e); }
 }
 
