@@ -224,9 +224,13 @@ a{text-decoration:none;color:inherit}
 .pay-spin{width:15px;height:15px;border:2px solid rgba(255,215,0,.3);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 .pay-hint{text-align:center;font-size:11.5px;color:var(--dim);margin-top:8px;line-height:1.6}
-.pay-add-btn{display:block;width:100%;padding:14px 20px;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s;margin-top:16px}
-.pay-add-btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
-.pay-add-btn:disabled{opacity:.55;pointer-events:none;transform:none}
+.pay-btns{display:flex;gap:10px;margin-top:16px}
+.pay-buy-now{flex:1;padding:13px 10px;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s}
+.pay-buy-now:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.pay-buy-now:disabled{opacity:.55;pointer-events:none}
+.pay-add-cart{flex:1;padding:13px 10px;background:rgba(255,215,0,.1);border:1px solid var(--bdr);color:var(--gold);border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s}
+.pay-add-cart:hover{background:rgba(255,215,0,.2)}
+.pay-add-cart:disabled{opacity:.5;pointer-events:none}
 .pay-cart-hint{text-align:center;font-size:12px;color:var(--dim);margin-top:10px;line-height:1.6}
 
 /* ── GIỎ HÀNG ── */
@@ -254,7 +258,8 @@ a{text-decoration:none;color:inherit}
 .ci-qr{width:96px;flex-shrink:0;background:#fff;border-radius:10px;padding:6px}
 .ci-qr img{width:84px;height:84px;display:block;border-radius:4px}
 .ci-info{flex:1;min-width:0}
-.ci-amt{font-size:22px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:8px}
+.ci-thumb{width:46px;height:58px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--bdr-s)}
+.ci-amt{font-size:22px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:10px}
 .ci-ct{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
 .ci-ct b{color:#fff;word-break:break-all}
 .ci-cp{background:none;border:1px solid var(--bdr);color:var(--gold);border-radius:50px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
@@ -374,7 +379,7 @@ function inappCopyLink(){
         <a href="index.html#pricing">Sản phẩm</a>
         <a href="hoc-vien.html" class="active">Học viện</a>
       </nav>
-      <button class="cart-btn" id="cart-btn" onclick="openCart()">🛒 Giỏ <span class="cart-badge" id="cart-badge">0</span></button>
+      <button class="cart-btn" id="cart-btn" onclick="openCart()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Giỏ hàng <span class="cart-badge" id="cart-badge">0</span></button>
       <div class="top-user" id="top-user">
         <button class="btn-login" id="top-login" onclick="pmOpenModal()">Đăng nhập</button>
         <div class="tu-meta" id="tu-meta" style="display:none">
@@ -779,8 +784,9 @@ function openPay(cid){
   document.getElementById('pay-title').textContent = 'Mở khóa: ' + c.name;
   renderTiers();
   document.getElementById('pay-amt').textContent = fmt(payAmount());
-  const btn = document.getElementById('pay-add-btn');
-  if(btn){ btn.disabled=false; btn.textContent='🛒 Thêm vào giỏ hàng'; }
+  const b1=document.getElementById('pay-buy-now-btn'), b2=document.getElementById('pay-add-btn');
+  if(b1){ b1.disabled=false; b1.textContent='⚡ Mua ngay'; }
+  if(b2){ b2.disabled=false; }
   document.getElementById('pay-modal').classList.add('show');
 }
 function renderTiers(){
@@ -802,8 +808,9 @@ function renderTiers(){
 function setTier(t){
   payTier=t; renderTiers();
   document.getElementById('pay-amt').textContent = fmt(payAmount());
-  const btn = document.getElementById('pay-add-btn');
-  if(btn){ btn.disabled=false; btn.textContent='🛒 Thêm vào giỏ hàng'; }
+  const b1=document.getElementById('pay-buy-now-btn'), b2=document.getElementById('pay-add-btn');
+  if(b1){ b1.disabled=false; b1.textContent='⚡ Mua ngay'; }
+  if(b2){ b2.disabled=false; }
 }
 function payAmount(){ const c=COURSES.find(x=>x.id===payCid),t=TIERS.find(x=>x.code===payTier); return c.base+t.add; }
 function payRefresh(){
@@ -964,15 +971,18 @@ function renderCart(){
     el.innerHTML='<div class="cart-empty"><div class="cart-empty-ico">🛒</div><div>Giỏ hàng trống</div><p style="font-size:12px;margin-top:6px">Chọn combo khóa học để thêm vào giỏ</p></div>';
     return;
   }
-  el.innerHTML = cart.map(item=>`
-    <div class="ci" id="ci-${item.payCode}">
+  el.innerHTML = cart.map(item=>{
+    const thumb = item.img ? `<img class="ci-thumb" src="${item.img}" alt="">` : '';
+    return `<div class="ci" id="ci-${item.payCode}">
       <div class="ci-top">
-        <div><div class="ci-name">${item.product}</div><div class="ci-tier-lbl">${item.tierLabel}</div></div>
+        ${thumb}
+        <div style="flex:1;min-width:0"><div class="ci-name">${item.product}</div><div class="ci-tier-lbl">${item.tierLabel}</div></div>
         <button class="ci-del" onclick="removeFromCart('${item.payCode}')">Xóa</button>
       </div>
-      <div class="ci-amt" style="margin-bottom:10px">${fmt(item.amount)}</div>
-      <button onclick="openCartPay('${item.payCode}')" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:10px;padding:12px 14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s">QR Thanh toán</button>
-    </div>`).join('');
+      <div class="ci-amt">${fmt(item.amount)}</div>
+      <button onclick="openCartPay('${item.payCode}')" style="width:100%;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:10px;padding:12px 14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s;letter-spacing:.3px">Xem QR &amp; Thanh toán</button>
+    </div>`;
+  }).join('');
 }
 
 function cartCopy(text){ try{ navigator.clipboard.writeText(text); }catch(e){} }
@@ -985,23 +995,43 @@ async function addToCart(){
   const uid = (hvAuth.currentUser.email||'').replace(/[^a-zA-Z0-9]/g,'').slice(0,6).toUpperCase();
   const code = ('MAP'+payCid.replace('c','')+payTier+uid).toUpperCase().slice(0,22);
 
-  // Nếu đã có trong giỏ → chỉ mở giỏ
   if(cart.find(x=>x.payCode===code)){ payClose(); setTimeout(openCart,180); return; }
 
   const btn = document.getElementById('pay-add-btn');
-  if(btn){ btn.disabled=true; btn.textContent='Đang thêm…'; }
+  if(btn){ btn.disabled=true; }
+  const b1 = document.getElementById('pay-buy-now-btn');
+  if(b1) b1.disabled=true;
 
-  // Đặt global payCode để createOrder() dùng đúng mã
   payCode = code;
   await createOrder(amt);
 
-  cart.push({ cid:payCid, tier:payTier, amount:amt, payCode:code, product:'Combo: '+c.name, tierLabel:t.label });
+  cart.push({ cid:payCid, tier:payTier, amount:amt, payCode:code, product:'Combo: '+c.name, tierLabel:t.label, img: c.img||'' });
   localStorage.setItem('mmtd_cart', JSON.stringify(cart));
 
   updateCartBtn();
   startCartPoll();
   payClose();
   setTimeout(openCart, 180);
+}
+
+async function buyNow(){
+  if(!hvAuth||!hvAuth.currentUser){ pmOpenModal(); return; }
+  const c = COURSES.find(x=>x.id===payCid);
+  const t = TIERS.find(x=>x.code===payTier);
+  const amt = payAmount();
+  const uid = (hvAuth.currentUser.email||'').replace(/[^a-zA-Z0-9]/g,'').slice(0,6).toUpperCase();
+  payCode = ('MAP'+payCid.replace('c','')+payTier+uid).toUpperCase().slice(0,22);
+
+  const b1 = document.getElementById('pay-buy-now-btn');
+  const b2 = document.getElementById('pay-add-btn');
+  if(b1){ b1.disabled=true; b1.textContent='Đang tạo…'; }
+  if(b2) b2.disabled=true;
+
+  await createOrder(amt);
+
+  const tempItem = { cid:payCid, tier:payTier, amount:amt, payCode, product:'Combo: '+c.name, tierLabel:t.label, img:c.img||'' };
+  payClose();
+  openCartPay(payCode, tempItem);
 }
 
 async function removeFromCart(code){
@@ -1053,8 +1083,8 @@ function grantUnlockQuiet(cid, tier){
 // ── Modal thanh toán QR đầy đủ từ giỏ hàng ──
 let cpPoll = null;
 
-function openCartPay(payCode){
-  const item = cart.find(x=>x.payCode===payCode);
+function openCartPay(payCode, tempItem){
+  const item = tempItem || cart.find(x=>x.payCode===payCode);
   if(!item) return;
   const content = 'SEVQR ' + payCode;
   document.getElementById('cp-title').textContent = item.product;
@@ -1200,11 +1230,14 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
   <div class="pm-modal-box pay-box">
     <button class="pm-modal-close" onclick="payClose()">✕</button>
     <h3 class="pm-modal-title" id="pay-title">Mở khóa combo</h3>
-    <p class="pm-modal-sub">Chọn gói truy cập rồi thêm vào giỏ — quét QR trong giỏ để thanh toán.</p>
+    <p class="pm-modal-sub">Chọn gói phù hợp rồi mua ngay hoặc thêm vào giỏ.</p>
     <div class="tier-row" id="tier-row"></div>
     <div class="pay-amount">Số tiền<b id="pay-amt">—</b></div>
-    <button class="pay-add-btn" id="pay-add-btn" onclick="addToCart()">🛒 Thêm vào giỏ hàng</button>
-    <p class="pay-cart-hint">Sau khi thêm → nhấn <b style="color:var(--gold)">Giỏ</b> trên thanh điều hướng để xem QR và thanh toán.</p>
+    <div class="pay-btns">
+      <button class="pay-buy-now" id="pay-buy-now-btn" onclick="buyNow()">⚡ Mua ngay</button>
+      <button class="pay-add-cart" id="pay-add-btn" onclick="addToCart()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Vào giỏ</button>
+    </div>
+    <p class="pay-cart-hint">⚡ <b>Mua ngay</b> → hiện QR thanh toán ngay · <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg> <b>Vào giỏ</b> → chọn nhiều combo rồi thanh toán sau</p>
   </div>
 </div>
 
