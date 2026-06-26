@@ -774,13 +774,27 @@ function payRefresh(){
   createOrder(amt);
   startPoll();
 }
+function getAff(){
+  // Đọc mmtd_ref từ localStorage (format JSON có hạn) hoặc cookie dự phòng
+  try {
+    const raw = localStorage.getItem('mmtd_ref');
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && p.ref && Date.now() < p.exp) return p.ref;
+      if (p && p.ref) localStorage.removeItem('mmtd_ref');
+    }
+  } catch(e){}
+  const m = document.cookie.match(/(?:^|;\s*)mmtd_ref=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+}
+
 async function createOrder(amt){
   const c = COURSES.find(x=>x.id===payCid);
   try{
     await fetch(MMTD_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({ action:'register', ref:payCode, product:'Combo: '+c.name,
         pkg:payTier, price:amt, name:(hvAuth.currentUser.displayName||''),
-        email:hvAuth.currentUser.email, referrer:document.referrer||'' })});
+        email:hvAuth.currentUser.email, aff:getAff(), referrer:document.referrer||'' })});
   }catch(e){ /* không chặn — QR vẫn dùng được */ }
 }
 function startPoll(){
