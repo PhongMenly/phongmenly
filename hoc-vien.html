@@ -970,6 +970,9 @@ function renderCart(){
         <div><div class="ci-name">${item.product}</div><div class="ci-tier-lbl">${item.tierLabel}</div></div>
         <button class="ci-del" onclick="removeFromCart('${item.payCode}')">Xóa</button>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button onclick="openCartPay('${item.payCode}')" style="flex:1;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s">QR Thanh toán</button>
+      </div>
       <div class="ci-row">
         <div class="ci-qr"><img src="https://img.vietqr.io/image/${BANK.bin}-${BANK.acc}-compact2.png?amount=${item.amount}&addInfo=${encodeURIComponent('SEVQR '+item.payCode)}&accountName=${encodeURIComponent(BANK.name)}" alt="QR"></div>
         <div class="ci-info">
@@ -1054,8 +1057,63 @@ function grantUnlockQuiet(cid, tier){
   localStorage.setItem('unlk_'+cid, JSON.stringify({tier,exp}));
   applyState();
   closeCart();
+  closeCartPay();
   if(new Date() < MMTD_LAUNCH) showLaunchSuccess();
   else location.href = 'bai-hoc.html?c='+cid;
+}
+
+// ── Modal thanh toán QR đầy đủ từ giỏ hàng ──
+let cpPoll = null;
+
+function openCartPay(payCode){
+  const item = cart.find(x=>x.payCode===payCode);
+  if(!item) return;
+  const content = 'SEVQR ' + payCode;
+  document.getElementById('cp-title').textContent = item.product;
+  document.getElementById('cp-sub').textContent = item.tierLabel;
+  document.getElementById('cp-amt').textContent = fmt(item.amount);
+  document.getElementById('cp-content').textContent = content;
+  document.getElementById('cp-qr').src =
+    `https://img.vietqr.io/image/${BANK.bin}-${BANK.acc}-compact2.png?amount=${item.amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(BANK.name)}`;
+  document.getElementById('cp-spin').style.display='';
+  document.getElementById('cp-stt').textContent='Đang chờ thanh toán…';
+  closeCart();
+  document.getElementById('cp-modal').classList.add('show');
+  startCpPoll(item);
+}
+
+function closeCartPay(e){
+  if(!e || e.target===document.getElementById('cp-modal')){
+    document.getElementById('cp-modal').classList.remove('show');
+    if(cpPoll){ clearInterval(cpPoll); cpPoll=null; }
+  }
+}
+
+function copyCartPay(){
+  const txt = document.getElementById('cp-content').textContent;
+  try{ navigator.clipboard.writeText(txt); }catch(e){}
+}
+
+function startCpPoll(item){
+  if(cpPoll) clearInterval(cpPoll);
+  const code=item.payCode, started=Date.now();
+  cpPoll = setInterval(async()=>{
+    if(Date.now()-started > 10*60*1000){ clearInterval(cpPoll); return; }
+    try{
+      const r = await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(code)}`);
+      if(!r.ok) return;
+      const d = await r.json();
+      if(d && d.paid){
+        clearInterval(cpPoll); cpPoll=null;
+        document.getElementById('cp-spin').style.display='none';
+        document.getElementById('cp-stt').textContent='✓ Đã nhận thanh toán — mở khóa!';
+        cart = cart.filter(x=>x.payCode!==code);
+        localStorage.setItem('mmtd_cart', JSON.stringify(cart));
+        updateCartBtn();
+        setTimeout(()=>{ closeCartPay(); grantUnlockQuiet(item.cid, item.tier); }, 900);
+      }
+    }catch(e){}
+  }, 4000);
 }
 
 // Khôi phục entitlement theo email (đã mua combo trước đó, kể cả máy khác)
@@ -1170,6 +1228,23 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
       <button class="cart-x" onclick="closeCart()">✕</button>
     </div>
     <div class="cart-body" id="cart-body"></div>
+  </div>
+</div>
+
+<!-- MODAL: THANH TOÁN TỪ GIỎ HÀNG (full-screen center) -->
+<div class="pm-modal-overlay" id="cp-modal" onclick="closeCartPay(event)">
+  <div class="pm-modal-box pay-box">
+    <button class="pm-modal-close" onclick="closeCartPay()">✕</button>
+    <h3 class="pm-modal-title" id="cp-title">Thanh toán</h3>
+    <p class="pm-modal-sub" id="cp-sub"></p>
+    <div class="pay-amount">Số tiền chuyển<b id="cp-amt">—</b></div>
+    <div class="qr-wrap"><img id="cp-qr" src="" alt="QR thanh toán"></div>
+    <div class="pay-info">
+      Nội dung CK: <b id="cp-content">—</b><span class="copy" onclick="copyCartPay()">Sao chép</span><br>
+      Số TK: <b>105887395942</b> · VietinBank · LE DANG PHUONG
+    </div>
+    <div class="pay-status"><span class="pay-spin" id="cp-spin"></span><span id="cp-stt">Đang chờ thanh toán…</span></div>
+    <div class="pay-hint">Mở app ngân hàng → quét QR → giữ nguyên số tiền & nội dung. Hệ thống tự mở khóa khi nhận được tiền.</div>
   </div>
 </div>
 
