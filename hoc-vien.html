@@ -1830,65 +1830,153 @@ if(typeof hvAuth!=='undefined'&&hvAuth&&typeof rvInit==='function'){
 })();
 </script>
 <!-- ══ REVIEW MODAL (book card) ══ -->
-<div id="hv-rv-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)hvCloseRvModal()">
-  <div style="background:#161616;border:1px solid rgba(255,215,0,.15);border-radius:22px 22px 0 0;width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;animation:hv-rv-up .32s cubic-bezier(.16,1,.3,1)">
-    <style>@keyframes hv-rv-up{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+<style>
+@keyframes hv-rv-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.hv-rv-filter-btn{padding:6px 14px;border-radius:50px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap;flex-shrink:0}
+.hv-rv-filter-btn.on{background:linear-gradient(135deg,#FFD700,#FF9500);border-color:#FFD700;color:#000}
+</style>
+<div id="hv-rv-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)hvCloseRvModal()">
+  <div style="background:#161616;border:1px solid rgba(255,215,0,.15);border-radius:22px 22px 0 0;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;animation:hv-rv-up .32s cubic-bezier(.16,1,.3,1)">
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0">
-      <div>
-        <div style="font-size:10px;font-weight:800;color:#FFD700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Đánh Giá Sách</div>
-        <div id="hv-rv-modal-sum" style="font-size:14px;font-weight:700;color:#fff"></div>
+    <div style="padding:18px 20px 0;flex-shrink:0">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:#FFD700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px">📕 Đánh Giá Sách Mật Mã Tự Do</div>
+          <div id="hv-rv-modal-sum" style="font-size:15px;font-weight:700;color:#fff"></div>
+        </div>
+        <button onclick="hvCloseRvModal()" style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:12px">✕</button>
       </div>
-      <button onclick="hvCloseRvModal()" style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      <!-- Filter tabs -->
+      <div id="hv-rv-filters" style="display:flex;gap:7px;overflow-x:auto;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.07);scrollbar-width:none">
+        <button class="hv-rv-filter-btn on" data-f="all" onclick="hvRvFilter('all')">Tất cả</button>
+        <button class="hv-rv-filter-btn" data-f="5" onclick="hvRvFilter('5')">5 ★</button>
+        <button class="hv-rv-filter-btn" data-f="4" onclick="hvRvFilter('4')">4 ★</button>
+        <button class="hv-rv-filter-btn" data-f="3" onclick="hvRvFilter('3')">3 ★</button>
+        <button class="hv-rv-filter-btn" data-f="2" onclick="hvRvFilter('2')">2 ★</button>
+        <button class="hv-rv-filter-btn" data-f="1" onclick="hvRvFilter('1')">1 ★</button>
+      </div>
     </div>
-    <!-- List -->
-    <div id="hv-rv-modal-list" style="overflow-y:auto;padding:16px 18px 28px;display:flex;flex-direction:column;gap:12px"></div>
-    <!-- Footer: viết đánh giá -->
-    <div style="padding:12px 18px 24px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;text-align:center">
-      <button onclick="hvCloseRvModal();document.getElementById('rv-anchor').scrollIntoView({behavior:'smooth'})" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;padding:11px 28px;border-radius:50px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">✍️ Viết đánh giá của bạn</button>
+    <!-- List (scrollable) -->
+    <div id="hv-rv-modal-list" style="overflow-y:auto;padding:14px 18px 4px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0"></div>
+    <!-- Xem thêm -->
+    <div id="hv-rv-more-wrap" style="display:none;padding:8px 18px 4px;flex-shrink:0">
+      <button onclick="hvRvLoadMore()" id="hv-rv-more-btn" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:11px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s">Xem thêm ↓</button>
+    </div>
+    <!-- Footer -->
+    <div style="padding:12px 18px 28px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;text-align:center;margin-top:8px">
+      <button onclick="hvCloseRvModal();setTimeout(function(){document.getElementById('rv-anchor').scrollIntoView({behavior:'smooth'})},150)" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;padding:12px 30px;border-radius:50px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">✍️ Viết đánh giá của bạn</button>
     </div>
   </div>
 </div>
 
 <script>
-function hvOpenRvModal(){
-  var revs=window._hvAllReviews||[];
-  var modal=document.getElementById('hv-rv-modal');
-  if(!modal) return;
-  // Header summary
-  var sumEl=document.getElementById('hv-rv-modal-sum');
-  if(sumEl && revs.length>0){
-    var avg=revs.reduce(function(s,r){return s+(r.rating||0);},0)/revs.length;
-    var st='';for(var i=1;i<=5;i++)st+=i<=Math.round(avg)?'★':'☆';
-    sumEl.innerHTML='<span style="color:#FFD700;font-weight:900">'+avg.toFixed(1)+'</span> <span style="color:#FFD700;letter-spacing:1px">'+st+'</span> <span style="color:rgba(255,255,255,.45);font-weight:400;font-size:13px">('+revs.length+' đánh giá)</span>';
+(function(){
+  var PAGE=10, _hvFilter='all', _hvPage=1;
+
+  function hvSortRevs(revs){
+    // Nổi bật: có nội dung + helpful cao → lên trên
+    return revs.slice().sort(function(a,b){
+      var aScore=(a.content&&a.content.trim()?2:0)+(a.helpful||0);
+      var bScore=(b.content&&b.content.trim()?2:0)+(b.helpful||0);
+      return bScore-aScore;
+    });
   }
-  // List
-  var listEl=document.getElementById('hv-rv-modal-list');
-  if(listEl){
-    if(revs.length===0){
-      listEl.innerHTML='<div style="text-align:center;padding:36px 20px;color:rgba(255,255,255,.35);font-size:14px">Chưa có đánh giá nào. Hãy là người đầu tiên!</div>';
-    } else {
-      listEl.innerHTML=revs.map(function(r){
-        var ini=(r.displayName||'?')[0].toUpperCase();
-        var av=r.photoURL?'<img style="width:36px;height:36px;border-radius:50%;object-fit:cover" src="'+r.photoURL+'" onerror="this.style.display=\'none\'">':'<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,215,0,.2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#FFD700;flex-shrink:0">'+ini+'</div>';
-        var starsRow='';for(var si=1;si<=5;si++)starsRow+=(si<=(r.rating||0)?'★':'☆');
-        return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 15px">'
-          +'<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">'+av
-          +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+(r.displayName||'Ẩn danh')+'</div>'
-          +'<div style="color:#FFD700;font-size:13px;letter-spacing:1px">'+starsRow+'</div></div></div>'
-          +(r.content?'<div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6">'+r.content.replace(/\n/g,'<br>')+'</div>':'')
-          +'</div>';
-      }).join('');
+
+  function hvFilterRevs(revs){
+    if(_hvFilter==='all') return revs;
+    return revs.filter(function(r){return r.rating===parseInt(_hvFilter);});
+  }
+
+  function hvCardHtml(r){
+    var ini=(r.displayName||'?')[0].toUpperCase();
+    var av=r.photoURL
+      ?'<img style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0" src="'+r.photoURL+'" onerror="this.style.display=\'none\'">'
+      :'<div style="width:38px;height:38px;border-radius:50%;background:rgba(255,215,0,.18);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#FFD700;flex-shrink:0">'+ini+'</div>';
+    var st='';for(var i=1;i<=5;i++)st+=(i<=(r.rating||0)?'<span style="color:#FFD700">★</span>':'<span style="color:#444">★</span>');
+    var hasContent=r.content&&r.content.trim();
+    return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:13px 14px">'
+      +'<div style="display:flex;gap:10px;align-items:center;margin-bottom:'+(hasContent?'9':'0')+'px">'+av
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(r.displayName||'Ẩn danh')+'</div>'
+        +'<div style="font-size:13px;letter-spacing:1px;line-height:1;margin-top:3px">'+st+'</div>'
+      +'</div>'
+      +(r.helpful>0?'<div style="font-size:11px;color:rgba(255,255,255,.35);flex-shrink:0">👍 '+r.helpful+'</div>':'')
+      +'</div>'
+      +(hasContent?'<div style="font-size:13px;color:rgba(255,255,255,.72);line-height:1.65;border-top:1px solid rgba(255,255,255,.06);padding-top:9px">'+r.content.replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</div>'
+        :'<div style="font-size:11.5px;color:rgba(255,255,255,.28);font-style:italic">Chưa để lại nhận xét</div>')
+      +'</div>';
+  }
+
+  function hvRvRender(){
+    var all=window._hvAllReviews||[];
+    var sorted=hvSortRevs(hvFilterRevs(all));
+    var visible=sorted.slice(0,_hvPage*PAGE);
+    var listEl=document.getElementById('hv-rv-modal-list');
+    var moreWrap=document.getElementById('hv-rv-more-wrap');
+    var moreBtn=document.getElementById('hv-rv-more-btn');
+    if(!listEl) return;
+    if(sorted.length===0){
+      listEl.innerHTML='<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.3);font-size:14px">Không có đánh giá nào cho bộ lọc này.</div>';
+      if(moreWrap) moreWrap.style.display='none';
+      return;
     }
+    listEl.innerHTML=visible.map(hvCardHtml).join('');
+    if(moreWrap) moreWrap.style.display=visible.length<sorted.length?'block':'none';
+    if(moreBtn) moreBtn.textContent='Xem thêm '+(sorted.length-visible.length)+' đánh giá ↓';
   }
-  modal.style.display='flex';
-  document.body.style.overflow='hidden';
-}
-function hvCloseRvModal(){
-  var modal=document.getElementById('hv-rv-modal');
-  if(modal) modal.style.display='none';
-  document.body.style.overflow='';
-}
+
+  window.hvRvFilter=function(f){
+    _hvFilter=f; _hvPage=1;
+    document.querySelectorAll('.hv-rv-filter-btn').forEach(function(b){
+      b.classList.toggle('on',b.dataset.f===f);
+    });
+    hvRvRender();
+    var listEl=document.getElementById('hv-rv-modal-list');
+    if(listEl) listEl.scrollTop=0;
+  };
+
+  window.hvRvLoadMore=function(){
+    _hvPage++; hvRvRender();
+  };
+
+  window.hvOpenRvModal=function(){
+    var all=window._hvAllReviews||[];
+    var modal=document.getElementById('hv-rv-modal');
+    if(!modal) return;
+    _hvFilter='all'; _hvPage=1;
+    document.querySelectorAll('.hv-rv-filter-btn').forEach(function(b){b.classList.toggle('on',b.dataset.f==='all');});
+    // Summary header
+    var sumEl=document.getElementById('hv-rv-modal-sum');
+    if(sumEl){
+      if(all.length>0){
+        var avg=all.reduce(function(s,r){return s+(r.rating||0);},0)/all.length;
+        var st='';for(var i=1;i<=5;i++)st+=i<=Math.round(avg)?'★':'☆';
+        var dist={5:0,4:0,3:0,2:0,1:0};
+        all.forEach(function(r){dist[r.rating]=(dist[r.rating]||0)+1;});
+        // Update filter badges with counts
+        document.querySelectorAll('.hv-rv-filter-btn[data-f]').forEach(function(b){
+          var f=b.dataset.f;
+          if(f==='all') b.textContent='Tất cả ('+all.length+')';
+          else if(dist[parseInt(f)]) b.textContent=f+' ★ ('+dist[parseInt(f)]+')';
+        });
+        sumEl.innerHTML='<span style="color:#FFD700;font-size:22px;font-weight:900">'+avg.toFixed(1)+'</span>'
+          +' <span style="color:#FFD700;font-size:16px;letter-spacing:1px">'+st+'</span>'
+          +' <span style="color:rgba(255,255,255,.4);font-size:13px;font-weight:400"> · '+all.length+' đánh giá</span>';
+      } else {
+        sumEl.textContent='Chưa có đánh giá';
+      }
+    }
+    hvRvRender();
+    modal.style.display='flex';
+    document.body.style.overflow='hidden';
+  };
+
+  window.hvCloseRvModal=function(){
+    var modal=document.getElementById('hv-rv-modal');
+    if(modal) modal.style.display='none';
+    document.body.style.overflow='';
+  };
+})();
 </script>
 
 <a class="chat-fab" href="https://zalo.me/0978076936" target="_blank" rel="noopener" title="Nhắn Zalo — hỗ trợ 24/7, rep ngay">
