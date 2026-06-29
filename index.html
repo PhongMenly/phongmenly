@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
 <title>Mật Mã Tự Do — Affiliate AI | Phong Menly</title>
 <meta name="description" content="5 Cánh Cửa Định Mệnh - Làm Chủ Hệ Thống Affiliate x AI - Mở Ra Cánh Cửa Tự Do">
 <meta property="og:type" content="website">
@@ -688,6 +689,28 @@ function inappCopyLink(){
     </div>
   </div>
 </nav>
+
+<!-- TIẾP TỤC ĐỌC BAR -->
+<div id="continue-reading-bar" style="display:none;background:linear-gradient(90deg,rgba(255,215,0,.08),rgba(255,149,0,.08));border-bottom:1px solid rgba(255,215,0,.2);padding:10px 20px;text-align:center">
+  <a id="continue-reading-link" href="doc-sach.html" style="color:#FFD700;font-size:.85rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px">
+    📖 <span>Tiếp tục đọc — trang <span id="continue-reading-page">1</span></span>
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
+</div>
+<script>
+(function(){
+  try{
+    const pos = parseInt(localStorage.getItem('mmtd_book_pos')||'0',10);
+    const unlocked = localStorage.getItem('kh_unlocked')==='1'||localStorage.getItem('book_unlocked')==='1';
+    if(unlocked && pos > 0){
+      const bar = document.getElementById('continue-reading-bar');
+      const pg = document.getElementById('continue-reading-page');
+      if(bar){ bar.style.display='block'; }
+      if(pg){ pg.textContent = Math.ceil(pos/2)+1; }
+    }
+  }catch(e){}
+})();
+</script>
 
 <!-- HERO -->
 <section class="hero">
@@ -2146,6 +2169,16 @@ function mmtdShowQRDirect(){
       email, referrer:document.referrer||'' })
   }).catch(()=>{});
 
+  mmtdStartPoll();
+}
+
+function mmtdStartPoll(){
+  if(mmtdPoll){ clearInterval(mmtdPoll); mmtdPoll=null; }
+  const waiting = document.getElementById('mmtd-waiting');
+  const timeout = document.getElementById('mmtd-poll-timeout');
+  if(waiting) waiting.style.display='flex';
+  if(timeout) timeout.style.display='none';
+  const started = Date.now();
   mmtdPoll = setInterval(async()=>{
     try{
       const r = await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(mmtdRef)}`);
@@ -2159,9 +2192,19 @@ function mmtdShowQRDirect(){
         fetch(MMTD_WEBHOOK,{ method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ action:'order_confirmed', ref:mmtdRef, product:'Mật Mã Tự Do' })
         }).catch(()=>{});
+        return;
       }}
     }catch(e){}
+    if(Date.now()-started > 10*60*1000){
+      clearInterval(mmtdPoll); mmtdPoll=null;
+      if(waiting) waiting.style.display='none';
+      if(timeout) timeout.style.display='block';
+    }
   }, 4000);
+}
+
+function mmtdRetry(){
+  mmtdStartPoll();
 }
 
 function mmtdClose(){
@@ -2239,8 +2282,19 @@ async function proceedBookGift(){
   const qr=`https://img.vietqr.io/image/${MMTD_BANK}-${MMTD_ACC}-compact2.png?amount=${MMTD_PRICE}&addInfo=${encodeURIComponent(mmtdPayContent)}&accountName=${encodeURIComponent(MMTD_HOLDER)}`;
   document.getElementById('mmtd-qr').src=qr;
   document.getElementById('mmtd-ref').textContent=mmtdPayContent;
+  const _giftWaiting=document.getElementById('mmtd-waiting');
+  const _giftTimeout=document.getElementById('mmtd-poll-timeout');
+  if(_giftWaiting) _giftWaiting.style.display='flex';
+  if(_giftTimeout) _giftTimeout.style.display='none';
   if(mmtdPoll) clearInterval(mmtdPoll);
+  const _giftStarted=Date.now();
   mmtdPoll=setInterval(async()=>{
+    if(Date.now()-_giftStarted>10*60*1000){
+      clearInterval(mmtdPoll); mmtdPoll=null;
+      if(_giftWaiting) _giftWaiting.style.display='none';
+      if(_giftTimeout) _giftTimeout.style.display='block';
+      return;
+    }
     try{
       const r=await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(giftOrderCode)}`);
       if(r.ok){ const d=await r.json(); if(d?.paid){
@@ -2292,22 +2346,7 @@ function mmtdSubmit(e){
       email: _userEmail, referrer:document.referrer||'' })
   }).catch(()=>{});
 
-  mmtdPoll = setInterval(async()=>{
-    try{
-      const r = await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(mmtdRef)}`);
-      if(r.ok){ const d=await r.json(); if(d?.paid){
-        clearInterval(mmtdPoll); mmtdPoll=null;
-        localStorage.setItem('kh_unlocked','1');
-        updateBuyButton();
-        document.getElementById('mmtd-step-qr').style.display='none';
-        document.getElementById('mmtd-step-ok').style.display='block';
-        mmtdShowOkScreen();
-        fetch(MMTD_WEBHOOK,{ method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ action:'order_confirmed', ref:mmtdRef, product:'Mật Mã Tự Do' })
-        }).catch(()=>{});
-      }}
-    }catch(e){}
-  }, 4000);
+  mmtdStartPoll();
 }
 
 function mmtdCopyRef(){
@@ -2457,9 +2496,13 @@ document.addEventListener('DOMContentLoaded',()=>{
           <strong id="mmtd-ref" style="color:#FFD700;letter-spacing:.5px;font-family:monospace"></strong>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:.8rem;color:#A1A1AA;margin-bottom:16px">
+      <div id="mmtd-waiting" style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:.8rem;color:#A1A1AA;margin-bottom:16px">
         <div style="width:8px;height:8px;background:#FFD700;border-radius:50%;animation:pulse-dot 1.2s ease infinite"></div>
         Đang chờ xác nhận thanh toán...
+      </div>
+      <div id="mmtd-poll-timeout" style="display:none;margin-bottom:16px">
+        <p style="font-size:.82rem;color:#A1A1AA;margin-bottom:10px">Chưa nhận được xác nhận.<br>Nếu bạn đã chuyển khoản, hãy thử kiểm tra lại:</p>
+        <button onclick="mmtdRetry()" style="background:linear-gradient(135deg,#FFD700,#FF9500);border:none;border-radius:10px;padding:10px 24px;color:#000;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px">🔄 Kiểm tra lại</button>
       </div>
       <button onclick="mmtdClose()" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 24px;color:#A1A1AA;font-size:.82rem;cursor:pointer;font-family:inherit">Quay lại sau</button>
     </div>
