@@ -1713,11 +1713,17 @@ function loadAll(){
     var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;
     if(sumEl)sumEl.innerHTML=summaryHTML(all);
     if(listEl)renderList(listEl,_all,_user&&_user.uid);
+    window._hvAllReviews=all;
     if(all.length>0){
       var avg=all.reduce(function(s,r){return s+(r.rating||0);},0)/all.length;
       var st='';for(var si=1;si<=5;si++)st+=si<=Math.round(avg)?'★':'☆';
       var mini=document.getElementById('book-rv-mini');
-      if(mini){mini.innerHTML='<span class="pc-rv-mini-avg">'+avg.toFixed(1)+'</span><span class="pc-rv-mini-stars">'+st+'</span><span class="pc-rv-mini-cnt">('+all.length+' đánh giá)</span>';mini.style.display='flex';}
+      if(mini){
+        mini.innerHTML='<span class="pc-rv-mini-avg">'+avg.toFixed(1)+'</span><span class="pc-rv-mini-stars">'+st+'</span><span class="pc-rv-mini-cnt">('+all.length+' đánh giá) ›</span>';
+        mini.style.display='flex';
+        mini.style.cursor='pointer';
+        mini.onclick=function(e){e.preventDefault();e.stopPropagation();hvOpenRvModal();};
+      }
     }
   }).catch(function(e){
     console.error('rv:',e);
@@ -1823,6 +1829,68 @@ if(typeof hvAuth!=='undefined'&&hvAuth&&typeof rvInit==='function'){
 }
 })();
 </script>
+<!-- ══ REVIEW MODAL (book card) ══ -->
+<div id="hv-rv-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)hvCloseRvModal()">
+  <div style="background:#161616;border:1px solid rgba(255,215,0,.15);border-radius:22px 22px 0 0;width:100%;max-width:560px;max-height:85vh;display:flex;flex-direction:column;animation:hv-rv-up .32s cubic-bezier(.16,1,.3,1)">
+    <style>@keyframes hv-rv-up{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0">
+      <div>
+        <div style="font-size:10px;font-weight:800;color:#FFD700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Đánh Giá Sách</div>
+        <div id="hv-rv-modal-sum" style="font-size:14px;font-weight:700;color:#fff"></div>
+      </div>
+      <button onclick="hvCloseRvModal()" style="background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+    </div>
+    <!-- List -->
+    <div id="hv-rv-modal-list" style="overflow-y:auto;padding:16px 18px 28px;display:flex;flex-direction:column;gap:12px"></div>
+    <!-- Footer: viết đánh giá -->
+    <div style="padding:12px 18px 24px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;text-align:center">
+      <button onclick="hvCloseRvModal();document.getElementById('rv-anchor').scrollIntoView({behavior:'smooth'})" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;padding:11px 28px;border-radius:50px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit">✍️ Viết đánh giá của bạn</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function hvOpenRvModal(){
+  var revs=window._hvAllReviews||[];
+  var modal=document.getElementById('hv-rv-modal');
+  if(!modal) return;
+  // Header summary
+  var sumEl=document.getElementById('hv-rv-modal-sum');
+  if(sumEl && revs.length>0){
+    var avg=revs.reduce(function(s,r){return s+(r.rating||0);},0)/revs.length;
+    var st='';for(var i=1;i<=5;i++)st+=i<=Math.round(avg)?'★':'☆';
+    sumEl.innerHTML='<span style="color:#FFD700;font-weight:900">'+avg.toFixed(1)+'</span> <span style="color:#FFD700;letter-spacing:1px">'+st+'</span> <span style="color:rgba(255,255,255,.45);font-weight:400;font-size:13px">('+revs.length+' đánh giá)</span>';
+  }
+  // List
+  var listEl=document.getElementById('hv-rv-modal-list');
+  if(listEl){
+    if(revs.length===0){
+      listEl.innerHTML='<div style="text-align:center;padding:36px 20px;color:rgba(255,255,255,.35);font-size:14px">Chưa có đánh giá nào. Hãy là người đầu tiên!</div>';
+    } else {
+      listEl.innerHTML=revs.map(function(r){
+        var ini=(r.displayName||'?')[0].toUpperCase();
+        var av=r.photoURL?'<img style="width:36px;height:36px;border-radius:50%;object-fit:cover" src="'+r.photoURL+'" onerror="this.style.display=\'none\'">':'<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,215,0,.2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#FFD700;flex-shrink:0">'+ini+'</div>';
+        var starsRow='';for(var si=1;si<=5;si++)starsRow+=(si<=(r.rating||0)?'★':'☆');
+        return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 15px">'
+          +'<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">'+av
+          +'<div><div style="font-size:13px;font-weight:700;color:#fff">'+(r.displayName||'Ẩn danh')+'</div>'
+          +'<div style="color:#FFD700;font-size:13px;letter-spacing:1px">'+starsRow+'</div></div></div>'
+          +(r.content?'<div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.6">'+r.content.replace(/\n/g,'<br>')+'</div>':'')
+          +'</div>';
+      }).join('');
+    }
+  }
+  modal.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function hvCloseRvModal(){
+  var modal=document.getElementById('hv-rv-modal');
+  if(modal) modal.style.display='none';
+  document.body.style.overflow='';
+}
+</script>
+
 <a class="chat-fab" href="https://zalo.me/0978076936" target="_blank" rel="noopener" title="Nhắn Zalo — hỗ trợ 24/7, rep ngay">
   <svg viewBox="0 0 48 48" width="32" height="32"><path fill="#fff" d="M24 4C12.4 4 3 12.5 3 23c0 5.9 3 11.2 7.7 14.7-.2 1.6-.9 4-2.6 6.3-.4.5 0 1.2.6 1.1 3.6-.6 6.4-2 8.3-3.3 2.2.6 4.6.9 7 .9 11.6 0 21-8.5 21-19S35.6 4 24 4z"/><text x="24" y="29" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#0068FF" text-anchor="middle">Zalo</text></svg>
 </a>
