@@ -502,6 +502,7 @@ function inappCopyLink(){
         <a href="index.html">Trang chủ</a>
         <a href="index.html#pricing">Sản phẩm</a>
         <a href="hoc-vien.html" class="active">Học viện</a>
+        <a href="affiliate.html">Đối tác</a>
       </nav>
       <button class="gift-act-btn-top" id="gift-act-btn-top" onclick="openGiftActModal()">🎁 Kích hoạt quà</button>
       <button class="cart-btn" id="cart-btn" onclick="openCart()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Giỏ hàng <span class="cart-badge" id="cart-badge">0</span></button>
@@ -1456,8 +1457,8 @@ function grantUnlockQuiet(cid, tier){
   applyState();
   closeCart();
   closeCartPay();
-  if(new Date() < MMTD_LAUNCH) showLaunchSuccess();
-  else location.href = 'bai-hoc.html?c='+cid;
+  if(new Date() < MMTD_LAUNCH) showLaunchSuccess(cid);
+  else showUnlockSuccess(cid);
 }
 
 // ── Modal thanh toán QR đầy đủ từ giỏ hàng ──

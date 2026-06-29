@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chương Trình Đối Tác — Mật Mã Tự Do</title>
+<meta name="description" content="Kiếm hoa hồng khi giới thiệu Mật Mã Tự Do. Đăng nhập để lấy link affiliate cá nhân.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080808;--bg-s:#0d0d0d;--card:#111;--card-h:#181818;
+  --gold:#FFD700;--gold-l:#FFE566;--gold-d:rgba(255,215,0,.12);
+  --org:#FF7B00;--grn:#4ADE80;--blue:#0068FF;
+  --txt:#fff;--muted:#A1A1AA;--dim:#52525B;
+  --bdr:rgba(255,215,0,.22);--bdr-s:rgba(255,255,255,.07);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;min-height:100vh}
+a{text-decoration:none;color:inherit}
+img{max-width:100%;display:block}
+.tgold{color:var(--gold)}
+
+/* TOPBAR */
+.topbar{height:62px;border-bottom:1px solid var(--bdr-s);background:rgba(8,8,8,.95);backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px}
+.tb-logo{font-family:'Dancing Script',cursive;font-size:26px;font-weight:700;color:#fff;letter-spacing:.5px}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-links{display:flex;gap:6px}
+.tb-links a{color:var(--muted);font-size:13px;font-weight:600;padding:7px 12px;border-radius:7px;transition:.18s}
+.tb-links a:hover{background:rgba(255,255,255,.06);color:#fff}
+.btn-login{background:var(--gold);color:#000;border:none;padding:9px 20px;border-radius:50px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-login:hover{background:var(--gold-l)}
+.user-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid var(--bdr-s);border-radius:50px;padding:6px 16px 6px 8px}
+.user-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#000;flex-shrink:0}
+.user-av img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.user-name{font-size:13px;font-weight:700;color:#fff;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-out{background:none;border:1px solid rgba(255,255,255,.12);color:var(--muted);border-radius:50px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.18s}
+.btn-out:hover{border-color:rgba(255,100,100,.4);color:#f87171}
+
+/* GATE */
+.gate-wrap{max-width:460px;margin:80px auto;padding:0 20px;text-align:center}
+.gate-logo{font-size:48px;margin-bottom:16px}
+.gate-h{font-size:22px;font-weight:900;margin-bottom:8px}
+.gate-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:32px}
+.gate-box{background:var(--card);border:1px solid var(--bdr-s);border-radius:20px;padding:30px 26px}
+.btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#111;border:none;border-radius:12px;padding:14px 20px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-google:hover{background:#f0f0f0;transform:translateY(-1px)}
+.divider{display:flex;align-items:center;gap:14px;margin:18px 0;color:var(--dim);font-size:12px;font-weight:600}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bdr-s)}
+.gate-input{width:100%;background:#0d0d0d;border:1px solid var(--bdr-s);border-radius:10px;padding:12px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:.2s;margin-bottom:10px}
+.gate-input:focus{border-color:var(--gold)}
+.btn-submit{width:100%;background:linear-gradient(135deg,var(--gold),var(--org));color:#000;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-submit:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.gate-err{font-size:12px;color:#f87171;min-height:18px;text-align:center;margin:-4px 0 8px}
+.gate-switch{font-size:13px;color:var(--muted);margin-top:14px}
+.gate-switch span{color:var(--gold);cursor:pointer;font-weight:700}
+.gate-switch span:hover{text-decoration:underline}
+
+/* MAIN APP */
+.app-wrap{max-width:900px;margin:0 auto;padding:40px 20px 80px}
+.section{margin-bottom:40px}
+.sec-h{font-size:13px;font-weight:800;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* LINK CARD */
+.link-card{background:linear-gradient(135deg,#15110a,#1d1500);border:1.5px solid var(--bdr);border-radius:20px;padding:28px 26px}
+.lc-h{font-size:20px;font-weight:900;margin-bottom:6px}
+.lc-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.7}
+.link-box{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.4);border:1px solid var(--bdr);border-radius:12px;padding:12px 16px;margin-bottom:14px}
+.link-url{flex:1;font-size:13px;color:var(--gold);font-family:monospace;word-break:break-all;line-height:1.4}
+.btn-copy{background:var(--gold);color:#000;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.2s;flex-shrink:0}
+.btn-copy:hover{background:var(--gold-l)}
+.share-row{display:flex;gap:10px;flex-wrap:wrap}
+.share-btn{display:flex;align-items:center;gap:7px;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;text-decoration:none}
+.share-btn.fb{background:rgba(24,119,242,.15);color:#60a5fa;border:1px solid rgba(24,119,242,.3)}
+.share-btn.fb:hover{background:rgba(24,119,242,.25)}
+.share-btn.za{background:rgba(0,104,255,.15);color:#93c5fd;border:1px solid rgba(0,104,255,.3)}
+.share-btn.za:hover{background:rgba(0,104,255,.25)}
+.share-btn.cp{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid var(--bdr-s)}
+.share-btn.cp:hover{background:rgba(255,255,255,.13);color:#fff}
+.share-btn.tt{background:rgba(0,0,0,.3);color:#fff;border:1px solid rgba(255,255,255,.14)}
+.share-btn.tt:hover{background:rgba(255,255,255,.07)}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:560px){.stats-grid{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;padding:20px 18px;text-align:center}
+.stat-val{font-size:28px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:4px}
+.stat-lbl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+
+/* COMMISSION TABLE */
+.comm-table{width:100%;border-collapse:collapse}
+.comm-table th{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:1px;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--bdr-s)}
+.comm-table td{font-size:13.5px;padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04)}
+.comm-table tr:last-child td{border-bottom:none}
+.comm-table td:last-child{font-weight:800;color:var(--gold);text-align:right}
+.badge-tier{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:50px;border:1px solid var(--bdr);color:var(--gold);background:var(--gold-d)}
+
+/* HOW-TO STEPS */
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:18px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--bdr-s)}
+.step:last-child{border-bottom:none}
+.step-num{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--org));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;flex-shrink:0}
+.step-body h4{font-size:15px;font-weight:800;margin-bottom:4px}
+.step-body p{font-size:13px;color:var(--muted);line-height:1.65}
+
+/* CAPTION KIT */
+.caption-box{background:var(--card);border:1px solid var(--bdr-s);border-radius:14px;padding:18px 20px;position:relative}
+.caption-box pre{font-family:inherit;font-size:13px;color:var(--muted);line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.caption-box .ref-ph{color:var(--gold);font-weight:700}
+.caption-copy{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.07);border:1px solid var(--bdr-s);border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit;transition:.18s}
+.caption-copy:hover{background:rgba(255,215,0,.1);color:var(--gold);border-color:var(--bdr)}
+
+/* NOTICE */
+.notice{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:12px;padding:14px 18px;font-size:13px;color:var(--muted);line-height:1.7}
+.notice b{color:#fff}
+
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;align-items:center;justify-content:center;padding:16px}
+.modal-ov.show{display:flex}
+.modal-box{background:#111;border:1px solid var(--bdr-s);border-radius:20px;max-width:420px;width:100%;padding:32px 28px;position:relative}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer}
+.modal-close:hover{color:#fff}
+.modal-h{font-size:18px;font-weight:900;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+
+/* LOADING */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.05) 25%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.05) 75%);background-size:200% 100%;animation:sk 1.4s infinite;border-radius:8px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+@media(max-width:600px){
+  .app-wrap{padding:24px 14px 60px}
+  .link-card{padding:20px 16px}
+  .topbar{padding:0 16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <a href="index.html" class="tb-logo">Mật Mã</a>
+  <div class="tb-right">
+    <div class="tb-links">
+      <a href="index.html">Trang chủ</a>
+      <a href="hoc-vien.html">Học Viện</a>
+    </div>
+    <div id="user-area" style="display:none" class="user-chip">
+      <div class="user-av" id="user-av-ph"></div>
+      <span class="user-name" id="user-name-txt"></span>
+      <button class="btn-out" onclick="affSignOut()">Đăng xuất</button>
+    </div>
+    <button class="btn-login" id="btn-login-top" onclick="showLoginModal()" style="display:none">Đăng nhập</button>
+  </div>
+</header>
+
+<!-- GATE (before login) -->
+<div id="gate-section" style="display:none">
+  <div class="gate-wrap">
+    <div class="gate-logo">🤝</div>
+    <h1 class="gate-h">Chương Trình Đối Tác</h1>
+    <p class="gate-sub">Kiếm hoa hồng khi giới thiệu <strong>Mật Mã Tự Do</strong> đến cộng đồng của bạn.<br>Đăng nhập để lấy link affiliate cá nhân.</p>
+    <div class="gate-box">
+      <button class="btn-google" onclick="affSignInGoogle()">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Tiếp tục với Google
+      </button>
+      <div id="gate-google-err" class="gate-err"></div>
+      <div class="divider"><span>hoặc</span></div>
+      <div id="gate-login-form">
+        <input class="gate-input" type="email" id="gate-email" placeholder="Email...">
+        <input class="gate-input" type="password" id="gate-pass" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')affEmailLogin()">
+        <div id="gate-err" class="gate-err"></div>
+        <button class="btn-submit" onclick="affEmailLogin()">Đăng nhập</button>
+        <p class="gate-switch">Chưa có tài khoản? <span onclick="toggleGateMode('register')">Đăng ký</span></p>
+      </div>
+      <div id="gate-register-form" style="display:none">
+        <input class="gate-input" type="text" id="gate-name" placeholder="Họ và tên...">
+        <input class="gate-input" type="email" id="gate-reg-email" placeholder="Email...">
+        <input class="gate-input" type="password" id="gate-reg-pass" placeholder="Mật khẩu (ít nhất 6 ký tự)..." onkeydown="if(event.key==='Enter')affEmailRegister()">
+        <div id="gate-reg-err" class="gate-err"></div>
+        <button class="btn-submit" onclick="affEmailRegister()">Đăng ký</button>
+        <p class="gate-switch">Đã có tài khoản? <span onclick="toggleGateMode('login')">Đăng nhập</span></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING STATE -->
+<div id="loading-section" style="padding:100px 20px;text-align:center">
+  <div style="width:40px;height:40px;border:3px solid rgba(255,215,0,.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px"></div>
+  <p style="color:var(--muted);font-size:14px">Đang tải...</p>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<!-- MAIN APP -->
+<div id="app-section" style="display:none">
+<div class="app-wrap">
+
+  <!-- LINK AFFILIATE -->
+  <div class="section">
+    <div class="link-card">
+      <h2 class="lc-h">🔗 Link Affiliate Của Bạn</h2>
+      <p class="lc-sub">Chia sẻ link này. Mỗi khi ai đó mua qua link của bạn trong vòng <strong>45 ngày</strong>, bạn nhận hoa hồng tự động.</p>
+      <div class="link-box">
+        <span class="link-url" id="aff-link-display">Đang tải...</span>
+        <button class="btn-copy" id="btn-copy-link" onclick="copyAffLink()">Sao chép</button>
+      </div>
+      <div class="share-row">
+        <a id="share-fb" href="#" target="_blank" rel="noopener" class="share-btn fb" onclick="return shareFB()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.27h3.32l-.53 3.49h-2.79V24C19.61 23.1 24 18.1 24 12.07z"/></svg>
+          Facebook
+        </a>
+        <a id="share-za" href="#" target="_blank" rel="noopener" class="share-btn za">
+          <svg width="16" height="16" viewBox="0 0 48 48" fill="currentColor"><path d="M24 4C12.4 4 3 12.5 3 23c0 5.9 3 11.2 7.7 14.7-.2 1.6-.9 4-2.6 6.3-.4.5 0 1.2.6 1.1 3.6-.6 6.4-2 8.3-3.3 2.2.6 4.6.9 7 .9 11.6 0 21-8.5 21-19S35.6 4 24 4z"/></svg>
+          Zalo
+        </a>
+        <a id="share-tt" href="#" target="_blank" rel="noopener" class="share-btn tt">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
+          TikTok
+        </a>
+        <button class="share-btn cp" onclick="copyAffCaption()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy caption
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="section">
+    <div class="sec-h">📊 Thống kê của bạn</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-clicks">—</div>
+        <div class="stat-lbl">Lượt click</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-orders">—</div>
+        <div class="stat-lbl">Đơn hàng</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-commission">—</div>
+        <div class="stat-lbl">Hoa hồng</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--dim);margin-top:10px">* Thống kê cập nhật mỗi ngày. Hoa hồng được thanh toán qua chuyển khoản vào đầu tháng.</p>
+  </div>
+
+  <!-- HOA HỒNG -->
+  <div class="section">
+    <div class="sec-h">💰 Cơ cấu hoa hồng</div>
+    <div style="background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;overflow:hidden">
+      <table class="comm-table">
+        <thead>
+          <tr>
+            <th>Sản phẩm</th>
+            <th>Giá bán</th>
+            <th style="text-align:right">Hoa hồng bạn nhận</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge-tier">SÁCH</span><br><span style="font-weight:700;margin-top:4px;display:block">Mật Mã Tự Do</span></td>
+            <td style="color:var(--muted)">686.000đ</td>
+            <td><span style="font-size:18px">205.800đ</span><br><span style="font-size:11px;color:var(--muted)">30% / đơn</span></td>
+          </tr>
+          <tr>
+            <td><span class="badge-tier">COMBO</span><br><span style="font-weight:700;margin-top:4px;display:block">Sách + 5 Khóa học</span></td>
+            <td style="color:var(--muted)">Tùy gói</td>
+            <td><span style="font-size:18px;color:var(--grn)">30%</span><br><span style="font-size:11px;color:var(--muted)">/ đơn</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="notice" style="margin-top:14px">
+      <b>Cookie 45 ngày:</b> Ai click link của bạn, dù chưa mua ngay, vẫn được ghi nhận trong 45 ngày kể từ lần click đầu tiên. Nếu họ quay lại mua sau 3 tuần — hoa hồng vẫn về bạn.
+    </div>
+  </div>
+
+  <!-- CÁCH LÀM -->
+  <div class="section">
+    <div class="sec-h">🚀 Bắt đầu trong 3 bước</div>
+    <div style="background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;padding:4px 20px">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Sao chép link affiliate của bạn</h4>
+            <p>Link đã chứa mã của bạn. Mỗi người bấm vào link đó — hệ thống tự động ghi nhận trong 45 ngày.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Chia sẻ đúng đối tượng</h4>
+            <p>Facebook, Zalo group, TikTok, YouTube, email newsletter — bất kỳ kênh nào bạn có. Không cần chạy ads.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Nhận hoa hồng tự động</h4>
+            <p>Khi có đơn hàng qua link của bạn, hệ thống ghi nhận ngay. Hoa hồng thanh toán qua CK vào đầu tháng sau.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPTION MẪU -->
+  <div class="section">
+    <div class="sec-h">✍️ Caption mẫu để share</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+
+      <div class="caption-box">
+        <button class="caption-copy" onclick="copyCaption(this)">Copy</button>
+        <pre id="cap1"></pre>
+      </div>
+
+      <div class="caption-box">
+        <button class="caption-copy" onclick="copyCaption(this)">Copy</button>
+        <pre id="cap2"></pre>
+      </div>
+
+      <div class="caption-box">
+        <button class="caption-copy" onclick="copyCaption(this)">Copy</button>
+        <pre id="cap3"></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HỖ TRỢ -->
+  <div class="section">
+    <div class="sec-h">💬 Hỗ trợ đối tác</div>
+    <div style="background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+      <div>
+        <p style="font-size:14px;font-weight:700;margin-bottom:4px">Gặp vướng mắc hoặc muốn hỏi về hoa hồng?</p>
+        <p style="font-size:13px;color:var(--muted)">Nhắn Zalo trực tiếp — đội ngũ phản hồi trong ngày.</p>
+      </div>
+      <a href="https://zalo.me/0978076936" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:#0068FF;color:#fff;border-radius:50px;padding:11px 22px;font-size:14px;font-weight:800;text-decoration:none;white-space:nowrap;flex-shrink:0">
+        🔵 Nhắn Zalo ngay
+      </a>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- MODAL LOGIN (topbar) -->
+<div class="modal-ov" id="login-modal" onclick="if(event.target===this)closeLoginModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeLoginModal()">✕</button>
+    <h3 class="modal-h">Đăng nhập</h3>
+    <p class="modal-sub">Dùng tài khoản Google hoặc Email để vào trang đối tác.</p>
+    <button class="btn-google" onclick="affSignInGoogle()">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Tiếp tục với Google
+    </button>
+  </div>
+</div>
+
+<!-- ZALO CHAT FAB -->
+<a class="chat-fab" href="https://zalo.me/0978076936" target="_blank" rel="noopener" title="Nhắn Zalo — hỗ trợ đối tác" style="position:fixed;right:22px;bottom:22px;z-index:8000;width:54px;height:54px;border-radius:50%;background:#0068FF;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,104,255,.45)">
+  <svg viewBox="0 0 48 48" width="30" height="30"><path fill="#fff" d="M24 4C12.4 4 3 12.5 3 23c0 5.9 3 11.2 7.7 14.7-.2 1.6-.9 4-2.6 6.3-.4.5 0 1.2.6 1.1 3.6-.6 6.4-2 8.3-3.3 2.2.6 4.6.9 7 .9 11.6 0 21-8.5 21-19S35.6 4 24 4z"/><text x="24" y="29" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#0068FF" text-anchor="middle">Zalo</text></svg>
+</a>
+
+<script>
+const AFF_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB5p0tjfsAVUaHzCrmFkAzMiwAsjiOwGc8",
+  authDomain: "phongmenlyproduct-37e44.firebaseapp.com",
+  projectId: "phongmenlyproduct-37e44",
+  storageBucket: "phongmenlyproduct-37e44.firebasestorage.app",
+  messagingSenderId: "322407876187",
+  appId: "1:322407876187:web:fca389d542c409dbeca17e"
+};
+const MMTD_WEBHOOK = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+const BASE_URL = 'https://phongmenlyai.com';
+
+let affAuth = null;
+let affUser = null;
+let affCode = '';
+
+// ── FIREBASE INIT ──
+(function(){
+  if(!firebase.apps.length) firebase.initializeApp(AFF_FIREBASE_CONFIG);
+  affAuth = firebase.auth();
+
+  affAuth.getRedirectResult().then(r=>{
+    if(r && r.user) enterApp(r.user);
+  }).catch(e=>{ console.warn('[aff redirect]',e); });
+
+  affAuth.onAuthStateChanged(user=>{
+    if(user){ enterApp(user); }
+    else { showGate(); }
+  });
+})();
+
+function showGate(){
+  document.getElementById('loading-section').style.display = 'none';
+  document.getElementById('app-section').style.display = 'none';
+  document.getElementById('gate-section').style.display = 'block';
+  document.getElementById('btn-login-top').style.display = 'block';
+  document.getElementById('user-area').style.display = 'none';
+}
+
+function enterApp(user){
+  affUser = user;
+  document.getElementById('loading-section').style.display = 'none';
+  document.getElementById('gate-section').style.display = 'none';
+  document.getElementById('app-section').style.display = 'block';
+  document.getElementById('btn-login-top').style.display = 'none';
+  document.getElementById('user-area').style.display = 'flex';
+
+  // Topbar user chip
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('user-name-txt').textContent = name;
+  const avPh = document.getElementById('user-av-ph');
+  if(user.photoURL){
+    avPh.innerHTML = `<img src="${user.photoURL}" alt="${name}">`;
+  } else {
+    avPh.textContent = name.charAt(0).toUpperCase();
+  }
+
+  // Affiliate code = email prefix (lowercase, alphanumeric only, max 20 chars)
+  affCode = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,20);
+  if(!affCode) affCode = 'user' + Date.now().toString(36).slice(-4);
+
+  const link = `${BASE_URL}?ref=${affCode}`;
+  document.getElementById('aff-link-display').textContent = link;
+
+  // Share links
+  const msg = encodeURIComponent(`Mình đang đọc cuốn sách này — thực chiến về Affiliate × AI. Nếu bạn muốn xây dòng tiền online mà không cần vốn lớn, đọc thử nhé:\n${link}`);
+  document.getElementById('share-za').href = `https://zalo.me/share/link?url=${encodeURIComponent(link)}&title=${encodeURIComponent('Mật Mã Tự Do — Affiliate AI')}`;
+  document.getElementById('share-tt').href = `https://www.tiktok.com/?share_url=${encodeURIComponent(link)}`;
+
+  // Captions
+  fillCaptions(link, name, affCode);
+
+  // Load stats
+  loadStats(affCode);
+}
+
+function fillCaptions(link, name, code){
+  document.getElementById('cap1').innerHTML =
+    `Mình vừa đọc xong <span class="ref-ph">"Mật Mã Tự Do"</span> — cuốn sách về Affiliate × AI thực chiến nhất mình từng đọc.\n\nNếu bạn đang muốn xây dòng thu nhập online không cần vốn lớn, không cần kinh nghiệm — đây là nơi bắt đầu đúng nhất.\n\n👉 Xem ngay: <span class="ref-ph">${link}</span>`;
+  document.getElementById('cap2').innerHTML =
+    `AI đang thay đổi mọi thứ — kể cả cách kiếm tiền online.\n\nCuốn sách này dạy bạn cách kết hợp Affiliate Marketing và AI để tạo ra hệ thống tự chạy — ngay cả khi bạn đang ngủ.\n\n📖 Link đọc thử miễn phí: <span class="ref-ph">${link}</span>`;
+  document.getElementById('cap3').innerHTML =
+    `Tôi đã mất 3 năm mày mò affiliate trước khi hiểu ra điều này: vấn đề không phải là thiếu kỹ năng — mà là thiếu hệ thống.\n\n"Mật Mã Tự Do" giải quyết đúng chỗ đó. Thực chiến, không lý thuyết.\n\n🔗 <span class="ref-ph">${link}</span>`;
+}
+
+async function loadStats(code){
+  try{
+    const r = await fetch(`${MMTD_WEBHOOK}?aff_stats=${encodeURIComponent(code)}`);
+    if(!r.ok) return;
+    const d = await r.json();
+    if(d && typeof d.clicks === 'number'){
+      document.getElementById('stat-clicks').textContent = d.clicks.toLocaleString('vi-VN');
+      document.getElementById('stat-orders').textContent = (d.orders||0).toLocaleString('vi-VN');
+      const comm = (d.orders||0) * 205800;
+      document.getElementById('stat-commission').textContent = comm > 0 ? comm.toLocaleString('vi-VN')+'đ' : '0đ';
+    }
+  }catch(e){
+    /* Stats endpoint not available yet — show placeholder */
+    ['stat-clicks','stat-orders','stat-commission'].forEach(id=>{
+      document.getElementById(id).textContent = '—';
+    });
+  }
+}
+
+function copyAffLink(){
+  const link = `${BASE_URL}?ref=${affCode}`;
+  navigator.clipboard.writeText(link).then(()=>{
+    const btn = document.getElementById('btn-copy-link');
+    btn.textContent = '✓ Đã sao chép';
+    btn.style.background = '#4ADE80';
+    setTimeout(()=>{ btn.textContent = 'Sao chép'; btn.style.background = ''; }, 2000);
+  }).catch(()=>{
+    const el = document.getElementById('aff-link-display');
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+function copyAffCaption(){
+  const cap = document.getElementById('cap1').textContent;
+  navigator.clipboard.writeText(cap).then(()=>{ alert('Đã copy caption!'); }).catch(()=>{});
+}
+
+function copyCaption(btn){
+  const pre = btn.parentElement.querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(()=>{
+    btn.textContent = '✓ Đã copy';
+    btn.style.color = '#4ADE80';
+    btn.style.borderColor = 'rgba(74,222,128,.4)';
+    setTimeout(()=>{ btn.textContent = 'Copy'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+  }).catch(()=>{});
+}
+
+function shareFB(){
+  const link = `${BASE_URL}?ref=${affCode}`;
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`, '_blank', 'width=600,height=400');
+  return false;
+}
+
+// ── AUTH ──
+function affSignInGoogle(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+  affAuth.signInWithRedirect(provider).catch(e=>{
+    const errEl = document.getElementById('gate-google-err') || document.querySelector('.gate-err');
+    if(errEl) errEl.textContent = 'Lỗi đăng nhập Google. Thử lại.';
+    console.error(e);
+  });
+}
+
+function affEmailLogin(){
+  const email = document.getElementById('gate-email').value.trim();
+  const pass = document.getElementById('gate-pass').value;
+  const errEl = document.getElementById('gate-err');
+  errEl.textContent = '';
+  if(!email || !pass){ errEl.textContent = 'Vui lòng điền đầy đủ.'; return; }
+  affAuth.signInWithEmailAndPassword(email, pass).catch(e=>{
+    errEl.textContent = e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found'
+      ? 'Email hoặc mật khẩu không đúng.' : 'Lỗi đăng nhập. Thử lại.';
+  });
+}
+
+function affEmailRegister(){
+  const name = document.getElementById('gate-name').value.trim();
+  const email = document.getElementById('gate-reg-email').value.trim();
+  const pass = document.getElementById('gate-reg-pass').value;
+  const errEl = document.getElementById('gate-reg-err');
+  errEl.textContent = '';
+  if(!name || !email || !pass){ errEl.textContent = 'Vui lòng điền đầy đủ.'; return; }
+  if(pass.length < 6){ errEl.textContent = 'Mật khẩu ít nhất 6 ký tự.'; return; }
+  affAuth.createUserWithEmailAndPassword(email, pass).then(cred=>{
+    return cred.user.updateProfile({ displayName: name });
+  }).catch(e=>{
+    errEl.textContent = e.code === 'auth/email-already-in-use'
+      ? 'Email đã được dùng. Hãy đăng nhập.' : 'Lỗi đăng ký. Thử lại.';
+  });
+}
+
+function affSignOut(){
+  affAuth.signOut();
+}
+
+function toggleGateMode(mode){
+  document.getElementById('gate-login-form').style.display = mode==='login' ? '' : 'none';
+  document.getElementById('gate-register-form').style.display = mode==='register' ? '' : 'none';
+}
+
+function showLoginModal(){ document.getElementById('login-modal').classList.add('show'); }
+function closeLoginModal(){ document.getElementById('login-modal').classList.remove('show'); }
+
+// ── IN-APP BROWSER GUARD (FB/Zalo in-app → mở Chrome) ──
+(function(){
+  const ua = navigator.userAgent||'';
+  const inApp = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Line\/|Zalo|MicroMessenger|Messenger|Twitter|TikTok|musical_ly|Snapchat|KAKAOTALK/i.test(ua);
+  if(!inApp) return;
+  const guard = document.createElement('div');
+  guard.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#080808;color:#fff;padding:30px 22px;font-family:inherit;overflow-y:auto;text-align:center';
+  guard.innerHTML = `<div style="max-width:420px;margin:50px auto 0">
+    <div style="font-size:48px;margin-bottom:16px">🔓</div>
+    <h2 style="font-size:20px;font-weight:900;margin-bottom:10px">Mở bằng Google Chrome</h2>
+    <p style="font-size:14px;color:#A1A1AA;line-height:1.7;margin-bottom:24px">Bạn đang mở trong ứng dụng. Google <b style="color:#fff">không cho đăng nhập</b> tại đây.<br>Hãy mở bằng <b style="color:#FFD700">Chrome</b> để dùng trang đối tác.</p>
+    <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:16px;text-align:left;font-size:13px;color:#A1A1AA;line-height:1.9">
+      <b style="color:#fff">Trên Android:</b> Bấm ⋮ → <em>Mở trong Chrome</em><br>
+      <b style="color:#fff">Trên iPhone:</b> Bấm ⋯ → <em>Mở trong Safari</em> → copy link → dán vào Chrome
+    </div>
+  </div>`;
+  document.body.appendChild(guard);
+})();
+</script>
+</body>
+</html>
