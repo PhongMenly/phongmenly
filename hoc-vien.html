@@ -546,6 +546,7 @@ function inappCopyLink(){
         <div class="prog-txt">Tiến độ bản đồ: <b id="prog-pct">0%</b></div>
         <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
         <div class="prog-txt" id="prog-count">0 / 6 cuốn</div>
+        <div id="prog-last" style="display:none;width:100%;font-size:12px;color:var(--muted);margin-top:4px"></div>
       </div>
 
       <div class="grid" id="course-grid"></div>
@@ -744,12 +745,17 @@ function renderCourses(){
         ? `href="doc-sach.html"`                                      // đã mở khóa → đọc bản đầy đủ
         : `href="index.html#pricing"`;                               // chưa có → đặt sách
     } else {
-      ctaTxt = open ? '▶ Vào học ngay' : '🔓 Mở khóa ngay';
-      attrs = open
-        ? ((new Date() < new Date('2026-07-01T00:00:00+07:00'))
-            ? `href="javascript:void(0)" onclick="showLaunchSuccess()"`   // đã mua nhưng chưa tới 1/7 → thông báo + đếm ngược
-            : `href="bai-hoc.html?c=${c.id}"`)                           // đã ra mắt → vào học
-        : `href="javascript:void(0)" onclick="openPay('${c.id}')"`;
+      if(open && new Date() >= new Date('2026-07-01T00:00:00+07:00')){
+        let lastL = 0;
+        try{ const v=parseInt(localStorage.getItem('last_lesson_'+c.id)||'0',10); if(v>0) lastL=v; }catch(e){}
+        ctaTxt = lastL > 0 ? `▶ Tiếp tục — bài ${lastL+1}` : '▶ Vào học ngay';
+        attrs = `href="bai-hoc.html?c=${c.id}${lastL>0?'&l='+lastL:''}"`;
+      } else {
+        ctaTxt = open ? '▶ Vào học ngay' : '🔓 Mở khóa ngay';
+        attrs = open
+          ? `href="javascript:void(0)" onclick="showLaunchSuccess()"`
+          : `href="javascript:void(0)" onclick="openPay('${c.id}')"`;
+      }
     }
     const tagCls = (open && !c.special) ? ' pc-unlocked' : '';
     let progressBar = '';
@@ -808,6 +814,18 @@ function updateProgress(){
   document.getElementById('prog-pct').textContent = pct+'%';
   document.getElementById('prog-count').textContent = comboDone+' / 5 cửa hoàn thành';
   setTimeout(()=>{document.getElementById('prog-fill').style.width = pct+'%';}, 250);
+  try{
+    const lastCid = localStorage.getItem('last_study_course');
+    const lastTs  = parseInt(localStorage.getItem('last_study_ts')||'0',10);
+    const lastLEl = document.getElementById('prog-last');
+    if(lastLEl && lastCid && lastTs){
+      const lastCourse = COURSES.find(c=>c.id===lastCid);
+      const daysAgo = Math.floor((Date.now()-lastTs)/864e5);
+      const timeLabel = daysAgo===0?'Hôm nay':daysAgo===1?'Hôm qua':daysAgo+'ngày trước';
+      lastLEl.textContent = '📚 Học cuối: '+( lastCourse ? lastCourse.name : lastCid )+' · '+timeLabel;
+      lastLEl.style.display = 'block';
+    }
+  }catch(e){}
 }
 
 function toggleSide(){

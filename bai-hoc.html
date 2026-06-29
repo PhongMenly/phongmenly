@@ -409,6 +409,7 @@ function render(){
   const L = course.lessons;
   // topbar + aside head
   document.getElementById('tb-title').textContent = course.name;
+  document.title = 'Bài '+(cur+1)+': '+L[cur].t+' — '+course.name+' · Phong Menly';
   document.getElementById('as-kick').textContent = course.kick;
   document.getElementById('as-title').textContent = course.name;
   document.getElementById('as-sub').textContent = done.size+' / '+L.length+' bài đã hoàn thành';
@@ -532,6 +533,28 @@ function renderRelated(){
 renderRelated();
 
 loadContent();
+
+// ── Phím tắt: ← → điều hướng bài, Space đánh dấu hoàn thành ──
+document.addEventListener('keydown', e => {
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); go(1); }
+  else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  else if(e.key === ' ') { e.preventDefault(); toggleDone(); }
+});
+
+// ── Lưu bài học cuối cùng để hoc-vien.html có thể "Tiếp tục học" ──
+(function saveLastLesson(){
+  try{
+    localStorage.setItem('last_lesson_'+cid, cur);
+    localStorage.setItem('last_study_course', cid);
+    localStorage.setItem('last_study_ts', Date.now());
+  }catch(e){}
+})();
+const _origSelect = select;
+window.select = function(i){
+  _origSelect(i);
+  try{ localStorage.setItem('last_lesson_'+cid, i); }catch(e){}
+};
 
 // ── Thông báo ra mắt + đếm ngược cho khách đã mua, vào trang bài học trước 01/07/2026 ──
 (function(){
