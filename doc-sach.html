@@ -459,23 +459,10 @@ body{
 }
 .lo-trip img:last-child{ border-right:0; }
 
-/* ══ MOBILE: đảm bảo mọi trang đọc thử hiện đầy đủ, không bị cắt ══ */
+/* ══ MOBILE: scale toàn bộ #book xuống vừa màn hình — nội dung giữ y hệt desktop ══ */
 @media(max-width:720px){
-  /* Lưới an toàn: trang nội dung nào dài hơn khổ thì cuộn được trong khung,
-     không bao giờ mất chữ/số trang ở cuối (vd trang Lời Ngỏ) */
-  .page.cp, .page.ch-open, .page.win-page, .page.toc, .page.tx-end{
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-  /* Trang Lời Ngỏ: thu gọn ảnh + giãn dòng vừa phải để gọn trong khổ */
-  .lo-page{ padding-top:26px; padding-bottom:24px; }
-  .lo-page .lo-img{ height:128px; margin:4px -50px 12px; }
-  .lo-page .pt-rule{ margin-bottom:12px; }
-  .lo-page .pb{ font-size:12px; line-height:1.6; }
-  .lo-page .pb p+p{ margin-top:3px; }
-  .lo-page .pb .bq{ margin:6px 0 8px; line-height:1.55; }
-  .lo-page .sig{ margin-top:10px; }
-  .lo-page .pn{ margin-top:8px; }
+  /* #app được set kích thước visual bởi JS — ngăn overflow */
+  #app{ overflow:hidden; }
 }
 
 /* Thông điệp có số thứ tự */
@@ -2674,17 +2661,10 @@ document.addEventListener('fullscreenchange',()=>{
 
 /* ── Khởi tạo PageFlip ── */
 const IS_MOBILE = window.innerWidth < 720;
-let PW, PH;
-if(IS_MOBILE){
-  /* Chiều cao khả dụng = màn hình trừ thanh điều khiển dưới + nút trên + lề.
-     Kẹp PH theo CẢ chiều cao → 1 trang luôn vừa trọn màn hình, không bị khổ cao cắt mất chữ. */
-  const availH = window.innerHeight - 76;             /* chỉ chừa thanh điều khiển dưới → cao hơn */
-  const availW = window.innerWidth - 2;               /* sát mép, phủ kín bề ngang (bỏ giới hạn 400) */
-  PW = Math.min(availW, Math.round(availH / 1.44));   /* lớn nhất có thể, vẫn vừa chiều cao, giữ tỉ lệ A5 */
-  PH = Math.round(PW * 1.44);
-}else{
-  PW = 515; PH = Math.round(PW * 1.44);  /* desktop giữ nguyên */
-}
+/* Luôn dùng kích thước desktop (A5) — mobile sẽ scale xuống bằng transform trong fit() */
+const PW = 515;
+const PH = Math.round(PW * 1.44);  /* 742px */
+let mobileScale = 1;               /* tính trong fit(), áp lên #book */
 
 const pf = new St.PageFlip(document.getElementById('book'),{
   width:               PW,
@@ -2863,19 +2843,139 @@ function viNum(numStr){
   return parts.join(" ").replace(/\s+/g," ").trim();
 }
 const VIROMAN={I:1,II:2,III:3,IV:4,V:5,VI:6,VII:7,VIII:8,IX:9,X:10,XI:11,XII:12,XIII:13,XIV:14,XV:15,XVI:16,XVII:17,XVIII:18,XIX:19,XX:20};
+
+/* ── Từ điển phiên âm tiếng Anh → giọng Việt tự nhiên ── */
+const EN_PHONETIC = {
+  /* Affiliate / Marketing */
+  'affiliate':'a phi li ết','affiliates':'a phi li ết','affiliatemarketing':'a phi li ết mác kê tinh',
+  'affitor':'a phi tờ',
+  'traffic':'trắc phích',
+  'marketing':'mác kê tinh',
+  'content':'con ten',
+  'sale':'seo','sales':'seo',
+  'funnel':'phân nồ',
+  'landing':'len đinh',
+  'conversion':'cơn vờ shần',
+  'lead':'lít','leads':'lít',
+  'brand':'bren','brands':'bren',
+  'niche':'nít',
+  'bonus':'bô nớt',
+  'commission':'cơ mi shần',
+  'recurring':'ri cơ rinh',
+  'lifetime':'lai phờ tai',
+  'passive':'pa xíp',
+  'income':'in cắm',
+  'cashflow':'kéc phờ lâu',
+  /* AI / Tech */
+  'chatgpt':'chát gì pì tì',
+  'gpt':'gì pì tì',
+  'claude':'clốt',
+  'higgsfield':'híc phơ',
+  'google':'gồ gồ',
+  'youtube':'giu túp',
+  'facebook':'phếch búc',
+  'instagram':'in xtờ grem',
+  'tiktok':'tíc tóc',
+  'fanpage':'phen peig',
+  'system':'xít tem','systems':'xít tem',
+  'app':'áp','apps':'áp',
+  'video':'vi đê ô','videos':'vi đê ô',
+  'email':'i meo','emails':'i meo',
+  'internet':'in tơ nét',
+  'network':'nét uốc','networks':'nét uốc',
+  'laptop':'láp tốp','laptops':'láp tốp',
+  'online':'on lai','offline':'óp lai',
+  'ebook':'i búc',
+  'prompt':'prăm','prompts':'prăm',
+  'workflow':'uốc phờ lâu',
+  'agent':'ây jent','agents':'ây jent',
+  /* Tên riêng / sản phẩm */
+  'tony':'tô ni',
+  'piaz':'pi ác',
+  'menly':'Men li',
+  'diamond':'đai mần',
+  'hook':'húc','hooks':'húc',
+  'master':'mát tơ',
+  'chat':'chát',
+  /* Kinh doanh chung */
+  'team':'tim','teams':'tim',
+  'product':'prô đắc','products':'prô đắc',
+  'project':'prô jéc','projects':'prô jéc',
+  'user':'giu zờ','users':'giu zờ',
+  'start':'xtát','startup':'xtát tấp',
+  'test':'tét',
+  'series':'xi ri',
+  'win':'uyn',
+  'ads':'ét',
+  'link':'linh','links':'linh',
+  'click':'clic','clicks':'clic',
+  'review':'ri viu','reviews':'ri viu',
+  'follow':'phô lô','followers':'phô lơ',
+  'page':'peig','pages':'peig',
+  'coaching':'cô chinh',
+  'booking':'bu kinh',
+  'mindset':'mai sét',
+  'freelance':'phờ ri len',
+  'blueprint':'blu pờ rin',
+  'roadmap':'rốt mép',
+  'checklist':'chéc lít',
+  'viral':'vai rồ',
+  'trending':'tren đinh',
+  'thumbnail':'thăm bnêu',
+  'hashtag':'hét xtéc',
+  'caption':'kép shần',
+  /* Ngành tài chính / kỹ thuật */
+  'fintech':'phin tếc',
+  'forex':'pho rếch',
+  'global':'glô bồ',
+  'logistics':'lô gít tích',
+  'commerce':'cơm mờ',
+  'criteria':'crai ti ri ờ',
+  'vest':'vét',
+  'go':'gô',
+  /* Viết tắt */
+  'mkt':'mác kê tinh',
+  'cpa':'xì pì ei',
+  'cpm':'xì pì em',
+  'roi':'rô ai',
+  'kpi':'kây pì ai',
+  'seo':'éc ô',
+};
 function normalizeVi(t){
   let s=" "+t+" ";
-  /* Sửa cách đọc tên riêng cho đúng giọng Việt (thêm dòng nếu cần) */
-  s=s.replace(/\bMenly\b/gi, "Men li");          /* Phong Menly → "Phong Men-li" */
-  s=s.replace(/&/g," và ").replace(/×/g," ").replace(/·/g," , ");
-  s=s.replace(/>/g," lớn hơn ").replace(/</g," nhỏ hơn ").replace(/%/g," phần trăm ");
-  for(let k=0;k<2;k++) s=s.replace(/(\d)\.(\d{3})(?=\D|$)/g,"$1$2");      /* bỏ . ngăn nghìn: 200.000→200000 */
-  for(let k=0;k<3;k++) s=s.replace(/(\d)\s*[–—-]\s*(\d)/g,"$1 đến $2");   /* khoảng số → "đến" */
-  s=s.replace(/\$\s*(\d[\d. ]*\d|\d)/g,"$1 đô la ");                       /* $150 → 150 đô la */
-  s=s.replace(/—/g," , ").replace(/–/g," , ");                            /* gạch còn lại → ngắt nghỉ */
-  s=s.replace(/\s*\/\s*/g," mỗi ");                                       /* / → mỗi */
-  s=s.replace(/\b([IVX]{1,5})\b/g,(m,r)=> VIROMAN[r]?(" "+viNum(String(VIROMAN[r]))+" "):m); /* chữ La Mã */
-  s=s.replace(/\d+/g,m=>" "+viNum(m)+" ");                                /* số → chữ */
+  /* 1. Số kèm đơn vị K / M / B — "289K"→"hai trăm tám mươi chín nghìn", "1.5M"→"một triệu năm trăm nghìn" */
+  const _pn=n=>{let s=n.replace(/\.(\d{3})(?!\d)/g,'$1').replace(/,(\d)/,'.$1');return parseFloat(s);};
+  s=s.replace(/(\d[\d.,]*)\s*[Kk](?=[\s,.\n!?;:)\]»]|$)/g,(m,n)=>{
+    const v=Math.round(_pn(n)*1000); return isNaN(v)?m:" "+viNum(String(v))+" ";
+  });
+  s=s.replace(/(\d[\d.,]*)\s*[Mm](?=[\s,.\n!?;:)\]»]|$)/g,(m,n)=>{
+    const v=Math.round(_pn(n)*1000000); return isNaN(v)?m:" "+viNum(String(v))+" ";
+  });
+  s=s.replace(/(\d[\d.,]*)\s*[Bb](?=[\s,.\n!?;:)\]»]|$)/g,(m,n)=>{
+    const v=Math.round(_pn(n)*1000000000); return isNaN(v)?m:" "+viNum(String(v))+" ";
+  });
+  /* 2. Ký hiệu */
+  s=s.replace(/\$\s*(\d[\d., ]*\d|\d)/g,"$1 đô la ");
+  s=s.replace(/%/g," phần trăm ");
+  s=s.replace(/&/g," và ").replace(/×/g," nhân ").replace(/·/g," , ");
+  s=s.replace(/>/g," lớn hơn ").replace(/</g," nhỏ hơn ");
+  s=s.replace(/—/g," , ").replace(/–/g," , ");
+  s=s.replace(/\s*\/\s*/g," mỗi ");
+  /* 3. "AI" hoa → "ây ai" (tránh nhầm "ai" tiếng Việt) */
+  s=s.replace(/\bAI\b/g," ây ai ");
+  /* 4. Phiên âm từ tiếng Anh → tiếng Việt */
+  s=s.replace(/\b([A-Za-z]{2,})\b/g,(m)=>{
+    const ph=EN_PHONETIC[m]||EN_PHONETIC[m.toLowerCase()];
+    return ph?" "+ph+" ":m;
+  });
+  /* 5. Bỏ . phân nghìn: 200.000 → 200000 */
+  for(let k=0;k<2;k++) s=s.replace(/(\d)\.(\d{3})(?=\D|$)/g,"$1$2");
+  /* 6. Khoảng số: 5-10 → 5 đến 10 */
+  for(let k=0;k<3;k++) s=s.replace(/(\d)\s*[–—-]\s*(\d)/g,"$1 đến $2");
+  /* 7. Số La Mã */
+  s=s.replace(/\b([IVX]{1,5})\b/g,(m,r)=> VIROMAN[r]?(" "+viNum(String(VIROMAN[r]))+" "):m);
+  /* 8. Số → chữ */
+  s=s.replace(/\d+/g,m=>" "+viNum(m)+" ");
   return s.replace(/\s+/g," ").trim();
 }
 
@@ -2896,43 +2996,6 @@ function splitChunks(text){
 }
 
 function clearHi(){ document.querySelectorAll('.page .reading').forEach(e=>e.classList.remove('reading')); }
-
-/* ── Từ tiếng Anh trong sách → đọc bằng giọng Anh chuẩn ── */
-const EN_WORDS = new Set([
-  "affiliate","traffic","win","marketing","ads","content","internet","start","system",
-  "booking","claude","agent","coaching","commerce","criteria","email","fintech","forex",
-  "global","google","higgsfield","laptop","lifetime","logistics","mkt","network","go",
-  "product","project","recurring","series","team","test","user","vest","youtube","affitor",
-  "tony","piaz","online","offline","app","video","ebook"
-]);
-/* Lưu ý: KHÔNG thêm "ai" — chỉ "AI" viết hoa mới là tiếng Anh (xử lý riêng trong tokenLang) */
-function tokenLang(w){
-  if(w === 'AI') return 'en';            /* "AI" hoa = công nghệ; "ai" thường = tiếng Việt */
-  if(/^\d+$/.test(w)) return 'vi';
-  return EN_WORDS.has(w.toLowerCase()) ? 'en' : 'vi';
-}
-/* Chuẩn hoá rồi tách thành các mẩu {text, lang} — gom từ cùng ngôn ngữ, cắt ≤190 ký tự */
-function buildLangChunks(rawText){
-  const norm = normalizeVi(rawText);
-  const parts = norm.match(/[\p{L}\p{N}]+|[^\p{L}\p{N}]+/gu) || [];
-  const segs = []; let cur = null;
-  for(const p of parts){
-    if(!/[\p{L}\p{N}]/u.test(p)){            /* dấu câu / khoảng trắng → bám vào mẩu hiện tại */
-      if(cur) cur.text += p; else segs.push(cur = {lang:'vi', text:p});
-      continue;
-    }
-    const lang = tokenLang(p);
-    if(cur && cur.lang === lang) cur.text += p;
-    else segs.push(cur = {lang, text:p});
-  }
-  const out = [];
-  for(const s of segs){
-    const t = s.text.trim();
-    if(!t) continue;
-    for(const c of splitChunks(t)) out.push({lang:s.lang, text:c});
-  }
-  return out;
-}
 function pickEnVoice(){
   const vs = (SS_OK ? speechSynthesis.getVoices() : []) || [];
   return vs.find(v=>/en[-_]?US/i.test(v.lang) && /natural|premium|google|enhanced/i.test(v.name))
@@ -3159,7 +3222,7 @@ function triggerFlip(dir){
 /* ── Scale + canh giữa ── (curScale, gOffset khai báo ở đầu script) */
 function applyTransform(){
   const app=document.getElementById('app');
-  if(IS_MOBILE){ app.style.transform='none'; return; }
+  if(IS_MOBILE) return;  /* mobile: #book được scale trong fit(), không động vào #app transform */
   app.style.transform=`scale(${curScale}) translateX(${gOffset}px)`;
 }
 
@@ -3170,7 +3233,7 @@ function refreshLayout(){
   const isCoverFront=i<=0, isCoverBack=i>=t-1;
   app.classList.toggle('cover-front', isCoverFront);
   app.classList.toggle('cover-back',  !isCoverFront && isCoverBack);
-  if(IS_MOBILE){ gOffset=0; app.classList.remove('spread'); applyTransform(); return; }
+  if(IS_MOBILE){ gOffset=0; app.classList.remove('spread'); return; }  /* mobile: transform do fit() xử lý */
   if(isCoverFront)      gOffset=-PW/2;   /* bìa trước → kéo vào giữa */
   else if(isCoverBack)  gOffset= PW/2;   /* bìa sau   → kéo vào giữa */
   else                  gOffset= 0;      /* mở đôi    → căn giữa sẵn */
@@ -3180,17 +3243,36 @@ function refreshLayout(){
 }
 
 function fit(){
-  const app = document.getElementById('app');
-  const vw  = window.innerWidth;
-  const vh  = window.innerHeight;
+  const app  = document.getElementById('app');
+  const book = document.getElementById('book');
+  const vw   = window.innerWidth;
+  const vh   = window.innerHeight;
 
   if(IS_MOBILE){
-    app.style.transform = 'none';
-    /* canh giữa theo chiều dọc → khoảng trống trên/dưới cân nhau, gọn gàng */
-    const mt = Math.max(6, Math.round((vh - PH) / 2) - 16);
+    /* Scale #book xuống vừa màn hình — giữ nguyên tỉ lệ và nội dung y hệt desktop */
+    mobileScale = Math.min(vw / PW, (vh - 76) / PH);
+    const vW = Math.round(PW * mobileScale);
+    const vH = Math.round(PH * mobileScale);
+
+    /* #app: kích thước visual (không để overflow) */
+    app.style.width    = vW + 'px';
+    app.style.height   = vH + 'px';
+    app.style.overflow = 'hidden';
+
+    /* #book: scale từ góc trên-trái về đúng kích thước visual */
+    book.style.transformOrigin = 'top left';
+    book.style.transform       = `scale(${mobileScale})`;
+
+    /* căn giữa dọc trong viewport */
+    const mt = Math.max(6, (vh - vH - 72) / 2);
     app.style.marginTop = mt + 'px';
     return;
   }
+
+  /* Desktop: reset mobile style rồi scale #app như cũ */
+  app.style.overflow = '';
+  book.style.transform = '';
+  book.style.transformOrigin = '';
 
   const bW = PW*2+4, bH = PH+4;
   curScale = Math.min((vw-28)/bW, (vh-76)/bH, 1.3);
