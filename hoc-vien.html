@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -309,6 +310,76 @@ a{text-decoration:none;color:inherit}
 .pm-switch-link span:hover{text-decoration:underline}
 .pm-pw-input{letter-spacing:3px;text-align:center}
 .pm-pw-input::placeholder{letter-spacing:0}
+/* ══ REVIEW SYSTEM ══ */
+.rv-wrap{padding:32px 20px 56px}
+.rv-sum{display:flex;gap:24px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:22px 26px;margin-bottom:22px;flex-wrap:wrap}
+.rv-big{text-align:center;min-width:90px;flex-shrink:0}
+.rv-big-num{font-size:52px;font-weight:900;color:#FFD700;line-height:1}
+.rv-big-stars{margin:4px 0;letter-spacing:2px}
+.rv-big-cnt{font-size:12px;color:rgba(255,255,255,.4);margin-top:2px}
+.rv-bars{flex:1;min-width:150px}
+.rv-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.rv-bar-lbl{font-size:11px;color:#FFD700;font-weight:700;width:22px;text-align:right;flex-shrink:0}
+.rv-bar-tr{flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.rv-bar-fl{height:100%;background:linear-gradient(90deg,#FFD700,#FF9500);border-radius:99px;transition:width .6s cubic-bezier(.22,.61,.36,1)}
+.rv-bar-pc{font-size:11px;color:rgba(255,255,255,.35);width:28px;text-align:right;flex-shrink:0}
+.rv-sum-act{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0}
+.rv-empty-sum{color:rgba(255,255,255,.4);font-size:14px;padding:8px 0}
+.btn-write-rv{background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;font-size:13px;font-weight:800;padding:11px 20px;border-radius:50px;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:.2s;font-family:inherit;white-space:nowrap}
+.btn-write-rv:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,215,0,.3);color:#000}
+.rv-pnote{font-size:11px;color:rgba(255,255,255,.3);text-align:center;max-width:120px;line-height:1.4}
+.rv-fis{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.rv-fi{padding:6px 14px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;transition:.2s;font-family:inherit}
+.rv-fi:hover,.rv-fi.on{background:linear-gradient(135deg,#FFD700,#FF9500);border-color:#FFD700;color:#000}
+.rv-list{display:flex;flex-direction:column;gap:12px}
+.rv-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px;transition:border-color .2s}
+.rv-card:hover{border-color:rgba(255,215,0,.2)}
+.rv-ch{display:flex;gap:11px;margin-bottom:10px}
+.rv-av-wrap{flex-shrink:0;position:relative;width:38px;height:38px}
+.rv-av{width:38px;height:38px;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0}
+.rv-av-ph{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FF9500);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#000}
+.rv-body{flex:1;min-width:0}
+.rv-nm-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:2px}
+.rv-nm{font-size:14px;font-weight:700;line-height:1.2}
+.rv-vbdg{font-size:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:#4ADE80;padding:2px 7px;border-radius:50px;font-weight:700;white-space:nowrap}
+.rv-st-row{display:flex;gap:2px;margin-bottom:2px}
+.rv-dt{font-size:11px;color:rgba(255,255,255,.3)}
+.rv-ttl{font-size:14px;font-weight:700;margin-bottom:4px}
+.rv-txt{font-size:13px;color:rgba(255,255,255,.65);line-height:1.75}
+.rv-foot{display:flex;align-items:center;gap:8px;margin-top:10px}
+.rv-help-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,.4);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.rv-help-btn:hover{border-color:#FFD700;color:#FFD700}
+.rv-help-btn.on{border-color:#FFD700;color:#FFD700;background:rgba(255,215,0,.07)}
+.rv-empty,.rv-loading{text-align:center;padding:36px 20px;color:rgba(255,255,255,.35);font-size:14px}
+.rv-form-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,215,0,.2);border-radius:16px;padding:24px;margin-bottom:20px}
+.rv-form-box h3{font-size:16px;font-weight:800;margin-bottom:16px}
+.rv-fg{margin-bottom:14px}
+.rv-lbl{font-size:11px;font-weight:700;color:rgba(255,255,255,.45);margin-bottom:6px;display:block;letter-spacing:.8px;text-transform:uppercase}
+.rv-inp{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 13px;color:#fff;font-size:14px;font-family:inherit;transition:border-color .2s}
+.rv-inp:focus{outline:none;border-color:#FFD700}
+.rv-ta{resize:vertical;min-height:80px}
+.rv-star-sel{display:flex;gap:4px;margin-bottom:4px}
+.rv-star-sel .s{font-size:30px;cursor:pointer;color:rgba(255,255,255,.15);transition:color .1s;line-height:1;user-select:none}
+.rv-star-sel .s.on{color:#FFD700}
+.rv-star-lbl{font-size:12px;color:rgba(255,255,255,.4);min-height:16px;margin-top:2px}
+.btn-rv-sub{background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;font-size:14px;font-weight:800;padding:12px 28px;border-radius:50px;border:none;cursor:pointer;transition:.2s;font-family:inherit}
+.btn-rv-sub:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,215,0,.3)}
+.btn-rv-sub:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.rv-form-success{text-align:center;padding:24px;font-size:16px;color:#4ADE80;font-weight:700}
+.rv-gate{background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.18);border-radius:16px;padding:28px;text-align:center;margin-bottom:20px}
+.rv-gate h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.rv-gate p{font-size:14px;color:rgba(255,255,255,.5);margin-bottom:16px}
+.btn-rv-gate{background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;font-size:14px;font-weight:800;padding:11px 24px;border-radius:50px;border:none;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-rv-gate:hover{transform:translateY(-2px)}
+.rv-see-all{font-size:14px;color:#FFD700;font-weight:700;text-decoration:none;border-bottom:1px solid rgba(255,215,0,.3);transition:.2s;display:inline-block}
+.rv-see-all:hover{border-color:#FFD700}
+@media(max-width:640px){
+  .rv-sum{flex-direction:column;gap:14px;padding:16px}
+  .rv-big{display:flex;align-items:center;gap:14px;text-align:left}
+  .rv-big-num{font-size:42px}
+  .rv-sum-act{flex-direction:row;justify-content:space-between;align-items:center;width:100%}
+  .rv-pnote{max-width:none;text-align:left}
+}
 </style>
 </head>
 <body>
@@ -443,6 +514,69 @@ function inappCopyLink(){
           <h2 class="bc-h">Sở hữu sách Mật Mã Tự Do — mở khóa trọn bộ combo</h2>
           <p class="bc-p">5 combo theo 5 chương (<b>1.189.000đ</b>) + cuốn đặc biệt KOL AI SYSTEM. Đặt sách chỉ <b>686.000đ</b> = mở khóa tất cả bằng mật mã, kèm 4 bonus và vé vào cộng đồng tinh hoa.</p>
           <a class="bc-btn" href="index.html#pricing">📕 Đặt sách & nhận mật mã →</a>
+        </div>
+      </section>
+
+      <!-- ══ ĐÁNH GIÁ SÁCH ══ -->
+      <section class="rv-wrap" id="rv-anchor" style="max-width:840px;margin:0 auto">
+        <div style="text-align:center;margin-bottom:32px">
+          <h2 style="font-size:22px;font-weight:900;margin-bottom:8px">Đánh Giá Sách <span style="color:#FFD700">Mật Mã Tự Do</span></h2>
+          <p style="font-size:13px;color:rgba(255,255,255,.4)">Chia sẻ trải nghiệm — chỉ người đã mua sách mới được đánh giá</p>
+        </div>
+
+        <!-- Summary -->
+        <div class="rv-sum">
+          <div id="hv-rv-sum" style="display:contents">
+            <div class="rv-loading" style="padding:8px 0">Đang tải...</div>
+          </div>
+          <div class="rv-sum-act">
+            <button class="btn-write-rv" onclick="document.getElementById('rv-form-box').scrollIntoView({behavior:'smooth'})">✍️ Viết đánh giá</button>
+            <div class="rv-pnote">Chỉ người đã mua mới được đánh giá</div>
+          </div>
+        </div>
+
+        <!-- Gate (chưa đăng nhập / chưa mua) -->
+        <div id="rv-gate" class="rv-gate">
+          <h3>📝 Đánh giá sách của bạn</h3>
+          <p id="rv-gate-msg">Đăng nhập để đánh giá sách</p>
+          <button id="rv-gate-btn" class="btn-rv-gate" onclick="if(typeof pmOpenModal==='function')pmOpenModal()">Đăng nhập</button>
+        </div>
+
+        <!-- Form đánh giá -->
+        <div id="rv-form-box" class="rv-form-box" style="display:none">
+          <h3>✍️ Viết đánh giá của bạn</h3>
+          <div class="rv-fg">
+            <label class="rv-lbl">Đánh giá của bạn *</label>
+            <div class="rv-star-sel" id="rv-star-sel">
+              <span class="s" data-v="1">★</span><span class="s" data-v="2">★</span><span class="s" data-v="3">★</span><span class="s" data-v="4">★</span><span class="s" data-v="5">★</span>
+            </div>
+            <div class="rv-star-lbl" id="rv-star-lbl"></div>
+            <input type="hidden" id="rv-rating-val" value="0">
+          </div>
+          <div class="rv-fg">
+            <label class="rv-lbl" for="rv-title">Tiêu đề ngắn (không bắt buộc)</label>
+            <input type="text" id="rv-title" class="rv-inp" placeholder="VD: Cuốn sách thay đổi góc nhìn của tôi..." maxlength="100">
+          </div>
+          <div class="rv-fg">
+            <label class="rv-lbl" for="rv-content">Nhận xét của bạn *</label>
+            <textarea id="rv-content" class="rv-inp rv-ta" placeholder="Chia sẻ trải nghiệm thực tế của bạn về cuốn sách..." maxlength="1000"></textarea>
+          </div>
+          <button id="rv-submit-btn" class="btn-rv-sub" onclick="rvSubmit()">Gửi đánh giá</button>
+        </div>
+
+        <!-- Bộ lọc -->
+        <div class="rv-fis">
+          <button class="rv-fi on" data-f="all" onclick="rvSetFilter('all','hv-rv-list')">Tất cả</button>
+          <button class="rv-fi" data-f="5" onclick="rvSetFilter('5','hv-rv-list')">5 ★</button>
+          <button class="rv-fi" data-f="4" onclick="rvSetFilter('4','hv-rv-list')">4 ★</button>
+          <button class="rv-fi" data-f="3" onclick="rvSetFilter('3','hv-rv-list')">3 ★</button>
+          <button class="rv-fi" data-f="2" onclick="rvSetFilter('2','hv-rv-list')">2 ★</button>
+          <button class="rv-fi" data-f="1" onclick="rvSetFilter('1','hv-rv-list')">1 ★</button>
+        </div>
+
+        <!-- Danh sách đánh giá -->
+        <div id="hv-rv-list" class="rv-list">
+          <div class="rv-loading">Đang tải đánh giá...</div>
         </div>
       </section>
     </main>
@@ -1468,6 +1602,183 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
 
 <!-- BÓNG BÓNG CHAT (Zalo — hỗ trợ 24/7) -->
 <a class="chat-label" href="https://zalo.me/0978076936" target="_blank" rel="noopener"><span class="dot"></span>Nhắn Zalo · Rep ngay 24/7</a>
+<script>
+/* ── REVIEW SYSTEM ── */
+(function(){
+'use strict';
+var RV_COL='book_reviews',RV_PROD='book_mmtd';
+var STAR_LBL=['','Rất tệ','Không hay','Bình thường','Tốt','Xuất sắc!'];
+var _db=null,_user=null,_filter='all',_all=[],_opts={};
+
+function db(){return _db||(_db=firebase.firestore());}
+function isUnlocked(){return localStorage.getItem('kh_unlocked')==='1'||localStorage.getItem('book_unlocked')==='1';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function stars(n,sz){sz=sz||'14px';return[1,2,3,4,5].map(function(i){return'<span style="font-size:'+sz+';color:'+(i<=n?'#FFD700':'rgba(255,255,255,.15)')+'">★</span>';}).join('');}
+function timeAgo(ts){
+  if(!ts)return'';
+  var d=ts.toDate?ts.toDate():new Date(ts),s=Math.floor((Date.now()-d)/1000);
+  if(s<60)return'Vừa xong';if(s<3600)return Math.floor(s/60)+' phút trước';
+  if(s<86400)return Math.floor(s/3600)+' giờ trước';if(s<2592000)return Math.floor(s/86400)+' ngày trước';
+  if(s<31536000)return Math.floor(s/2592000)+' tháng trước';return d.toLocaleDateString('vi-VN');
+}
+function cardHTML(r,myUid){
+  var ini=(r.displayName||'?')[0].toUpperCase();
+  var av=r.photoURL
+    ?'<img class="rv-av" src="'+esc(r.photoURL)+'" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'"><div class="rv-av-ph" style="display:none">'+ini+'</div>'
+    :'<div class="rv-av-ph">'+ini+'</div>';
+  var myVote=myUid&&(r.helpfulBy||[]).indexOf(myUid)>=0;
+  var hCount=r.helpful||0;
+  var helpTxt='👍 Hữu ích'+(hCount>0?' ('+hCount+')':'');
+  return '<div class="rv-card" data-id="'+r.id+'">'
+    +'<div class="rv-ch"><div class="rv-av-wrap">'+av+'</div>'
+    +'<div class="rv-body"><div class="rv-nm-row"><span class="rv-nm">'+esc(r.displayName||'Ẩn danh')+'</span>'
+    +'<span class="rv-vbdg">✓ Đã mua</span></div>'
+    +'<div class="rv-st-row">'+stars(r.rating)+'</div>'
+    +'<div class="rv-dt">'+timeAgo(r.createdAt)+'</div></div></div>'
+    +(r.title?'<div class="rv-ttl">'+esc(r.title)+'</div>':'')
+    +'<div class="rv-txt">'+esc(r.content).replace(/\n/g,'<br>')+'</div>'
+    +'<div class="rv-foot"><button class="rv-help-btn'+(myVote?' on':'')+'" '
+    +'onclick="rvVoteHelp(\''+r.id+'\',this,'+hCount+','+myVote+')">'+helpTxt+'</button></div></div>';
+}
+function summaryHTML(revs){
+  var n=revs.length;
+  if(!n)return'<div class="rv-empty-sum">Hãy là người đầu tiên đánh giá sách!</div>';
+  var avg=revs.reduce(function(s,r){return s+r.rating;},0)/n;
+  var dist={5:0,4:0,3:0,2:0,1:0};
+  revs.forEach(function(r){dist[r.rating]=(dist[r.rating]||0)+1;});
+  var bars=[5,4,3,2,1].map(function(v){var pct=Math.round(dist[v]/n*100);
+    return'<div class="rv-bar-row"><span class="rv-bar-lbl">'+v+'★</span>'
+      +'<div class="rv-bar-tr"><div class="rv-bar-fl" style="width:'+pct+'%"></div></div>'
+      +'<span class="rv-bar-pc">'+pct+'%</span></div>';}).join('');
+  return'<div class="rv-big"><div class="rv-big-num">'+avg.toFixed(1)+'</div>'
+    +'<div class="rv-big-stars">'+stars(Math.round(avg),'22px')+'</div>'
+    +'<div class="rv-big-cnt">'+n+' đánh giá</div></div>'
+    +'<div class="rv-bars">'+bars+'</div>';
+}
+function renderList(el,revs,myUid){
+  var flt=_filter==='all'?revs:revs.filter(function(r){return r.rating===parseInt(_filter);});
+  el.innerHTML=flt.length?flt.map(function(r){return cardHTML(r,myUid);}).join('')
+    :'<div class="rv-empty">Chưa có đánh giá nào cho mức sao này.</div>';
+}
+function loadAll(){
+  var q=db().collection(RV_COL).where('product','==',RV_PROD).orderBy('createdAt','desc');
+  if(_opts.limit)q=q.limit(_opts.limit);
+  q.get().then(function(snap){
+    _all=snap.docs.map(function(d){var o=d.data();o.id=d.id;return o;});
+    var sumEl=_opts.sumEl?document.getElementById(_opts.sumEl):null;
+    var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;
+    if(sumEl){
+      if(_opts.limit){
+        db().collection(RV_COL).where('product','==',RV_PROD).get().then(function(a){
+          sumEl.innerHTML=summaryHTML(a.docs.map(function(d){return d.data();}));
+        });
+      }else{sumEl.innerHTML=summaryHTML(_all);}
+    }
+    if(listEl)renderList(listEl,_all,_user&&_user.uid);
+  }).catch(function(e){
+    console.error('rv:',e);
+    var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;
+    if(listEl)listEl.innerHTML='<div class="rv-empty">Không thể tải đánh giá.</div>';
+  });
+}
+window.rvInit=function(authRef,opts){
+  _opts=opts||{};
+  authRef.onAuthStateChanged(function(u){_user=u;if(_opts.onUser)_opts.onUser(u);});
+  loadAll();
+};
+window.rvSetFilter=function(f,listElId){
+  _filter=f;
+  var el=document.getElementById(listElId);
+  if(el)renderList(el,_all,_user&&_user.uid);
+  document.querySelectorAll('.rv-fi').forEach(function(b){b.classList.toggle('on',b.dataset.f===f);});
+};
+window.rvVoteHelp=function(docId,btn,prevCount,prevVote){
+  if(!_user){alert('Đăng nhập để đánh dấu hữu ích');return;}
+  var nv=!prevVote,nc=prevCount+(nv?1:-1);
+  db().collection(RV_COL).doc(docId).update({
+    helpfulBy:nv?firebase.firestore.FieldValue.arrayUnion(_user.uid):firebase.firestore.FieldValue.arrayRemove(_user.uid),
+    helpful:firebase.firestore.FieldValue.increment(nv?1:-1)
+  }).then(function(){
+    btn.classList.toggle('on',nv);
+    btn.innerHTML='👍 Hữu ích'+(nc>0?' ('+nc+')':'');
+    btn.setAttribute('onclick',"rvVoteHelp('"+docId+"',this,"+nc+","+nv+")");
+  });
+};
+window.rvInitStar=function(selId,valId,lblId){
+  var sel=document.getElementById(selId);if(!sel)return;
+  sel.querySelectorAll('.s').forEach(function(s){
+    s.addEventListener('mouseenter',function(){var v=+s.dataset.v;sel.querySelectorAll('.s').forEach(function(x,i){x.classList.toggle('on',i<v);});});
+    s.addEventListener('mouseleave',function(){var cur=+(document.getElementById(valId)||{value:0}).value||0;sel.querySelectorAll('.s').forEach(function(x,i){x.classList.toggle('on',i<cur);});});
+    s.addEventListener('click',function(){
+      var v=+s.dataset.v;var vi=document.getElementById(valId);if(vi)vi.value=v;
+      sel.querySelectorAll('.s').forEach(function(x,i){x.classList.toggle('on',i<v);});
+      var li=document.getElementById(lblId);if(li)li.textContent=STAR_LBL[v]||'';
+    });
+  });
+};
+window.rvUpdateFormState=function(u,unlocked){
+  var fb=document.getElementById('rv-form-box'),gb=document.getElementById('rv-gate');
+  if(!fb&&!gb)return;
+  if(u&&unlocked){if(fb)fb.style.display='block';if(gb)gb.style.display='none';}
+  else{
+    if(fb)fb.style.display='none';
+    if(gb){
+      gb.style.display='block';
+      var msg=document.getElementById('rv-gate-msg');if(msg)msg.textContent=!u?'Đăng nhập để đánh giá sách':'Mua sách để gửi đánh giá';
+      var btn=document.getElementById('rv-gate-btn');
+      if(btn){
+        if(!u){btn.textContent='Đăng nhập';btn.onclick=function(){if(typeof pmOpenModal==='function')pmOpenModal();};}
+        else{btn.textContent='Mua sách →';btn.onclick=function(){window.location='index.html#pricing';};}
+      }
+    }
+  }
+};
+window.rvSubmit=function(){
+  if(!_user){if(typeof pmOpenModal==='function')pmOpenModal();else alert('Vui lòng đăng nhập để đánh giá');return;}
+  if(!isUnlocked()){alert('Bạn cần mua sách trước khi đánh giá');return;}
+  var rating=+((document.getElementById('rv-rating-val')||{value:0}).value)||0;
+  var content=((document.getElementById('rv-content')||{value:''}).value||'').trim();
+  var title=((document.getElementById('rv-title')||{value:''}).value||'').trim();
+  if(!rating){alert('Vui lòng chọn số sao');return;}
+  if(content.length<10){alert('Nhận xét cần ít nhất 10 ký tự');return;}
+  var btn=document.getElementById('rv-submit-btn');
+  if(btn){btn.disabled=true;btn.textContent='Đang gửi...';}
+  db().collection(RV_COL).where('uid','==',_user.uid).where('product','==',RV_PROD).get()
+    .then(function(ex){
+      var data={rating:rating,content:content,title:title,uid:_user.uid,
+        displayName:_user.displayName||'Ẩn danh',photoURL:_user.photoURL||null,
+        email:_user.email||'',product:RV_PROD,verified:true};
+      if(!ex.empty)return ex.docs[0].ref.update({rating:rating,content:content,title:title});
+      data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      data.helpful=0;data.helpfulBy=[];
+      return db().collection(RV_COL).add(data);
+    })
+    .then(function(){
+      var fb=document.getElementById('rv-form-box');
+      if(fb)fb.innerHTML='<div class="rv-form-success">🎉 Cảm ơn bạn! Đánh giá đã được gửi.</div>';
+      setTimeout(function(){loadAll();},1200);
+    })
+    .catch(function(e){
+      console.error('rv submit:',e);
+      if(btn){btn.disabled=false;btn.textContent='Gửi đánh giá';}
+      alert('Lỗi: '+e.message);
+    });
+};
+
+/* khởi động cho hoc-vien.html — hvAuth đã được set bởi hvInit() ở trên */
+if(typeof hvAuth!=='undefined'&&hvAuth&&typeof rvInit==='function'){
+  rvInit(hvAuth,{
+    sumEl:'hv-rv-sum',
+    listEl:'hv-rv-list',
+    onUser:function(u){
+      var unlocked=localStorage.getItem('kh_unlocked')==='1'||localStorage.getItem('book_unlocked')==='1';
+      rvUpdateFormState(u,unlocked);
+    }
+  });
+  rvInitStar('rv-star-sel','rv-rating-val','rv-star-lbl');
+}
+})();
+</script>
 <a class="chat-fab" href="https://zalo.me/0978076936" target="_blank" rel="noopener" title="Nhắn Zalo — hỗ trợ 24/7, rep ngay">
   <svg viewBox="0 0 48 48" width="32" height="32"><path fill="#fff" d="M24 4C12.4 4 3 12.5 3 23c0 5.9 3 11.2 7.7 14.7-.2 1.6-.9 4-2.6 6.3-.4.5 0 1.2.6 1.1 3.6-.6 6.4-2 8.3-3.3 2.2.6 4.6.9 7 .9 11.6 0 21-8.5 21-19S35.6 4 24 4z"/><text x="24" y="29" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#0068FF" text-anchor="middle">Zalo</text></svg>
 </a>
