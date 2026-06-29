@@ -11,6 +11,26 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
 
+async function sendTelegramNotification(order: Record<string, unknown>) {
+  const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
+  const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
+  if (!botToken || !chatId) return;
+
+  const name = (order.name as string) || 'Ẩn danh';
+  const phone = (order.phone as string) || 'N/A';
+  const ref = (order.ref as string) || '';
+  const price = Number(order.price || 686000).toLocaleString('vi-VN');
+  const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+  const text = `🔐 ĐƠN MỚI — Mật Mã Tự Do\n👤 ${name}\n📞 ${phone}\n💰 ${price}đ\n🔑 ${ref}\n⏰ ${now}`;
+
+  await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+  }).catch(() => {});
+}
+
 async function sendWelcomeEmail(order: Record<string, unknown>) {
   const apiKey = Deno.env.get('RESEND_API_KEY');
   if (!apiKey || !order.email) return;
@@ -184,7 +204,7 @@ Deno.serve(async (req: Request) => {
       await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', ref);
       const { data: order } = await supabase.from('orders').select('*').eq('ref', ref).single();
       if (order) {
-        await sendWelcomeEmail(order);
+        await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
         const makeWebhook = Deno.env.get('MAKE_WEBHOOK_URL');
         if (makeWebhook) {
           await fetch(makeWebhook, {
@@ -205,7 +225,7 @@ Deno.serve(async (req: Request) => {
         const { data: order } = await supabase.from('orders').select('*').eq('ref', ref).single();
         if (order && !order.paid) {
           await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', ref);
-          await sendWelcomeEmail(order);
+          await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
         }
       }
       return json({ success: true });
