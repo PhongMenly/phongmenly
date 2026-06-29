@@ -396,13 +396,14 @@ a{text-decoration:none;color:inherit}
   <div style="max-width:440px;margin:36px auto 0;text-align:center">
     <div style="font-size:44px;margin-bottom:14px">🔓</div>
     <h2 style="font-size:21px;font-weight:800;margin:0 0 12px;line-height:1.35">Mở bằng trình duyệt để đăng nhập</h2>
-    <p style="font-size:14.5px;color:#A1A1AA;line-height:1.7;margin:0 0 22px">Bạn đang mở trong ứng dụng (Facebook/Zalo/Messenger). Google <b style="color:#fff">không cho đăng nhập</b> tại đây. Hãy mở bằng <b style="color:#FFD700">Google Chrome</b> (không phải Safari).</p>
-    <button onclick="inappOpenExternal()" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF7B00);color:#000;border:none;padding:15px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:11px">🌐 Mở bằng Google Chrome</button>
+    <p style="font-size:14.5px;color:#A1A1AA;line-height:1.7;margin:0 0 22px">Bạn đang mở trong ứng dụng (Facebook/Zalo/Messenger). Google <b style="color:#fff">không cho đăng nhập</b> tại đây.</p>
+    <button onclick="inappOpenExternal()" id="inapp-open-btn" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF7B00);color:#000;border:none;padding:15px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:11px">🌐 Mở bằng trình duyệt</button>
     <button onclick="inappCopyLink()" style="width:100%;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.16);padding:14px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📋 Sao chép liên kết</button>
-    <div id="inapp-copied" style="display:none;color:#4ADE80;font-size:13px;font-weight:700;margin-top:12px">✓ Đã sao chép — mở Google Chrome rồi dán vào ô địa chỉ</div>
+    <div id="inapp-copied" style="display:none;color:#4ADE80;font-size:13px;font-weight:700;margin-top:12px">✓ Đã sao chép — mở trình duyệt và dán vào ô địa chỉ</div>
     <div style="margin-top:24px;text-align:left;background:#111;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 18px">
-      <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:#FFD700">Hoặc mở thủ công:</div>
-      <div style="font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">•••</b> (góc trên bên phải)<br>2. Chọn <b style="color:#fff">"Mở trong Chrome"</b> / "Open in browser"<br>3. Đăng nhập Google như bình thường</div>
+      <div style="font-weight:800;font-size:13px;margin-bottom:10px;color:#FFD700">Mở thủ công:</div>
+      <div id="inapp-steps-ios" style="display:none;font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">...</b> hoặc <b style="color:#fff">⬆ Share</b> (góc dưới)<br>2. Chọn <b style="color:#fff">"Mở bằng Safari"</b><br>3. Đăng nhập Google như bình thường</div>
+      <div id="inapp-steps-android" style="display:none;font-size:13.5px;color:#A1A1AA;line-height:1.95">1. Bấm nút <b style="color:#fff">⋮</b> (góc trên bên phải)<br>2. Chọn <b style="color:#fff">"Mở trong Chrome"</b><br>3. Đăng nhập Google như bình thường</div>
     </div>
   </div>
 </div>
@@ -410,7 +411,16 @@ a{text-decoration:none;color:inherit}
 (function(){
   var ua = navigator.userAgent || navigator.vendor || '';
   var inApp = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Line\/|Zalo|MicroMessenger|Messenger|Twitter|TikTok|musical_ly|Snapchat|KAKAOTALK/i.test(ua);
-  if (inApp) { var g=document.getElementById('inapp-guard'); if(g) g.style.display='block'; }
+  if (inApp) {
+    var g=document.getElementById('inapp-guard'); if(g) g.style.display='block';
+    var isIOS=/iPhone|iPad|iPod/i.test(ua);
+    var sIOS=document.getElementById('inapp-steps-ios');
+    var sAnd=document.getElementById('inapp-steps-android');
+    var openBtn=document.getElementById('inapp-open-btn');
+    if(sIOS) sIOS.style.display=isIOS?'block':'none';
+    if(sAnd) sAnd.style.display=isIOS?'none':'block';
+    if(openBtn) openBtn.textContent=isIOS?'🌐 Mở bằng Safari':'🌐 Mở bằng Chrome';
+  }
 })();
 function inappOpenExternal(){
   var url = window.location.href, ua = navigator.userAgent || '';
@@ -862,11 +872,18 @@ async function pmSignInGoogle(){
   if(!hvAuth){ alert('Đang tải... thử lại.'); return; }
   const errEl=document.getElementById('pm-google-error'); if(errEl)errEl.textContent='';
   const provider=new firebase.auth.GoogleAuthProvider();
-  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
-    hvAuth.signInWithRedirect(provider); return;
-  }
+  const ua=navigator.userAgent||'';
+  const isIOS=/iPhone|iPad|iPod/i.test(ua);
+  const isAndroid=/Android/i.test(ua);
+  if(isAndroid){ hvAuth.signInWithRedirect(provider); return; }
+  // iOS Safari & Desktop: popup (iOS redirect bị ITP block)
   try{ await hvAuth.signInWithPopup(provider); pmCloseModal(); }
-  catch(e){ if(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'){ if(errEl)errEl.textContent='Đang chuyển hướng...'; hvAuth.signInWithRedirect(provider); } else if(e.code!=='auth/popup-closed-by-user'){ if(errEl)errEl.textContent='Đăng nhập thất bại. Thử lại.'; } }
+  catch(e){
+    if(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'){
+      if(isIOS){ if(errEl)errEl.textContent='Safari chặn popup. Vào Cài đặt Safari → Bỏ chặn Popup, rồi thử lại.'; }
+      else{ hvAuth.signInWithRedirect(provider); }
+    } else if(e.code!=='auth/popup-closed-by-user'){ if(errEl)errEl.textContent='Đăng nhập thất bại. Thử lại.'; }
+  }
 }
 
 // ════ CỔNG MẬT MÃ ════
