@@ -17,12 +17,12 @@ async function sendTelegramNotification(order: Record<string, unknown>) {
   if (!botToken || !chatId) return;
 
   const name = (order.name as string) || 'Ẩn danh';
-  const phone = (order.phone as string) || 'N/A';
+  const email = (order.email as string) || 'N/A';
   const ref = (order.ref as string) || '';
   const price = Number(order.price || 686000).toLocaleString('vi-VN');
   const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
 
-  const text = `🔐 ĐƠN MỚI — Mật Mã Tự Do\n👤 ${name}\n📞 ${phone}\n💰 ${price}đ\n🔑 ${ref}\n⏰ ${now}`;
+  const text = `━━━━━━━━━━━━━━━━\nĐƠN MỚI · Mật Mã Tự Do\n━━━━━━━━━━━━━━━━\nKhách:     ${name}\nEmail:     ${email}\nSố tiền:   ${price}đ\nMã đơn:    ${ref}\nLúc:       ${now}\n━━━━━━━━━━━━━━━━`;
 
   await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: 'POST',
