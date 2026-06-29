@@ -96,6 +96,10 @@ a{text-decoration:none;color:inherit}
 .pc-meta{display:flex;align-items:center;gap:10px}
 .pc-lessons{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:rgba(255,255,255,.5)}
 .pc-lessons svg{width:17px;height:17px;fill:var(--org)}
+.pc-rv-mini{display:none;align-items:center;gap:5px;margin-top:7px}
+.pc-rv-mini-avg{font-size:13px;font-weight:800;color:#FFD700}
+.pc-rv-mini-stars{color:#FFD700;font-size:12px;letter-spacing:1px}
+.pc-rv-mini-cnt{font-size:11px;color:rgba(255,255,255,.35)}
 
 /* ── SPECIAL CARD ── */
 .pc.special{border:1.5px solid rgba(255,215,0,.5);background:linear-gradient(180deg,#15110a,#1d1500)}
@@ -734,6 +738,7 @@ function renderCourses(){
       <div class="pc-body">
         <div class="pc-name">${c.name}</div>
         <div class="pc-meta"><span class="pc-lessons">${metaText}</span></div>
+        ${c.book ? '<div class="pc-rv-mini" id="book-rv-mini"></div>' : ''}
       </div>
     </a>`;
   }).join('');
@@ -1708,6 +1713,12 @@ function loadAll(){
     var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;
     if(sumEl)sumEl.innerHTML=summaryHTML(all);
     if(listEl)renderList(listEl,_all,_user&&_user.uid);
+    if(all.length>0){
+      var avg=all.reduce(function(s,r){return s+(r.rating||0);},0)/all.length;
+      var st='';for(var si=1;si<=5;si++)st+=si<=Math.round(avg)?'★':'☆';
+      var mini=document.getElementById('book-rv-mini');
+      if(mini){mini.innerHTML='<span class="pc-rv-mini-avg">'+avg.toFixed(1)+'</span><span class="pc-rv-mini-stars">'+st+'</span><span class="pc-rv-mini-cnt">('+all.length+' đánh giá)</span>';mini.style.display='flex';}
+    }
   }).catch(function(e){
     console.error('rv:',e);
     var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;
