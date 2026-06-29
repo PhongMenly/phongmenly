@@ -859,9 +859,12 @@ async function pmLogin(){
 async function pmSignInGoogle(){
   if(!hvAuth){ alert('Đang tải... thử lại.'); return; }
   const errEl=document.getElementById('pm-google-error'); if(errEl)errEl.textContent='';
-  // Mobile: dùng redirect (popup hay bị chặn trên iOS Safari)
-  try{ await hvAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); pmCloseModal(); }
-  catch(e){ if(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'){ if(errEl)errEl.textContent='Popup bị chặn — đang chuyển hướng...'; setTimeout(()=>hvAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()),800); } else if(e.code!=='auth/popup-closed-by-user'){ if(errEl)errEl.textContent='Đăng nhập thất bại. Thử lại.'; } }
+  const provider=new firebase.auth.GoogleAuthProvider();
+  if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+    hvAuth.signInWithRedirect(provider); return;
+  }
+  try{ await hvAuth.signInWithPopup(provider); pmCloseModal(); }
+  catch(e){ if(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'){ if(errEl)errEl.textContent='Đang chuyển hướng...'; hvAuth.signInWithRedirect(provider); } else if(e.code!=='auth/popup-closed-by-user'){ if(errEl)errEl.textContent='Đăng nhập thất bại. Thử lại.'; } }
 }
 
 // ════ CỔNG MẬT MÃ ════

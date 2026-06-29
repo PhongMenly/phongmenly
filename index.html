@@ -1530,6 +1530,10 @@ async function pmLogin() {
 async function pmSignInGoogle() {
   if (!pmAuth) { alert('Đang tải... thử lại.'); return; }
   const provider = new firebase.auth.GoogleAuthProvider();
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    pmAuth.signInWithRedirect(provider);
+    return;
+  }
   const btn = document.querySelector('.pm-btn-google');
   if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
   try {
@@ -1541,7 +1545,7 @@ async function pmSignInGoogle() {
   } catch(e) {
     console.error('Google sign-in error:', e);
     if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
-      pmAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+      pmAuth.signInWithRedirect(provider);
     }
   } finally {
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
