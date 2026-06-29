@@ -1068,7 +1068,8 @@ function startPoll(){
 // Ngày ra mắt chính thức — trước ngày này, mua xong chỉ hiện thông báo + đếm ngược
 const MMTD_LAUNCH = new Date('2026-07-01T00:00:00+07:00');
 let hvOkTimer = null;
-function showLaunchSuccess(){
+function showLaunchSuccess(cid){
+  if(new Date() >= MMTD_LAUNCH){ showUnlockSuccess(cid||'c1'); return; }
   let ov = document.getElementById('hv-ok-ov');
   if(!ov){
     ov = document.createElement('div');
@@ -1109,8 +1110,9 @@ function showLaunchSuccess(){
 }
 function closeLaunchSuccess(){ const ov=document.getElementById('hv-ok-ov'); if(ov) ov.style.display='none'; if(hvOkTimer){clearInterval(hvOkTimer);hvOkTimer=null;} }
 
-// Thông báo khi bấm vào Sách đã mở khóa (trang đọc sách online đang hoàn thiện)
+// Thông báo khi bấm vào Sách đã mở khóa
 function showBookSoon(){
+  if(new Date() >= MMTD_LAUNCH){ window.location.href = 'doc-sach.html'; return; }
   let ov = document.getElementById('hv-book-ov');
   if(!ov){
     ov = document.createElement('div');
@@ -1145,10 +1147,45 @@ function grantUnlock(cid, tier){
   document.getElementById('pay-stt').textContent = '✓ Đã nhận thanh toán — mở khóa!';
   setTimeout(()=>{
     payClose(); applyState();
-    if(new Date() < MMTD_LAUNCH) showLaunchSuccess();      // chưa ra mắt → thông báo + đếm ngược + đọc thử
-    else location.href = 'bai-hoc.html?c='+cid;             // đã ra mắt → vào học ngay
+    if(new Date() < MMTD_LAUNCH){
+      showLaunchSuccess();      // chưa ra mắt → thông báo + đếm ngược + đọc thử
+    } else {
+      showUnlockSuccess(cid);   // đã ra mắt → onboarding rồi vào học
+    }
   }, 1000);
 }
+
+function showUnlockSuccess(cid){
+  let ov = document.getElementById('hv-unlock-ov');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'hv-unlock-ov';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', e=>{ if(e.target===ov) ov.style.display='none'; });
+  }
+  const kh = (typeof COURSES!=='undefined'&&Array.isArray(COURSES)
+    ? (COURSES.find(c=>c.id===cid)||{}).name
+    : null) || 'Khóa học';
+  ov.innerHTML = `<div style="background:#111;border:1px solid rgba(255,215,0,.3);border-radius:20px;max-width:420px;width:100%;padding:30px 26px;text-align:center;position:relative;font-family:inherit">
+    <button onclick="document.getElementById('hv-unlock-ov').style.display='none'" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer">✕</button>
+    <div style="font-size:3rem;margin-bottom:10px">🎉</div>
+    <h2 style="color:#fff;font-size:1.2rem;font-weight:900;margin-bottom:8px">Mở khóa thành công!</h2>
+    <p style="color:#A1A1AA;font-size:.86rem;line-height:1.75;margin-bottom:18px">Chào mừng bạn! <strong style="color:#FFD700">${kh}</strong> đã sẵn sàng. Bắt đầu ngay nhé.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <a href="bai-hoc.html?c=${cid}" style="display:block;text-decoration:none;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border-radius:12px;padding:14px;font-size:.95rem;font-weight:800;text-align:center">▶ Vào học ngay</a>
+      <a href="doc-sach.html" style="display:block;text-decoration:none;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:#FFD700;border-radius:12px;padding:13px;font-size:.9rem;font-weight:800;text-align:center">📖 Đọc sách Mật Mã Tự Do</a>
+    </div>
+    <div style="background:rgba(0,120,255,.1);border:1px solid rgba(0,120,255,.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:left">
+      <div style="font-size:.72rem;font-weight:800;color:#60a5fa;margin-bottom:4px">💬 CỘNG ĐỒNG HỌC VIÊN</div>
+      <div style="font-size:.82rem;color:#fff;font-weight:700;margin-bottom:8px">Vào nhóm Zalo để hỏi đáp &amp; nhận hỗ trợ từ tác giả</div>
+      <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1')" style="display:block;background:#0068FF;color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:10px;font-size:.85rem;font-weight:800">🔵 Vào Nhóm Zalo Ngay</a>
+    </div>
+    <button onclick="document.getElementById('hv-unlock-ov').style.display='none'" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>
+  </div>`;
+  ov.style.display = 'flex';
+}
+
 function payCopy(){ try{ navigator.clipboard.writeText(payContent || payCode); }catch(e){} }
 function payClose(e){ if(!e || e.target===document.getElementById('pay-modal')){ document.getElementById('pay-modal').classList.remove('show'); clearInterval(payPoll); } }
 

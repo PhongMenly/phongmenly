@@ -2736,16 +2736,27 @@ function updateInfo(){
   navR.disabled = i>=t-1;        /* ở cuối → ẩn nút tiến */
 }
 
-pf.on('flip',()=>{playFlip();updateInfo();refreshLayout();onFlipForRead();if(typeof chRvCheckShow==='function')chRvCheckShow();});
+pf.on('flip',()=>{
+  playFlip();updateInfo();refreshLayout();onFlipForRead();
+  if(typeof chRvCheckShow==='function')chRvCheckShow();
+  try{ localStorage.setItem('mmtd_book_pos', String(pf.getCurrentPageIndex())); }catch(e){}
+});
 pf.on('init',()=>{
   updateInfo();refreshLayout();
-  /* Khôi phục trang nếu user bấm Back từ khóa học */
   try{
-    const saved = localStorage.getItem('mmtd_return_page');
-    if(saved !== null){
-      const idx = parseInt(saved, 10);
+    const fromLesson = localStorage.getItem('mmtd_return_page');
+    if(fromLesson !== null){
+      /* Quay lại từ khóa học — ưu tiên vị trí này */
+      const idx = parseInt(fromLesson, 10);
       localStorage.removeItem('mmtd_return_page');
       if(idx > 0) setTimeout(()=>pf.flip(idx), 100);
+    } else {
+      /* Khôi phục vị trí đọc lần trước */
+      const pos = localStorage.getItem('mmtd_book_pos');
+      if(pos !== null){
+        const idx = parseInt(pos, 10);
+        if(idx > 0) setTimeout(()=>pf.flip(idx), 150);
+      }
     }
   }catch(e){}
 });

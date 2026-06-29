@@ -1149,7 +1149,7 @@ function inappCopyLink(){
 
       <div class="faq-item">
         <div class="faq-q" data-i18n="faq.3.q">Sách được giao như thế nào?<span class="faq-arr">▾</span></div>
-        <div class="faq-a"><div class="faq-ai" data-i18n="faq.3.a"><p>Đây là ebook (file PDF). Sau khi đặt và xác nhận thanh toán, bạn sẽ nhận email chứa link tải sách và toàn bộ bonus trong vòng 24 giờ.</p></div></div>
+        <div class="faq-a"><div class="faq-ai" data-i18n="faq.3.a"><p>Đây là ebook đọc trực tuyến. Ngay sau khi thanh toán xác nhận, bạn truy cập sách và toàn bộ 5 khóa học tức thì — không cần chờ, không cần tải file.</p></div></div>
       </div>
 
       <div class="faq-item">
@@ -1826,7 +1826,7 @@ const PM_TRANS = {
     'faq.2.q':'How much capital do I need to start?<span class="faq-arr">▾</span>',
     'faq.2.a':'<p>The model in this book is designed to start with minimal capital. The free tier of ChatGPT is enough for early stages. Affiliate platforms are free to join. No inventory or large ad spend required.</p>',
     'faq.3.q':'How is the book delivered?<span class="faq-arr">▾</span>',
-    'faq.3.a':'<p>This is an ebook (PDF file). After ordering and confirming payment, you\'ll receive an email with the download link for the book and all bonuses within 24 hours.</p>',
+    'faq.3.a':'<p>This is an online ebook. As soon as payment is confirmed, you get instant access to the book and all 5 courses — no waiting, no downloads required.</p>',
     'faq.4.q':'What\'s the refund policy?<span class="faq-arr">▾</span>',
     'faq.4.a':'<p>100% money-back guarantee within 7 days from your order date. If you read it and don\'t feel it was worth the money, contact me directly and I\'ll refund everything — no questions asked.</p>',
     'faq.5.q':'Which AI tools do I need?<span class="faq-arr">▾</span>',
@@ -1933,6 +1933,32 @@ function mmtdStartOkCountdown(){
   tick(); mmtdOkTimer = setInterval(tick, 1000);
 }
 let mmtdPoll = null;
+
+// ─── Màn hình thành công sau thanh toán (smart: pre/post launch) ───
+function mmtdShowOkScreen(){
+  const launched = new Date() >= MMTD_LAUNCH;
+  const ok = document.getElementById('mmtd-step-ok');
+  if(!ok) return;
+  if(launched){
+    ok.innerHTML = `
+      <div style="font-size:3rem;margin-bottom:10px">🎉</div>
+      <h2 style="font-size:1.15rem;font-weight:900;margin-bottom:8px;color:#fff">Mở khóa thành công!</h2>
+      <p style="font-size:.86rem;color:#A1A1AA;margin-bottom:18px;line-height:1.75">Chào mừng bạn đến với <strong style="color:#FFD700">Mật Mã Tự Do</strong>! Sách &amp; 5 khóa học đã sẵn sàng — truy cập ngay bên dưới.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+        <a href="doc-sach.html" style="display:block;text-decoration:none;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border-radius:12px;padding:14px;font-size:.95rem;font-weight:800;text-align:center">📖 Đọc sách ngay</a>
+        <a href="hoc-vien.html" style="display:block;text-decoration:none;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:#FFD700;border-radius:12px;padding:13px;font-size:.92rem;font-weight:800;text-align:center">🎓 Vào Học Viện</a>
+      </div>
+      <div style="background:rgba(0,120,255,.1);border:1px solid rgba(0,120,255,.3);border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:left">
+        <div style="font-size:.72rem;font-weight:800;color:#60a5fa;margin-bottom:4px">💬 CỘNG ĐỒNG HỌC VIÊN</div>
+        <div style="font-size:.82rem;color:#fff;font-weight:700;margin-bottom:8px">Vào nhóm Zalo để hỏi đáp &amp; nhận hỗ trợ từ tác giả</div>
+        <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1')" style="display:block;background:#0068FF;color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:10px;font-size:.85rem;font-weight:800">🔵 Vào Nhóm Zalo Ngay</a>
+      </div>
+      <button onclick="mmtdClose()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>`;
+  } else {
+    /* Pre-launch: countdown + đọc thử */
+    mmtdStartOkCountdown();
+  }
+}
 
 // ─── Modal chờ ra mắt cho người đã mua sách ───
 let bookWaitTimer = null;
@@ -2124,9 +2150,11 @@ function mmtdShowQRDirect(){
       const r = await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(mmtdRef)}`);
       if(r.ok){ const d=await r.json(); if(d?.paid){
         clearInterval(mmtdPoll); mmtdPoll=null;
+        localStorage.setItem('kh_unlocked','1');
+        updateBuyButton();
         document.getElementById('mmtd-step-qr').style.display='none';
         document.getElementById('mmtd-step-ok').style.display='block';
-        mmtdStartOkCountdown();
+        mmtdShowOkScreen();
         fetch(MMTD_WEBHOOK,{ method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ action:'order_confirmed', ref:mmtdRef, product:'Mật Mã Tự Do' })
         }).catch(()=>{});
@@ -2268,9 +2296,11 @@ function mmtdSubmit(e){
       const r = await fetch(`${MMTD_WEBHOOK}?ref=${encodeURIComponent(mmtdRef)}`);
       if(r.ok){ const d=await r.json(); if(d?.paid){
         clearInterval(mmtdPoll); mmtdPoll=null;
+        localStorage.setItem('kh_unlocked','1');
+        updateBuyButton();
         document.getElementById('mmtd-step-qr').style.display='none';
         document.getElementById('mmtd-step-ok').style.display='block';
-        mmtdStartOkCountdown();
+        mmtdShowOkScreen();
         fetch(MMTD_WEBHOOK,{ method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ action:'order_confirmed', ref:mmtdRef, product:'Mật Mã Tự Do' })
         }).catch(()=>{});
