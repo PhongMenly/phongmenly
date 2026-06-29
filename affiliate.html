@@ -336,6 +336,19 @@ img{max-width:100%;display:block}
     </div>
   </div>
 
+  <!-- YÊU CẦU THANH TOÁN -->
+  <div class="section">
+    <div class="sec-h">💳 Yêu cầu thanh toán hoa hồng</div>
+    <div style="background:var(--card);border:1px solid var(--bdr-s);border-radius:16px;padding:20px 22px">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7">Hoa hồng tích lũy được thanh toán qua chuyển khoản vào đầu tháng. Để yêu cầu sớm hoặc kiểm tra, nhắn tin nhanh tới Phong qua Zalo:</p>
+      <div id="payout-msg-box" style="background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:12px 14px;font-size:13px;color:#E4E4E7;font-family:monospace;white-space:pre-wrap;margin-bottom:12px;line-height:1.7">Đang tải thông tin...</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button onclick="copyPayoutMsg()" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);border-radius:10px;padding:9px 16px;color:#FFD700;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">📋 Sao chép tin nhắn</button>
+        <a id="payout-zalo-btn" href="https://zalo.me/0978076936" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:#0068FF;color:#fff;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:800;text-decoration:none">🔵 Mở Zalo gửi ngay</a>
+      </div>
+    </div>
+  </div>
+
   <!-- HỖ TRỢ -->
   <div class="section">
     <div class="sec-h">💬 Hỗ trợ đối tác</div>
@@ -445,6 +458,9 @@ function enterApp(user){
 
   // Load stats
   loadStats(affCode);
+  buildPayoutMsg();
+  // Rebuild payout message after stats load in case they arrive
+  setTimeout(buildPayoutMsg, 4000);
 }
 
 function fillCaptions(link, name, code){
@@ -494,6 +510,24 @@ function copyAffLink(){
 function copyAffCaption(){
   const cap = document.getElementById('cap1').textContent;
   navigator.clipboard.writeText(cap).then(()=>{ alert('Đã copy caption!'); }).catch(()=>{});
+}
+
+function buildPayoutMsg(){
+  const orders = parseInt(document.getElementById('stat-orders').textContent)||0;
+  const comm = orders * 205800;
+  const today = new Date().toLocaleDateString('vi-VN');
+  const msg = `Xin chào Phong,\n\nMình là đối tác affiliate Mật Mã Tự Do.\nMã affiliate: ${affCode||'—'}\nSố đơn hàng: ${orders} đơn\nHoa hồng ước tính: ${comm>0?comm.toLocaleString('vi-VN'):0}đ\nNgày: ${today}\n\nMình muốn yêu cầu thanh toán hoa hồng. Vui lòng xác nhận số tài khoản nhận tiền cần gửi về đâu.\n\nCảm ơn!`;
+  const box = document.getElementById('payout-msg-box');
+  if(box) box.textContent = msg;
+  return msg;
+}
+
+function copyPayoutMsg(){
+  const msg = buildPayoutMsg();
+  navigator.clipboard.writeText(msg).then(()=>{
+    const btn = document.querySelector('[onclick="copyPayoutMsg()"]');
+    if(btn){ btn.textContent='✓ Đã copy!'; btn.style.color='#4ADE80'; setTimeout(()=>{ btn.textContent='📋 Sao chép tin nhắn'; btn.style.color=''; },2000); }
+  }).catch(()=>{});
 }
 
 function copyCaption(btn){
