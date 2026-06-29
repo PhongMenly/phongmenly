@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
@@ -16,16 +16,19 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 
 body{
-  background:#b8b5b0;
+  background:#ede9e2;
   background-image:
-    repeating-linear-gradient( 45deg,transparent,transparent 22px,rgba(0,0,0,.016) 22px,rgba(0,0,0,.016) 44px),
-    repeating-linear-gradient(-45deg,transparent,transparent 22px,rgba(0,0,0,.011) 22px,rgba(0,0,0,.011) 44px);
+    repeating-linear-gradient( 45deg,transparent,transparent 22px,rgba(0,0,0,.024) 22px,rgba(0,0,0,.024) 44px),
+    repeating-linear-gradient(-45deg,transparent,transparent 22px,rgba(0,0,0,.016) 22px,rgba(0,0,0,.016) 44px);
   min-height:100vh;
   display:flex;
   align-items:flex-start;
   justify-content:center;
   overflow-x:hidden;
   padding-bottom:72px;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
 }
 
 #app{
@@ -46,7 +49,7 @@ body{
     rgba(255,255,255,.35) 12%,
     rgba(0,0,0,.04)       34%,
     rgba(0,0,0,.16)       48%,
-    rgba(0,0,0,.22)       50%,
+    rgba(0,0,0,.30)       50%,
     rgba(0,0,0,.16)       52%,
     rgba(0,0,0,.04)       66%,
     rgba(255,255,255,.35) 88%,
@@ -54,32 +57,44 @@ body{
 }
 #app.spread:not(.flipping) #gutter{opacity:1;}
 
-/* Mép sách: các lớp trang xếp chồng hai bên — chỉ hiện khi mở đôi */
+/* Mép sách: sọc trắng sáng thoáng — chỉ hiện khi mở đôi */
 #app.spread::before,
 #app.spread::after{
   content:'';position:absolute;top:6px;bottom:6px;width:9px;
   pointer-events:none;z-index:-1;
-  box-shadow:0 3px 9px rgba(0,0,0,.22);
+  box-shadow:0 2px 6px rgba(0,0,0,.14);
 }
 #app.spread::before{                 /* mép trái */
   left:-8px;border-radius:3px 0 0 3px;
   background:repeating-linear-gradient(to left,
-    rgba(0,0,0,.10) 0, rgba(0,0,0,.10) 1px,
-    rgba(196,176,134,.5) 1px, rgba(196,176,134,.5) 1.6px,
-    rgba(255,255,255,.7) 1.6px, rgba(255,255,255,.7) 3px);
+    rgba(160,148,130,.18) 0, rgba(160,148,130,.18) 1px,
+    rgba(235,230,220,.45) 1px, rgba(235,230,220,.45) 1.8px,
+    rgba(255,255,255,.88) 1.8px, rgba(255,255,255,.88) 3px);
 }
 #app.spread::after{                  /* mép phải */
   right:-8px;border-radius:0 3px 3px 0;
   background:repeating-linear-gradient(to right,
-    rgba(0,0,0,.10) 0, rgba(0,0,0,.10) 1px,
-    rgba(196,176,134,.5) 1px, rgba(196,176,134,.5) 1.6px,
-    rgba(255,255,255,.7) 1.6px, rgba(255,255,255,.7) 3px);
+    rgba(160,148,130,.18) 0, rgba(160,148,130,.18) 1px,
+    rgba(235,230,220,.45) 1px, rgba(235,230,220,.45) 1.8px,
+    rgba(255,255,255,.88) 1.8px, rgba(255,255,255,.88) 3px);
 }
 
-/* Bóng nền nâng cả cuốn sách lên — chiều sâu giấy dày (không dùng filter để khỏi phá hiệu ứng lật 3D) */
-#app.spread #book{box-shadow:0 16px 34px rgba(0,0,0,.22);}
+/* Bóng nền nâng cả cuốn sách lên — chiều sâu giấy dày */
+#app.spread #book{box-shadow:0 22px 58px rgba(0,0,0,.42),0 7px 20px rgba(0,0,0,.22),0 2px 5px rgba(0,0,0,.12);}
 /* Cắt canvas PageFlip theo đúng khung sách — ngăn vệt thừa tràn ra ngoài */
 #book{overflow:hidden;isolation:isolate;}
+
+/* Bóng đổ khi hiển thị bìa đơn trang */
+#app.cover-front #book,#app.cover-back #book{
+  box-shadow:0 6px 32px rgba(0,0,0,.07);
+}
+/* Cắt nửa trống khỏi viewport — chỉ hiện đúng nửa có bìa
+   inset(top right bottom left): right/left=50% cắt đúng ranh giới 2 trang,
+   bottom âm để shadow drop không bị cắt */
+@media(min-width:641px){
+  #app.cover-front:not(.flipping){ clip-path: inset(0 0 -120px 50%); }
+  #app.cover-back:not(.flipping){  clip-path: inset(0 50% -120px 0); }
+}
 
 /* ══════════════════════════════════════════
    TRANG — nền ấm tự nhiên như giấy sách
@@ -115,10 +130,10 @@ body{
   --ink-light:rgba(28,28,28,.45);
 
   /* Giấy cao cấp: ngà ấm + thớ giấy mịn + chiều sâu mép trang */
-  --paper-color:#fbf8f1;
+  --paper-color:#faf5e9;
   --paper-img:
-    radial-gradient(125% 115% at 50% 45%, rgba(255,255,255,.5) 38%, rgba(120,92,42,.07) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    radial-gradient(ellipse 132% 122% at 50% 50%, rgba(255,255,255,.40) 25%, rgba(120,92,42,.055) 68%, rgba(78,52,18,.13) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75 0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.065'/%3E%3C/svg%3E");
 }
 
 /* ══════════════════════════════════════════
@@ -206,7 +221,7 @@ body{
    .cp = content page
 ══════════════════════════════════════════ */
 .cp{
-  padding:44px 50px 36px;
+  padding:44px 50px 46px;
   display:flex;flex-direction:column;
   height:100%;
 }
@@ -222,20 +237,25 @@ body{
   font-size:10px;letter-spacing:5px;
   color:var(--gold);text-align:center;
   margin-bottom:10px;text-transform:uppercase;
+  flex-shrink:0;
 }
 
 /* Rule dưới tiêu đề */
 .pt-rule{
   width:36%;height:1px;margin:0 auto 20px;
-  background:linear-gradient(to right,transparent,rgba(184,124,20,.5),transparent);
+  background:linear-gradient(to right,transparent,rgba(184,124,20,.68),transparent);
+  flex-shrink:0;
 }
 
 /* Body text */
 .pb{
   font-family:'Lora',Georgia,serif;font-weight:400;
   font-size:13px;line-height:1.78;
-  color:#1a1a1a;text-align:justify;
-  flex:1;hyphens:auto;word-break:break-word;
+  color:#0e0e0e;text-align:justify;
+  flex:1;min-height:0;overflow:hidden;
+  hyphens:auto;word-break:break-word;
+  text-shadow:0 0 0.55px rgba(0,0,0,.42),0 0 0.15px rgba(0,0,0,.22);
+  letter-spacing:0.005em;
 }
 
 .pb p{text-indent:2em;margin-bottom:0;}
@@ -253,9 +273,12 @@ body{
 
 /* Số trang */
 .pn{
-  text-align:center;margin-top:12px;
+  position:absolute;bottom:16px;left:0;right:0;
+  text-align:center;
   font-family:'Oswald',sans-serif;font-weight:400;
-  font-size:10px;color:var(--gold);letter-spacing:2px;
+  font-size:10px;color:var(--gold);letter-spacing:3px;
+  pointer-events:none;
+  text-shadow:0 0 6px rgba(184,124,20,.18);
 }
 
 /* ══════════════════════════════════════════
@@ -382,10 +405,11 @@ body{
 
 .ch-open .pn{position:absolute;bottom:22px;left:0;right:0;}
 
-/* Chapter opener variant có ảnh minh họa phía trên */
+/* CHUẨN SÁCH: tiêu đề LUÔN trên cùng — ảnh LUÔN nằm dưới tiêu đề.
+   Không dùng has-img để tránh đảo thứ tự. Dùng inline style flex-start. */
 .ch-open.has-img{justify-content:flex-start;padding:0 0 40px;}
-/* Tỉ lệ gốc ảnh (1499×773) → hiện trọn ảnh, không cắt nội dung; tự co theo bề ngang trang */
-.ch-open .ch-img{width:calc(100% - 16px);margin:0 8px;aspect-ratio:1499/773;overflow:hidden;flex-shrink:0;border-radius:3px;}
+/* Ảnh chapter opener: chiều cao cố định 200px để cân đối với tiêu đề — object-fit:cover giữ nội dung trọng tâm */
+.ch-open .ch-img{width:calc(100% - 24px);margin:0 12px;height:200px;overflow:hidden;flex-shrink:0;border-radius:4px;}
 .ch-open .ch-img img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
 .ch-open.has-img .ch-body{
   display:flex;flex-direction:column;
@@ -945,6 +969,86 @@ body.flipping a[href="index.html"]{
   text-align:left;display:block;font-family:inherit;
 }
 .gate-back:hover{color:#fff;}
+
+/* ══════════════════════════════════════════
+   ONE-PERSON BUSINESS PLAN
+══════════════════════════════════════════ */
+.biz-img{
+  width:calc(100% + 100px);
+  margin:-44px -50px 18px;
+  height:306px;
+  overflow:hidden;flex-shrink:0;
+}
+.biz-img img{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center center;
+  display:block;
+}
+.biz-en{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px;letter-spacing:0;
+  color:var(--gold);line-height:1.1;
+  margin-bottom:6px;
+  word-break:break-word;overflow-wrap:break-word;
+}
+.biz-vn{
+  font-family:'Oswald',sans-serif;font-weight:300;
+  font-size:8.5px;letter-spacing:4px;
+  color:var(--gold);text-transform:uppercase;
+  margin-bottom:12px;
+}
+.biz-rule{width:44px;height:1.5px;background:var(--gold);margin:0 0 14px;}
+.biz-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+.biz-item{display:flex;align-items:flex-start;gap:10px;}
+.bi-num{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;
+  color:var(--gold);line-height:1.1;
+  flex-shrink:0;min-width:22px;padding-top:2px;
+}
+.bi-body{flex:1;}
+.bi-label{
+  font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:9px;letter-spacing:2.5px;
+  color:var(--gold);text-transform:uppercase;margin-bottom:2px;
+}
+.bi-text{
+  font-family:'Lora',serif;font-size:12px;
+  color:var(--ink);line-height:1.6;
+}
+.bi-text b{color:#8c5e00;}
+
+/* ══════════════════════════════════════════
+   PHẦN II — SKILL OPENERS & CALLOUTS
+══════════════════════════════════════════ */
+.sk-open{display:flex;flex-direction:column;justify-content:flex-end;padding:44px 50px 56px;height:100%;overflow:hidden;}
+.sk-echo{position:absolute;right:-8px;top:22px;font-family:'Bebas Neue',sans-serif;font-size:150px;line-height:1;letter-spacing:-8px;color:var(--ink);opacity:.05;pointer-events:none;user-select:none;}
+.sk-badge{font-family:'Oswald',sans-serif;font-weight:300;font-size:9px;letter-spacing:5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
+.sk-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:26px;letter-spacing:0.5px;text-transform:uppercase;color:var(--gold);line-height:1.12;margin-bottom:12px;}
+.sk-hook{font-family:'Lora',serif;font-style:italic;font-size:12px;line-height:1.72;color:#555;max-width:310px;}
+.hl{border-left:3px solid rgba(184,124,20,.85);background:linear-gradient(to right,rgba(184,124,20,.075),rgba(184,124,20,.025) 60%,transparent);padding:10px 14px;margin:12px 0;font-family:'Lora',serif;font-style:italic;font-size:12px;line-height:1.68;color:#1d1508;text-align:left;border-radius:0 4px 4px 0;}
+.ml{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin:10px 0;}
+.ml-s{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--gold);letter-spacing:1px;}
+.ml-a{font-size:10px;color:var(--gold);opacity:.55;margin:0 1px;}
+.img-ph{width:calc(100% + 100px);margin:0 -50px 16px;height:200px;background:#f0ebe0;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-bottom:2px dashed var(--gold);}
+.img-ph .ph-txt{font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;text-align:center;line-height:2.2;}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+.tg-box{padding:10px 12px;border-top:2px solid var(--gold);background:rgba(250,244,232,.88);}
+.tg-name{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1.5px;color:var(--gold);margin-bottom:2px;}
+.tg-when{font-family:'Oswald',sans-serif;font-weight:300;font-size:8px;letter-spacing:1px;color:#888;text-transform:uppercase;}
+.inc{background:var(--ink);padding:13px 18px;margin:12px 0;text-align:center;}
+.inc-n{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--gold);letter-spacing:2px;}
+.inc-l{font-family:'Oswald',sans-serif;font-weight:300;font-size:8px;letter-spacing:3px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:3px;}
+.step-lbl{display:block;font-family:'Oswald',sans-serif;font-weight:600;font-size:10px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin:14px 0 6px;}
+
+/* ══ LIGHTBOX — click ảnh để xem phóng to ══ */
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:99999;display:none;align-items:center;justify-content:center;cursor:zoom-out;padding:20px;}
+#lb.show{display:flex;animation:lb-in .18s ease;}
+@keyframes lb-in{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+#lb-img{max-width:94vw;max-height:92vh;border-radius:8px;box-shadow:0 16px 60px rgba(0,0,0,.7);object-fit:contain;cursor:default;}
+#lb-close{position:fixed;top:14px;right:20px;color:#fff;font-size:38px;line-height:1;cursor:pointer;opacity:.75;font-family:sans-serif;user-select:none;}
+#lb-close:hover{opacity:1;}
+#lb-hint{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.45);font-size:12px;font-family:sans-serif;pointer-events:none;}
+.page img{cursor:zoom-in;}
 </style>
 </head>
 <body>
@@ -1272,8 +1376,6 @@ function inappCopyLink(){
       <p><b>E-Commerce</b> — bán hàng, chạy ads, tối ưu sản phẩm. Dễ tiếp cận, dễ chuyển đổi, dễ đo kết quả. Nhưng hoa hồng chỉ tính <b>một lần</b>, cạnh tranh giá khốc liệt, vốn kẹt ở hàng tồn kho và logistics bào mòn lợi nhuận. Chất xám bỏ vào không nhiều — nhưng phải thay đổi liên tục theo xu hướng người dùng, không bao giờ dừng. Dừng chạy ads là dừng thu nhập. Bài học đắt nhất: <b>thu nhập không nhân rộng được.</b></p>
       <p><b>Dịch Vụ</b> — content, tư vấn, coaching, chạy dự án. Phổ biến tại Việt Nam lẫn thị trường quốc tế, vào được với 0 đồng vốn ban đầu. Nhưng đây là ngành <b>dành cho người có chuyên môn và uy tín thật sự</b>: dễ làm, dễ mở — nhưng khó vận hành và chi phí ngày càng lớn. Cần chất xám liên tục, cạnh tranh đối thủ gay gắt, và khó mở rộng quy mô khi chưa đủ năng lực. Càng thêm khách, càng thêm việc. Tôi không tự do — tôi chỉ <b>đổi chủ</b>.</p>
       <p><b>Tài Chính</b> — đầu tư, chứng khoán, forex, fintech. Ngành <b>dành cho người thông minh, tài giỏi</b> — đòi hỏi chất xám cao và khả năng quản trị cảm xúc. Cần là người tiếp thị hơn là người trực tiếp chơi. Hoa hồng cao, cạnh tranh ở mức trung bình — nhưng rủi ro rất cao, giá trị thực tế thấp và tiềm ẩn nguy hiểm cho cả người giới thiệu lẫn người được giới thiệu khi chưa đủ kiến thức. Tôi chỉ đang chơi trò <b>cờ bạc mặc vest</b>.</p>
-      <p>Ba thị trường. Nhiều năm. Mỗi lần đều cảm tưởng mình đang đi đúng — cho đến khi chạm vào <b>cái trần vô hình</b> và không vượt qua được. Và cuối cùng, bạn cũng đã biết tại sao tôi chọn <b>Affiliate × AI</b> cho mô hình kinh doanh một người của mình.</p>
-      <p><i>Bạn thì sao? Hãy chọn cho mình một con đường.</i></p>
     </div>
     <div class="pn">12</div>
   </div>
@@ -1321,11 +1423,62 @@ function inappCopyLink(){
       </div>
     </div>
     <div class="wp-cta">
+      <p>Ba thị trường. Nhiều năm. Mỗi lần đều cảm tưởng mình đang đi đúng — cho đến khi chạm vào <b>cái trần vô hình</b> và không vượt qua được. Và cuối cùng, bạn cũng đã biết tại sao tôi chọn <b>Affiliate × AI</b> cho mô hình kinh doanh một người của mình.</p>
+      <p><i>Bạn thì sao? Hãy chọn cho mình một con đường.</i></p>
       <p>Tôi tin rằng 3 năm sau mọi giấc mơ của bạn đều có thể thực hiện được — thay vì 10 năm mòn mỏi. Ý chí có thể còn đó, nhưng sức khỏe, sự nhạy bén và mối quan hệ sẽ ngày càng ít đi.</p>
       <p>Nếu không nằm trong tiêu chí này — tôi tuyệt đối không làm. Tôi thích mình là một doanh nhân và chỉ chia sẻ đúng lĩnh vực mình giỏi nhất.</p>
       <div class="wc-sig">— Phong Menly</div>
     </div>
     <div class="pn">13</div>
+  </div>
+
+  <!-- ══ PHẦN I — Ra Quyết Định: trang ảnh ══ -->
+  <div class="page ch-open has-img">
+    <div class="ch-body">
+      <div class="ch-num">Chương 1 · Bài Học Về Lựa Chọn</div>
+      <div class="ch-rule"></div>
+      <div class="ch-title">Ra<br>Quyết Định</div>
+      <div class="ch-sub">Khi bạn ra quyết định — số phận bắt đầu được hình thành.<br>Hãy nói yes với điều khiến bạn tràn đầy cảm hứng.</div>
+    </div>
+    <div class="ch-img">
+      <img src="images/ra-quyet-dinh.png" alt="Ra Quyết Định · 4 Cánh Cửa">
+    </div>
+    <div class="ch-story">
+      <div class="bq">Chọn con đường khiến bạn muốn tiến lên mỗi ngày</div>
+    </div>
+    <div class="pn">14</div>
+  </div>
+
+  <!-- ══ PHẦN I — Nội dung trang 6: Khoảnh Khắc Quyết Định ══ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="bq">Mỗi khi bạn ra quyết định — số phận bắt đầu được hình thành.</div>
+      <p class="ni">Điều đầu tiên tôi làm sau buổi sự kiện đó không phải là lên kế hoạch, không phải là tìm thầy hay mua khóa học. Tôi nhìn lại trong túi mình còn bao nhiêu tiền.</p>
+      <p>Đó là câu hỏi thật nhất mà bất kỳ ai muốn bắt đầu lại cũng cần trả lời: <i>Nếu 3 đến 6 tháng tới mình không có thu nhập — mình có thể sống được không?</i></p>
+      <p>Nếu là bạn lúc đó, bạn sẽ làm gì?</p>
+      <p>Tôi biết câu trả lời của phần lớn mọi người. Hoang mang. Lo lắng. Sợ bị vụt mất cơ hội. Và những người bán hàng thì biết rất rõ điều đó — họ nhắm thẳng vào nỗi đau, khuếch đại sự hối thúc, biến bạn trở nên rối trí để đưa ra quyết định khi chưa kịp suy nghĩ thật sự.</p>
+      <p>Nhưng tôi đã đi qua tất cả những con đường đó rồi. Tôi đã hiểu tại sao mình không thể vượt lên trong suốt 10 năm qua. Không phải thiếu cố gắng. Không phải thiếu đam mê. Chỉ đơn giản là <b>thiếu sự lựa chọn đúng ngay từ đầu</b>.</p>
+      <p>Lần này tôi tự ra cho mình một quy tắc: chỉ <b>12 tiếng</b> để quyết định — không hơn. Bởi vì càng để lâu, tôi càng tự nghi ngờ bản thân. Mà một khi đã quyết định thật sự, tôi tin tất cả mọi thứ sẽ bắt đầu đứng về phía mình.</p>
+      <p>Tôi phải chọn thứ mà <b>3 năm tới có thể thật sự giỏi</b> — có tầm nhìn quốc tế, có trải nghiệm thật, biết cách dùng công nghệ làm đòn bẩy. Không thể tiếp tục đi vòng tròn thêm một lần nào nữa.</p>
+    </div>
+    <div class="pn">15</div>
+  </div>
+
+  <!-- ══ PHẦN I — Nội dung trang 7: Cánh Cửa Mở Ra ══ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Vào đúng lúc đó — vợ tôi đang chuẩn bị sinh em bé.</p>
+      <p>10 năm lập nghiệp. Bao nhiêu dự án, bao nhiêu con đường đã thử. Vậy mà giờ này tôi đứng đây như người không có việc làm cụ thể, trước một đứa con sắp chào đời. Người khác có thể gọi đó là gánh nặng. Với tôi — đó là <b>nhiên liệu</b>.</p>
+      <p>Tôi mở YouTube, xem lại những video đầu tiên trên kênh của <b>Sơn Piaz</b>. Anh đang xây dựng sự nghiệp <b>một mình tại Mỹ</b> — không công ty đứng sau, không team hỗ trợ. Chỉ một người, một màn hình, và một hệ thống anh tự tạo ra từ con số không.</p>
+      <p>Tôi nghĩ: <i>Anh ấy làm được. Tại sao tôi không thể?</i></p>
+      <p>Và tôi đã quyết định. Không phải vì tôi chắc chắn sẽ thành công. Mà vì lần này tôi thật sự đã chọn — không do dự, không chờ thêm thời gian hoàn hảo nào nữa.</p>
+      <div class="bq">"Bạn chỉ đang sống — hay đang tồn tại?"</div>
+      <p class="ni">Mang câu đó theo suốt hành trình này.</p>
+      <p>Sau khi tôi quyết định — cánh cửa thật sự mở ra. Không kịch tính. Không rầm rộ. Chỉ là lần đầu tiên sau 10 năm, tôi biết mình đang đi đúng hướng.</p>
+      <p>Này người anh em — dù bạn có bước đi cùng tôi hay không, hãy cứ tiếp tục dõi theo. Sau cuốn sách này, bạn sẽ biết mình thật sự đang cần điều gì, và bước tiếp theo của mình là gì. Tôi sẽ đưa bạn qua từng bước — kể cả những thứ điên rồ nhất tôi từng trải qua — để bạn có thể rút ngắn thời gian hơn tôi rất nhiều.</p>
+    </div>
+    <div class="sig">— Phong Menly</div>
+    <div class="pn">16</div>
   </div>
 
   <!-- ══════════════════════════════════════════════════════════════
@@ -1336,76 +1489,1057 @@ function inappCopyLink(){
   ══════════════════════════════════════════════════════════════ -->
 
   <!-- ══ PHẦN II — Mở chương ══ -->
-  <div class="page ch-open gold-open">
-    <div class="ch-num">Phần II · Chìa Khóa</div>
-    <div class="ch-rule"></div>
-    <div class="ch-title">Bản Đồ<br>Traffic</div>
-    <div class="ch-sub">5 bước huyền thoại mở cánh cửa tự do.<br>Đây là chương quan trọng nhất.</div>
-    <div class="pn">14</div>
-  </div>
-  <!-- ✍️ VIẾT TIẾP PHẦN II TẠI ĐÂY -->
-  <div class="page cp">
-    <div class="pt">Phần II · Bản Đồ Traffic</div>
-    <div class="pt-rule"></div>
-    <div class="pb">
-      <p class="ni">✍️ <i>Phần này đang được viết. Thay đoạn này bằng nội dung của bạn — dùng <b>&lt;p class="ni"&gt;</b> cho đoạn mở đầu thụt lề, <b>&lt;p&gt;</b> cho các đoạn sau.</i></p>
+  <!-- RULE: tiêu đề luôn nằm TRÊN, ảnh nằm DƯỚI tiêu đề -->
+  <div class="page ch-open gold-open" style="justify-content:flex-start;align-items:stretch;padding:44px 40px 40px;">
+    <div style="text-align:center;flex-shrink:0;margin-bottom:16px;">
+      <div class="ch-num">Phần II · Chìa Khóa</div>
+      <div class="ch-rule"></div>
+      <div class="ch-title">Bản Đồ Traffic</div>
     </div>
-    <div class="pn">15</div>
-  </div>
-
-  <!-- ══ PHẦN III — Mở chương ══ -->
-  <div class="page ch-open">
-    <div class="ch-num">Phần III</div>
-    <div class="ch-rule"></div>
-    <div class="ch-title">Kiêu Hãnh &amp;<br>Cú Ngã Trượt Dài</div>
-    <div class="ch-sub">Ăn mừng sớm và cú lừa của nghỉ ngơi.</div>
-    <div class="pn">16</div>
-  </div>
-  <!-- ✍️ VIẾT TIẾP PHẦN III TẠI ĐÂY -->
-  <div class="page cp">
-    <div class="pt">Phần III · Kiêu Hãnh &amp; Cú Ngã Trượt Dài</div>
-    <div class="pt-rule"></div>
-    <div class="pb">
-      <p class="ni">✍️ <i>Phần này đang được viết. Thay đoạn này bằng nội dung của bạn.</i></p>
+    <div style="flex:1;overflow:hidden;border-radius:6px;margin-bottom:16px;">
+      <img src="images/ban-do-traffic.png" alt="Bản đồ KOL AI Affiliate BlueOcean" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">
     </div>
+    <div class="ch-sub" style="max-width:none;margin-top:0;align-self:center;">5 bước huyền thoại mở cánh cửa tự do.<br>Đây là chương quan trọng nhất.</div>
     <div class="pn">17</div>
   </div>
-
-  <!-- ══ PHẦN IV — Mở chương ══ -->
-  <div class="page ch-open">
-    <div class="ch-num">Phần IV</div>
-    <div class="ch-rule"></div>
-    <div class="ch-title">Dòng Tiền Điều<br>Khiển Traffic</div>
-    <div class="ch-sub">Làm gì khi có những kết quả nhỏ đầu tiên.</div>
-    <div class="pn">18</div>
-  </div>
-  <!-- ✍️ VIẾT TIẾP PHẦN IV TẠI ĐÂY -->
+  <!-- ══ PHẦN II — One-Person Business Plan ══ -->
   <div class="page cp">
-    <div class="pt">Phần IV · Dòng Tiền Điều Khiển Traffic</div>
-    <div class="pt-rule"></div>
+    <div class="biz-en" style="flex-shrink:0;margin-top:18px;">ONE-PERSON BUSINESS PLAN</div>
+    <div class="biz-vn" style="flex-shrink:0;">Kế hoạch kinh doanh cho doanh nghiệp một người</div>
+    <div class="biz-rule" style="flex-shrink:0;margin-bottom:14px;"></div>
+    <p style="font-family:'Lora',serif;font-size:11px;line-height:1.7;color:#111;margin-bottom:0;flex-shrink:0;text-align:justify;">Đơn giản. Trực diện. Không hào nhoáng. Đây là kế hoạch tôi tự viết ra ngay sau khi quyết định — trên một tờ giấy, tại một quán cafe, với túi không có tiền và một chiếc laptop.</p>
+    <div style="margin-top:auto;border-radius:6px;overflow:hidden;">
+      <img src="images/khoi-hanh-biz.png" alt="Hành trình đến 1000$" style="width:100%;height:auto;display:block;">
+    </div>
+    <div class="pn">18</div>
+
+  <!-- ══ PHẦN II — One-Person Business Plan: 5 điểm quyết định ══ -->
+  </div>
+  <div class="page cp cp-cont">
     <div class="pb">
-      <p class="ni">✍️ <i>Phần này đang được viết. Thay đoạn này bằng nội dung của bạn.</i></p>
+      <div class="step-lbl" style="margin-top:0;letter-spacing:2px;">Sau khi ra quyết định —<br>tôi có 5 điều rõ ràng:</div>
+      <div class="biz-rule" style="margin-bottom:12px;"></div>
+      <div class="biz-list">
+        <div class="biz-item">
+          <span class="bi-num">01</span>
+          <div class="bi-body">
+            <div class="bi-label">Ngành</div>
+            <div class="bi-text"><b>Affiliate AI</b> — thị trường đang mở, người mới vẫn còn lợi thế lớn</div>
+          </div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num">02</span>
+          <div class="bi-body">
+            <div class="bi-label">Thị trường</div>
+            <div class="bi-text"><b>Go Global · Việt Nam → Mỹ</b> — tận dụng đang làm việc cùng Sơn Piaz, nhắm thẳng thị trường quốc tế</div>
+          </div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num">03</span>
+          <div class="bi-body">
+            <div class="bi-label">Mục tiêu</div>
+            <div class="bi-text"><b>$1.000 đầu tiên</b> trong 3–6 tháng — đủ nuôi bản thân, đủ chứng minh hướng đi đúng</div>
+          </div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num">04</span>
+          <div class="bi-body">
+            <div class="bi-label">Mô hình</div>
+            <div class="bi-text"><b>1 người + 1 máy tính</b> — không văn phòng, không nhân viên, không chi phí cố định. Quán cafe là văn phòng.</div>
+          </div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num">05</span>
+          <div class="bi-body">
+            <div class="bi-label">Chiến lược</div>
+            <div class="bi-text"><b>Chỉ 1 con đường duy nhất</b> — không thử thêm thứ gì khác, không làm song song. Tất cả vào đây.</div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:11px;line-height:1.65;color:#555;margin-top:10px;font-style:italic;">"Khi bạn chỉ có một con đường — bạn không còn lý do để do dự nữa."</p>
     </div>
     <div class="pn">19</div>
   </div>
 
-  <!-- ══ PHẦN V — Mở chương ══ -->
-  <div class="page ch-open gold-open">
-    <div class="ch-num">Phần V · Cao Trào</div>
+  <!-- ══ PHẦN II · SKILL 01 — Opener ══ -->
+  <div class="page sk-open" style="justify-content:flex-start;padding-bottom:44px;">
+    <div class="sk-echo">01</div>
+    <div class="sk-badge">Phần II · Skill 01 / 05</div>
     <div class="ch-rule"></div>
-    <div class="ch-title">Cuộc Chơi<br>Của System</div>
-    <div class="ch-sub">Đế chế một người nắm cả hệ thống.<br>Một mình. Tự do. Không giới hạn.</div>
+    <div class="sk-title">Flow Theo Con Đường<br>Người Thành Công</div>
+    <div style="border-radius:8px;overflow:hidden;margin-bottom:14px;border:1px solid rgba(184,124,20,.18);">
+      <img src="images/sachtrang20.png" alt="Bản đồ 5 bước Affiliate BlueOcean" style="width:100%;height:auto;display:block;">
+    </div>
+    <div class="sk-hook">Bạn không cần làm nhiều hơn — bạn cần đi đúng hơn.<br>Một tấm bản đồ đúng đáng hơn cả trăm cuốn sách.</div>
     <div class="pn">20</div>
   </div>
-  <!-- ✍️ VIẾT TIẾP PHẦN V TẠI ĐÂY -->
+
+  <!-- Skill 01 · trang 1 -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Bạn biết không — tôi được dạy rằng để thành công mình cần phải làm nhiều thứ, học nhiều kinh nghiệm. Cho tới khi tôi nhìn lại tấm bản đồ này... Tôi chỉ cần làm dưới 1/3 những gì tôi từng biết trước đó. Và thật hay — nó được nối theo một lộ trình rất chi tiết.</p>
+      <div class="hl">Thật khó bước đi khi bạn không có một con đường.</div>
+      <p class="ni">Tôi được trang bị 1 tấm bản đồ affiliate marketing gồm 5 bước — từ 0 đến đơn hàng đầu tiên.</p>
+      <p class="ni" style="font-size:11px;color:#888;font-style:italic;margin:4px 0 10px;">— Lạ nhỉ, phải cái gì lớn chứ? Tại sao lại "đơn hàng đầu tiên"?</p>
+      <p class="ni">Thử thách tôi cần chinh phục từng bước:</p>
+      <div class="ml">
+        <span class="ml-s">1$</span><span class="ml-a">→</span>
+        <span class="ml-s">10$</span><span class="ml-a">→</span>
+        <span class="ml-s">50$</span><span class="ml-a">→</span>
+        <span class="ml-s">100$</span><span class="ml-a">→</span>
+        <span class="ml-s">200$</span><span class="ml-a">→</span>
+        <span class="ml-s">500$</span><span class="ml-a">→</span>
+        <span class="ml-s">1.000$</span>
+      </div>
+      <p class="ni">Và tôi cần một thứ gì đó để biến những gì đã có thành quy trình của riêng mình.</p>
+      <div class="hl">Người nào giúp khách hàng click đầu tiên — là người giành chiến thắng.</div>
+      <p class="ni">Tôi cá là ai cũng mong muốn có kết quả. Nhưng kết quả là gì, bao nhiêu, làm sao đạt được — khi tự trả lời, chẳng mấy ai thật sự để ý. Chính cái vội vàng và thị trường cuốn đi khiến ta quên hết điều đó.</p>
+    </div>
+    <div class="pn">21</div>
+  </div>
+
+  <!-- Skill 01 · trang 2 — 7 ngày + Bước 1 -->
+  <div class="page cp">
+    <div class="pb">
+      <p class="ni">Sốt ruột đã 7 ngày trôi qua. Thứ tôi phải đối diện hàng ngày là những ánh nhìn xung quanh. Tôi đã tuyệt giao với tất cả — chỉ đóng mình ở một góc quán cafe. Tôi chỉ gọi một loại đồ uống, xuất hiện đúng giờ đến mức chủ quán cũng biết chỗ tôi sẽ ngồi.</p>
+      <p class="ni">Ngày đó tôi không nhìn được xa. Chỉ biết làm theo từng bước được chỉ — mỗi ngày công việc của tôi chỉ là:</p>
+      <div class="hl" style="font-style:normal;text-align:center;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:4px;color:var(--gold);">Chế Tạo · Testing A/B · Click · Sale</span>
+      </div>
+      <p class="ni" style="font-size:11px;color:#777;font-style:italic;margin:0 0 14px;">— Nếu là bạn, bạn sẽ làm gì?</p>
+      <span class="step-lbl">Bước 1 — Chọn con đường Affiliate AI</span>
+      <p class="ni">Tôi bắt đầu từ thứ mình không biết. Tôi chỉ bắt đầu với AI — hỏi đáp. Học cách đặt câu hỏi, học cách chụp màn hình, tự giải quyết vấn đề. Cứ làm gì cũng hỏi trực tiếp AI xem bước tiếp theo mình cần làm gì.</p>
+      <p class="ni" style="font-size:11px;color:#777;font-style:italic;">— Thật kỳ lạ, đến giờ tôi vẫn vậy. Tôi hay hỏi những câu ngớ ngẩn như: "Cái này là gì? Làm thế nào? Sao lại phải dùng cái này?" — nhưng đó chính là điều đầu tiên tôi làm.</p>
+      <span class="step-lbl" style="margin-top:16px;">Bước 2 — Tạo trang bán hàng &amp; tìm sản phẩm win</span>
+      <p class="ni">Để chiến thắng trong cuộc chơi này, bạn cần có trang bán hàng. <b>Đây là nơi gần tiền nhất.</b> Nhiều người sẽ chạy đi xây kênh — nhưng tiền ở đâu thì hầu như mù quáng.</p>
+      <div class="hl">Mình cứ làm cái gì đó trên trời ấy — chứ đâu có mục tiêu rõ ràng: kinh doanh gì, sản phẩm gì?</div>
+    </div>
+    <div class="pn">22</div>
+  </div>
+
+  <!-- Skill 01 · trang 3 — Bước 2: câu chuyện + insight trang bán hàng -->
+  <div class="page cp">
+    <div class="pb">
+      <p class="ni">Tôi đã từng xây 27 kênh TikTok. Không dưới 10 kênh YouTube. Vậy mà chẳng ai nói cho tôi điều này. Giờ nhìn lại...</p>
+      <p class="ni">Thật nực cười — tôi còn từng nghĩ mình lên mạng xây thương hiệu cá nhân, nói đạo lý kiếm follow rồi bán hàng. Có thời gian còn kể nghèo kể khổ, bỏ phố về quê. Nhưng kiếm tiền từ đâu thì làm gì biết.</p>
+      <p class="ni" style="font-size:11px;color:#777;font-style:italic;">— Bạn từng thế không?</p>
+      <div class="hl" style="font-style:italic;">Đây là nơi bạn không bị phụ thuộc vào bất kỳ nền tảng nào.<br>Trang bán hàng của bạn — bạn có quyền thiết lập cuộc chơi cho riêng mình.</div>
+      <p class="ni">Hãy nghĩ mà xem: bạn đang tiếp thị trên nền tảng — nhưng khi khách hàng kiểm tra thông tin thì phải trả tiền, hoặc không có dữ liệu gì cả.</p>
+      <p class="ni">Nếu có trang bán hàng riêng, bạn có thể bán bất kỳ sản phẩm nào, tiếp thị cho bất kỳ ai — trên bất kỳ nền tảng nào. <b>Điều này ít ai biết</b>, vì trước đây chỉ công ty lớn mới đủ ngân sách. Nhưng giờ đây — với AI và AI Agent — thì đã khác.</p>
+      <div class="hl" style="font-style:italic;">Bạn không thể tạo ra trải nghiệm khách hàng 5 sao nếu bạn chưa từng trải nghiệm dịch vụ 5 sao.</div>
+      <p class="ni" style="margin:0 0 5px;">Nếu bạn chưa từng làm trang bán hàng, hãy thử tạo trang đầu tiên ngay hôm nay:</p>
+      <p style="margin:0 0 8px;"><a href="https://youtu.be/ZzJFntyiays" target="_blank" rel="noopener" style="color:#1565c0;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.5px;text-decoration:none;border-bottom:1.5px solid #1565c0;">Bấm Vào Đây</a><span style="font-size:10.5px;color:#888;font-style:italic;"> — hướng dẫn tạo trang bán hàng đầu tiên</span></p>
+      <p class="ni" style="font-size:10.5px;color:#888;font-style:italic;margin:0 0 10px;">Đừng lo về một trang web hoàn hảo — chỉ cần một trang của riêng bạn là đủ. Cứ tiến lên phía trước.</p>
+      <div class="ml" style="margin:2px 0 0;">
+        <span style="font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;color:var(--gold);letter-spacing:1px;">Tạo trang bán hàng</span><span class="ml-a">→</span>
+        <span style="font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;color:var(--gold);letter-spacing:1px;">Hiểu ra</span><span class="ml-a">→</span>
+        <span style="font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;color:var(--gold);letter-spacing:1px;">Nâng trình</span><span class="ml-a">→</span>
+        <span style="font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;color:var(--gold);letter-spacing:1px;">Combo khóa học</span>
+      </div>
+    </div>
+    <div class="pn">23</div>
+  </div>
+
+  <!-- Skill 01 · trang 4 — Chọn sản phẩm (IMAGE NEEDED) -->
+  <!-- ══ PHẦN II · SKILL 02 — Opener ══ -->
+  <div class="page sk-open" style="justify-content:flex-start;padding-bottom:44px;">
+    <div class="sk-echo">02</div>
+    <div class="sk-badge">Phần II · Skill 02 / 05</div>
+    <div class="ch-rule"></div>
+    <div class="sk-title">Chọn Sản Phẩm Win</div>
+    <div class="biz-list" style="gap:8px;margin-bottom:16px;">
+      <div class="biz-item">
+        <span class="bi-num" style="color:var(--gold);font-family:'Lora',serif;">✓</span>
+        <div class="bi-body"><div class="bi-text">Hoa hồng <b>12 tháng đến trọn đời</b></div></div>
+      </div>
+      <div class="biz-item">
+        <span class="bi-num" style="color:var(--gold);font-family:'Lora',serif;">✓</span>
+        <div class="bi-body"><div class="bi-text">Có thể <b>ứng dụng ngay</b> vào thực tế</div></div>
+      </div>
+      <div class="biz-item">
+        <span class="bi-num" style="color:var(--gold);font-family:'Lora',serif;">✓</span>
+        <div class="bi-body"><div class="bi-text">Liên tục <b>được nâng cấp</b></div></div>
+      </div>
+      <div class="biz-item">
+        <span class="bi-num" style="color:var(--gold);font-family:'Lora',serif;">✓</span>
+        <div class="bi-body"><div class="bi-text">Mang về <b>hoa hồng cao nhất 25%–50%</b></div></div>
+      </div>
+      <div class="biz-item">
+        <span class="bi-num" style="color:var(--gold);font-family:'Lora',serif;">✓</span>
+        <div class="bi-body"><div class="bi-text">Giúp bạn <b>trở thành sát thủ</b></div></div>
+      </div>
+    </div>
+    <div class="sk-hook">Hãy chọn sản phẩm như cách bạn chọn vũ khí — sai vũ khí, mọi kỹ năng đều vô nghĩa.</div>
+    <div style="margin-top:14px;">
+      <p style="font-family:'Lora',serif;font-size:11px;line-height:1.65;color:#444;margin:0 0 10px;">Nếu chưa có sản phẩm — <b style="color:var(--ink);">không sao cả.</b> Tôi có 2 lựa chọn và sẽ hỗ trợ bạn dù bạn tham gia ở đâu:</p>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px;">
+        <div style="border-left:2px solid #1565c0;padding-left:10px;">
+          <a href="https://www.kolaisystem.com/affiliate/earn.html" target="_blank" rel="noopener" style="display:block;color:#1565c0;font-family:'Oswald',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:0.5px;text-decoration:none;margin-bottom:2px;">1. KOL AI Affiliate Network</a>
+          <span style="font-family:'Lora',serif;font-size:10.5px;color:#666;">Mr. Phong Menly &amp; cộng đồng KOL AI SYSTEM</span><br>
+          <a href="https://www.kolaisystem.com/affiliate/earn.html" target="_blank" rel="noopener" style="display:inline-block;margin-top:5px;font-family:'Oswald',sans-serif;font-weight:500;font-size:9px;letter-spacing:1.5px;color:#fff;background:#1565c0;padding:3px 10px;border-radius:2px;text-decoration:none;text-transform:uppercase;">Bấm để tham gia →</a>
+        </div>
+        <div style="border-left:2px solid #1565c0;padding-left:10px;">
+          <a href="https://affitor.com/" target="_blank" rel="noopener" style="display:block;color:#1565c0;font-family:'Oswald',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:0.5px;text-decoration:none;margin-bottom:2px;">2. Affitor</a>
+          <span style="font-family:'Lora',serif;font-size:10.5px;color:#666;">Mr. Sơn Piaz</span><br>
+          <a href="https://affitor.com/" target="_blank" rel="noopener" style="display:inline-block;margin-top:5px;font-family:'Oswald',sans-serif;font-weight:500;font-size:9px;letter-spacing:1.5px;color:#fff;background:#1565c0;padding:3px 10px;border-radius:2px;text-decoration:none;text-transform:uppercase;">Bấm để tham gia →</a>
+        </div>
+      </div>
+      <p style="font-family:'Lora',serif;font-size:10.5px;line-height:1.6;color:#555;font-style:italic;margin:0;">Top Of Mind dẫn đầu về Affiliate Marketing &amp; tư duy xây dựng doanh nghiệp một người tạo ra 1 triệu đô. Tôi may mắn được làm việc với Anh Sơn Piaz — và sẽ hỗ trợ miễn phí cho bạn.</p>
+    </div>
+    <div class="pn">24</div>
+  </div>
+
+  <!-- Skill 01 · trang 5 — Lợi dụng miễn phí -->
+  <div class="page cp">
+    <div class="pb">
+      <p class="ni">Nhưng... đúng rồi, luôn có từ nhưng. Bạn cần bắt đầu từ những sản phẩm không mất phí. Những sản phẩm như vậy — nếu tìm thấy thì phải có đường link affiliate của bạn đi kèm.</p>
+      <div class="hl">Hãy tư duy về việc tận dụng nền tảng miễn phí, sản phẩm nổi tiếng, sản phẩm liên tục nâng cấp.</div>
+      <p class="ni">Google luôn tham vọng. Thời điểm tôi đang nói chuyện với bạn, OpenAI là người đầu tiên trên thế giới nổi tiếng về AI. Hai cái tên này đã giúp tôi đi từ số 0.</p>
+      <p class="ni">Tôi đã chọn 10 dự án và sản phẩm tiềm năng. Nhưng cái giúp tôi kiếm nhiều tiền nhất lại là sản phẩm mà mọi người đang dùng nhiều nhất.</p>
+      <div class="hl"><b>Lợi dụng sự miễn phí để xây dựng cả sự nghiệp.</b><br><span style="font-style:normal;font-size:11px;">Thứ gì miễn phí mà có lợi — con người luôn ưu tiên. Không ai muốn mất tiền.</span></div>
+      <p class="ni">Sản phẩm chiếm 60% cơ hội thắng. Bạn sẽ không muốn mua cuốn sách này nếu như bạn không đọc thử chương 1 — đó chính là cách tôi bán nó, và cũng là cách bạn sẽ bán sản phẩm của mình.</p>
+    </div>
+    <div class="pn">25</div>
+  </div>
+
+  <!-- Skill 02 · trang 2 — Tiện ích mở rộng + Thương hiệu cá nhân -->
+  <div class="page cp">
+    <div class="pb">
+      <p class="ni">Những sản phẩm nổi tiếng, miễn phí thường không có đường link affiliate để bạn tiếp thị. Nhưng nếu tư duy sắc bén — bạn có thể tự tạo ra đường link của riêng mình bằng việc chế tạo những thứ xung quanh để người dùng có thể sử dụng được sản phẩm đó.</p>
+      <div class="hl" style="text-align:center;font-style:normal;">
+        <span style="font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;">Tiện Ích Mở Rộng</span><br>
+        <span style="font-size:11px;color:#555;font-family:'Lora',serif;font-style:italic;">(Extension)</span>
+      </div>
+      <div style="border-left:2px solid var(--gold);padding-left:12px;margin:10px 0 12px;">
+        <p style="font-family:'Lora',serif;font-size:12px;line-height:1.65;color:#444;font-style:italic;margin:0 0 4px;">Bán bia thì kèm lạc — Bán hải sản thì kèm nước chấm.</p>
+        <p style="font-family:'Lora',serif;font-size:12px;line-height:1.65;color:#444;font-style:italic;margin:0 0 4px;">Người bán khóa học kèm công cụ — sản phẩm chính vẫn là khóa học.</p>
+        <p style="font-family:'Lora',serif;font-size:11px;line-height:1.6;color:#777;font-style:italic;margin:0;">Nó vẫn nằm trong ngành dịch vụ ít người — nhưng đó là cách.</p>
+      </div>
+      <p class="ni">Bạn làm về Affiliate, làm về phần mềm tư duy ngược — chia sẻ trải nghiệm, tặng kèm video hướng dẫn, bán cho 1.000.000 người.</p>
+      <p class="ni"><b>Cứ thế mà lên bạn nhé.</b></p>
+      <span class="step-lbl" style="margin-top:14px;">Thương Hiệu Cá Nhân</span>
+      <p class="ni">Trong thương hiệu cá nhân, người khác nghĩ gì về bạn rất quan trọng. Đó là lý do tôi không chọn mình là <em>thầy</em>.</p>
+      <p class="ni">Nếu là thầy, tôi sẽ không thể kinh doanh và bán sản phẩm mình muốn. Bạn cũng vậy — <b>sự tự do là do bạn quyết định.</b></p>
+      <div class="hl" style="font-style:italic;margin-top:4px;">Là ai cũng được — là do mô hình mà bạn chọn.<br><span style="font-style:normal;font-size:11px;">Cứ đi, bạn sẽ đến.</span></div>
+    </div>
+    <div class="pn">26</div>
+  </div>
+
+  <!-- ══ PHẦN II · SKILL 03 — Opener ══ -->
+  <div class="page sk-open" style="justify-content:flex-start;padding-bottom:44px;">
+    <div class="sk-echo">03</div>
+    <div class="sk-badge">Phần II · Skill 03 / 05</div>
+    <div class="ch-rule"></div>
+    <div class="sk-title">Xây Dựng<br>Traffic</div>
+    <div style="border-radius:8px;overflow:hidden;margin-bottom:10px;border:1px solid rgba(184,124,20,.18);">
+      <img src="images/sachtragn27.png" alt="Bản đồ Traffic — Organic, Affiliate Network, No Face, Chuyển đổi" style="width:100%;height:auto;display:block;">
+    </div>
+    <p style="font-family:'Lora',serif;font-size:11px;line-height:1.65;color:#333;margin:0 0 8px;"><b>Affiliate Marketing = Ngành &amp; Sản phẩm</b> (Bước 1+2) <b>+ Marketing</b> (Bước 3). Có 4 phương pháp — hãy chọn ngay và tránh nhảy vào những nguồn lực mà mình chưa với tới:</p>
+    <div class="tg" style="margin-bottom:10px;">
+      <div class="tg-box">
+        <div class="tg-name">Free Traffic</div>
+        <div class="tg-when">Khi bạn mới bắt đầu</div>
+      </div>
+      <div class="tg-box">
+        <div class="tg-name">Affiliate Network</div>
+        <div class="tg-when">Khi bạn có dòng người</div>
+      </div>
+      <div class="tg-box">
+        <div class="tg-name">No Face</div>
+        <div class="tg-when">Khi muốn nhân bản / ẩn danh</div>
+      </div>
+      <div class="tg-box">
+        <div class="tg-name">Chuyển Đổi</div>
+        <div class="tg-when">Khi bạn muốn ra tiền</div>
+      </div>
+    </div>
+    <div class="sk-hook">Trước khi bạn nói xây kênh hay làm bất cứ điều gì — hãy biết nguồn lực mình đang có và đâu mới là thứ thật sự phù hợp với bạn.</div>
+    <div class="pn">27</div>
+  </div>
+
+  <!-- Skill 03 · trang 1 — Ma trận + Variables + Mindset -->
+  <div class="page cp">
+    <div class="pb">
+      <div style="border-radius:8px;overflow:hidden;margin-bottom:10px;border:1px solid rgba(184,124,20,.18);">
+        <img src="images/sachtrang28.png" alt="Ma trận chiến lược" style="width:100%;height:auto;display:block;">
+      </div>
+      <p class="ni" style="font-size:11px;margin-bottom:5px;">Các biến số để chọn con đường phù hợp với bạn ngay lúc này:</p>
+      <div class="biz-list" style="gap:4px;margin-bottom:8px;">
+        <div class="biz-item">
+          <span class="bi-num" style="font-size:12px;color:var(--gold);">→</span>
+          <div class="bi-body"><div class="bi-text" style="font-size:11px;"><b>Dễ + Nhanh:</b> từ 0 → 1.000$ đầu tiên</div></div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num" style="font-size:12px;color:var(--gold);">→</span>
+          <div class="bi-body"><div class="bi-text" style="font-size:11px;"><b>Có Khách Hàng + Nhanh:</b> 1.000$ → 10.000$</div></div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num" style="font-size:12px;color:var(--gold);">→</span>
+          <div class="bi-body"><div class="bi-text" style="font-size:11px;"><b>Dễ + Xây Thương Hiệu:</b> xây cộng đồng, nuôi dài hạn</div></div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num" style="font-size:12px;color:var(--gold);">→</span>
+          <div class="bi-body"><div class="bi-text" style="font-size:11px;"><b>Có Khách Hàng + Xây Thương Hiệu:</b> 10.000$ → 100.000$</div></div>
+        </div>
+      </div>
+      <div class="hl" style="padding:7px 12px;margin-bottom:8px;">Bản đồ traffic có 3 tầng: <b>Thu Hút → Uy Tín → Chuyển Đổi</b></div>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;"><b>Bonus:</b> Hàng muốn bán được thì cần người nổi tiếng. Người bình thường bán được hàng nhờ <b>sản phẩm nổi tiếng.</b></p>
+      <p class="ni" style="font-size:11px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;margin-bottom:3px;">Này người Anh Em,</p>
+      <p class="ni" style="font-size:11px;margin-bottom:8px;">Bạn biết tại sao mình mông lung rồi chứ — vội làm những thứ khó trong khi cái mình cần là dòng tiền. Xã hội cập nhật gì cũng kệ họ — chỉ cần quan tâm người bạn theo dõi dùng cái gì, rồi chúng ta dùng theo.</p>
+      <p class="ni" style="font-size:12px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px;margin:0;">Cứ đi từng bước.</p>
+    </div>
+    <div class="pn">28</div>
+  </div>
+
+  <!-- Skill 03 · trang 2 — Lộ Trình 1 -->
+  <div class="page cp">
+    <div class="pb">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+        <div style="width:12px;height:12px;background:var(--gold);border-radius:3px;flex-shrink:0;"></div>
+        <span style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);letter-spacing:0.5px;text-transform:uppercase;">Lộ Trình 1 — Người Mới Bắt Đầu</span>
+      </div>
+      <p class="ni" style="font-size:11px;font-style:italic;color:#666;margin-bottom:9px;">Người mới, chưa có sản phẩm, chưa có danh tiếng. Mục tiêu: <b style="color:var(--ink);">tạo ra dòng tiền đầu tiên — nhanh nhất có thể.</b></p>
+      <span class="step-lbl">1 · Sản phẩm mồi siêu rẻ (Product $2)</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">Đừng cố bán khóa học tiền triệu. Tạo sản phẩm số thực dụng (bản mẫu, prompt sheet, tài liệu) trị giá ~$2. Người mua không cần suy nghĩ — cực dễ chốt.</p>
+      <span class="step-lbl">2 · Công cụ AI kéo thả — 1 Landing Page</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">AI tạo ảnh &amp; AI Video (Midjourney, Higgsfield) làm nội dung thu hút. Tạo <b>1 Landing Page</b> duy nhất bán đúng 1 sản phẩm mồi đó.</p>
+      <span class="step-lbl">3 · Traffic — Bài Viral + 1 Affiliate Link</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">Video TikTok ngắn, bài viết viral để kéo người xem. Chọn đúng <b>1 sản phẩm affiliate</b> chất lượng — không rải link tràn lan.</p>
+      <span class="step-lbl">4 · Chốt đơn thủ công — Direct Touch</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">Kéo khách vào FB Group hoặc Facebook cá nhân. <b>Nhắn tin 1 vs 1</b> để tư vấn trực tiếp. Ở giai đoạn đầu, sự tương tác của con người là chìa khóa để ra đơn.</p>
+      <span class="step-lbl">5 · Tuyển cộng tác viên (Team 35%–50%)</span>
+      <p class="ni" style="font-size:11px;margin-bottom:12px;">Sẵn sàng chia chiết khấu cao cho người cùng bán để nhân bản doanh số nhanh — không tốn lương cứng.</p>
+      <a href="bai-hoc.html?c=c2" target="_blank" rel="noopener" onclick="try{localStorage.setItem('mmtd_return_page',window._bookObj?window._bookObj.getCurrentPageIndex():0)}catch(e){}" style="display:block;background:var(--gold);color:#fff;font-family:'Oswald',sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.5px;padding:10px 14px;border-radius:5px;text-decoration:none;text-align:center;line-height:1.4;">▶ Bấm vào đây để thực hành mở khóa<br><span style="font-size:13px;letter-spacing:1px;">Mật Mã Affiliate Marketing</span></a>
+    </div>
+    <div class="pn">29</div>
+  </div>
+
+  <!-- Skill 03 · trang 3 — Lộ Trình 2 -->
+  <div class="page cp">
+    <div class="pb">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+        <div style="width:12px;height:12px;background:var(--gold);border-radius:3px;flex-shrink:0;"></div>
+        <span style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--gold);letter-spacing:0.5px;text-transform:uppercase;">Lộ Trình 2 — Đã Có Nền Tảng</span>
+      </div>
+      <p class="ni" style="font-size:11px;font-style:italic;color:#666;margin-bottom:9px;">Người đã có tệp khách hàng &amp; dòng tiền đều đặn. Mục tiêu: <b style="color:var(--ink);">tự động hóa, nâng giá trị giỏ hàng và tối ưu vận hành.</b></p>
+      <span class="step-lbl">1 · Nâng cấp sản phẩm (Product $5–$10)</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">Tăng giá trị sản phẩm số bằng cách tích hợp thêm các giải pháp thông minh hơn.</p>
+      <span class="step-lbl">2 · Tự động hóa hội thoại — AI Agent</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;"><b>Chatbot / Facebook Agent</b> thay việc trực chat 24/7. AI Agent tự gửi email, phân loại data từ SePay. <b>AI Vibe Coding</b> hỗ trợ xây trang bán hàng &amp; sản phẩm.</p>
+      <span class="step-lbl">3 · Mở rộng hệ thống — 5–10 trang bán hàng</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">Chạy A/B testing để tìm mẫu chuyển đổi tốt nhất. Quản lý 10 Affiliate Link để đa dạng hóa thu nhập thụ động.</p>
+      <span class="step-lbl">4 · Chuyển đổi cao cấp — One-to-Many</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;"><b>Video VSL</b>: bán hàng tự động kể cả khi đang ngủ. <b>Webinar / Livestream</b>: chốt đơn hàng loạt thay vì tư vấn từng người.</p>
+      <span class="step-lbl">5 · Kỹ năng công nghệ chuyên sâu</span>
+      <p class="ni" style="font-size:11px;margin-bottom:12px;"><b>Miro</b>: thiết kế luồng vận hành. <b>AI Vibe Coding</b>: tự viết micro-tool (kết nối SePay, Webhook tự động). Phần mềm quay màn hình chuyên nghiệp để đóng gói quy trình thành tài sản số.</p>
+      <a href="bai-hoc.html?c=c3" target="_blank" rel="noopener" onclick="try{localStorage.setItem('mmtd_return_page',window._bookObj?window._bookObj.getCurrentPageIndex():0)}catch(e){}" style="display:block;background:var(--gold);color:#fff;font-family:'Oswald',sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.5px;padding:10px 14px;border-radius:5px;text-decoration:none;text-align:center;line-height:1.4;">▶ Bấm vào đây để mở khóa<br><span style="font-size:13px;letter-spacing:1px;">Mật Mã Traffic</span></a>
+    </div>
+    <div class="pn">30</div>
+  </div>
+
+  <!-- Skill 03 · trang 4 — Sai lầm về Thương Hiệu Cá Nhân -->
+  <div class="page cp">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Sai Lầm Lớn Nhất Về Thương Hiệu Cá Nhân</span>
+      <div class="hl" style="font-style:normal;margin-bottom:12px;"><b>Sai lầm:</b> xây thương hiệu cá nhân để bán hàng.</div>
+      <p class="ni">Tư duy đúng là: bán hàng, chia sẻ trải nghiệm, kể lại những gì mình đã làm — <b>đó mới là xây dựng thương hiệu cá nhân thật sự.</b></p>
+      <p class="ni">Xã hội không muốn nghe đạo lý. Họ có thể ủng hộ bạn — nhưng mua hàng thì không.</p>
+      <div class="hl" style="font-style:italic;margin:14px 0;">Vậy việc của bạn không phải là viết nhiều, quay nhiều — mà là <b>cho người khác biết bạn làm được gì.</b></div>
+      <p class="ni">Đây là ranh giới giữa người được theo dõi và người kiếm được tiền. Bạn cần cả hai — nhưng phải biết cái nào đến trước.</p>
+
+      <span class="step-lbl" style="margin-top:14px;">Chốt lại: Hãy bắt đầu từ điều dễ nhất</span>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;"><b>Chọn chủ đề + Công thức:</b> Top List · Cập nhật · So sánh · Hướng dẫn · Tạo ra sản phẩm mới.</p>
+      <p class="ni" style="font-size:11px;margin-bottom:8px;">Thực thi và phát triển từ nhỏ nhất tới lớn mạnh:</p>
+      <div class="biz-list" style="gap:5px;margin-bottom:10px;">
+        <div class="biz-item">
+          <span class="bi-num" style="font-size:12px;color:var(--gold);">→</span>
+          <div class="bi-body"><div class="bi-text" style="font-size:11px;">Viết bài hướng dẫn — Facebook + gắn link</div></div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num" style="font-size:12px;color:var(--gold);">→</span>
+          <div class="bi-body"><div class="bi-text" style="font-size:11px;">Làm video short — CTA gắn link</div></div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num" style="font-size:12px;color:var(--gold);">→</span>
+          <div class="bi-body"><div class="bi-text" style="font-size:11px;">Làm video dài — CTA gắn link</div></div>
+        </div>
+      </div>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">Bạn chưa cần qua bước phức tạp — hãy cứ thử đi. Sẽ có các cao thủ nói: "Làm sao mà chuyển đổi được?" Kệ họ.</p>
+      <div class="hl" style="font-style:italic;padding:8px 12px;">Cái gì biết trước làm trước. Người nào chạm tới click nhanh hơn — người đó dành chiến thắng.</div>
+    </div>
+    <div class="pn">31</div>
+  </div>
+
+  <!-- ══ PHẦN II · SKILL 04 — Opener ══ -->
+  <div class="page sk-open" style="justify-content:flex-start;padding-bottom:44px;">
+    <div class="sk-echo">04</div>
+    <div class="sk-badge">Phần II · Skill 04 / 05</div>
+    <div class="ch-rule"></div>
+    <div class="sk-title">Tặng Quà<br>Tạo Lead</div>
+    <div style="border-radius:8px;overflow:hidden;margin-bottom:14px;border:1px solid rgba(184,124,20,.18);">
+      <img src="images/kho-tainguyen.png" alt="Kho Tài Nguyên — Tặng Quà Tạo Lead" style="width:100%;height:200px;object-fit:cover;object-position:top;display:block;">
+    </div>
+    <div class="sk-hook">Quà tặng chính là vũ khí — không phải để mua chuộc, mà để trở nên không thể thiếu trong cuộc đời của khách hàng.</div>
+    <a href="https://drive.google.com/drive/folders/1zAspJwAmz8YsSqE8jKbxXnSVmr7CT1vZ?usp=sharing" target="_blank" rel="noopener" style="display:block;margin-top:14px;background:var(--gold);color:#fff;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;text-align:center;padding:11px 16px;border-radius:8px;text-decoration:none;">📂 Truy cập Kho Tài Nguyên Marketing</a>
+    <div class="pn">32</div>
+  </div>
+
+  <!-- Skill 04 · trang 1 — Sức mạnh thông tin + Loại quà tặng -->
+  <div class="page cp">
+    <div class="pb">
+      <p class="ni"><b>Sức mạnh của thông tin và nhu cầu thị trường.</b> Chỉ cần bạn có thông tin nhanh nhất — bạn luôn là người chiến thắng.</p>
+      <p class="ni" style="font-size:11px;">Tôi biết điều này khó với bạn. Nhưng tôi nghĩ nó thật sự cần thiết — hãy ra quốc tế, mở rộng tầm nhìn, thu thập những tài nguyên quý giá mà người khác chưa có.</p>
+      <div class="hl" style="font-style:italic;margin-bottom:12px;">Quà tặng chính là vũ khí giúp bạn và khách hàng trở nên gần nhau hơn.</div>
+      <p class="ni" style="font-size:11px;margin-bottom:6px;">Quà tặng có thể:</p>
+      <div class="biz-list" style="gap:5px;margin-bottom:12px;">
+        <div class="biz-item"><span class="bi-num" style="font-size:12px;color:var(--gold);">✦</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Tăng thành viên trong nhóm người dùng quan tâm</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:12px;color:var(--gold);">✦</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Giúp bài viết của bạn trở nên viral</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:12px;color:var(--gold);">✦</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Định vị bạn là chuyên gia đáng để theo dõi</div></div></div>
+      </div>
+      <span class="step-lbl">Quà tặng có thể là gì?</span>
+      <div class="tg" style="margin-top:8px;">
+        <div class="tg-box"><div class="tg-name">Video hướng dẫn</div><div class="tg-when">Miễn phí</div></div>
+        <div class="tg-box"><div class="tg-name">Quy trình đóng gói</div><div class="tg-when">Miễn phí</div></div>
+        <div class="tg-box"><div class="tg-name">Top 10 công cụ</div><div class="tg-when">Miễn phí</div></div>
+        <div class="tg-box"><div class="tg-name">APP AI miễn phí</div><div class="tg-when">Miễn phí</div></div>
+      </div>
+      <div class="hl" style="margin-top:10px;font-style:normal;text-align:center;"><b>QUÀ TẶNG + ĐÚNG THỜI ĐIỂM</b><br><span style="font-size:11px;font-weight:400;">= Hàng ngàn khách hàng đổ đầy vào trang bán hàng của bạn</span></div>
+    </div>
+    <div class="pn">33</div>
+  </div>
+
+  <!-- Skill 04 · trang 2 — Chiến lược đóng gói quà tặng -->
+  <div class="page cp">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Chiến Lược Đóng Gói Quà Tặng</span>
+      <p class="ni" style="font-size:11px;margin-bottom:8px;">Nhớ: thông tin chính là quà tặng. Mọi thứ bạn chia sẻ đều có thể trở thành món quà nếu nó giải quyết được vấn đề của người nhận.</p>
+      <div class="biz-list" style="gap:5px;margin-bottom:10px;">
+        <div class="biz-item"><span class="bi-num" style="font-size:11px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;">POST</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Chia sẻ thông tin hữu ích → tự nhiên là quà tặng</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:11px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;">VIDEO</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Video ngắn hướng dẫn thực hành cụ thể</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:11px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;">DOCS</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Google Docs / Notion — tài liệu nhấp link nhận ngay</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:11px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;">APP</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Hướng dẫn Affiliate Link với quy trình rõ ràng</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:11px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;">ZOOM</span><div class="bi-body"><div class="bi-text" style="font-size:11px;">Hướng dẫn thực hành miễn phí → sau cải tiến thành $2</div></div></div>
+      </div>
+      <div class="hl" style="font-style:italic;margin-bottom:10px;">Thực hành: Hãy thử chế tạo ra một phần quà mà bạn dùng mãi mãi được trong nhiều năm.</div>
+      <p class="ni" style="font-size:11px;margin-bottom:4px;">Ví dụ: Google tặng 1 tháng miễn phí — tôi dùng 1 video trong cả năm. Có cách đăng ký 1 năm nhưng tôi không làm — vì 1 tháng là lâu dài còn 1 năm là chóp nhoáng.</p>
+      <p class="ni" style="font-size:11.5px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;margin:6px 0 0;">Tôi muốn tạo ra những thứ vô hạn và chỉ làm một lần.</p>
+    </div>
+    <div class="pn">34</div>
+  </div>
+
+  <!-- Skill 04 · trang 3 — Case study APP AI + Kết quả 5 quà tặng -->
+  <div class="page cp">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Quy Trình Chế Tạo Quà Tặng — APP AI</span>
+      <p class="ni" style="font-size:11px;margin-bottom:8px;">Tôi cần giải quyết 1 công việc lặp đi lặp lại: tạo video. Tôi dùng <b>AI Vibe Coding</b> để tạo ra 1 APP AI đóng gói và tạo ra sản phẩm của mình. Rồi quay 1 video hướng dẫn toàn bộ quy trình.</p>
+      <div class="biz-list" style="gap:4px;margin-bottom:10px;">
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:700;min-width:26px;">Q.1</span><div class="bi-body"><div class="bi-text" style="font-size:10.5px;">Chụp màn hình + bài viết chia sẻ cách tạo APP → có video hướng dẫn đính kèm</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:700;min-width:26px;">Q.2</span><div class="bi-body"><div class="bi-text" style="font-size:10.5px;">Tổ chức Zoom: tặng APP + hướng dẫn thực hành trực tiếp cho mọi người</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:700;min-width:26px;">Q.3</span><div class="bi-body"><div class="bi-text" style="font-size:10.5px;">Người được tặng đã có kết quả → nâng cấp APP và tặng lại</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:700;min-width:26px;">Q.4</span><div class="bi-body"><div class="bi-text" style="font-size:10.5px;">Đóng gói quy trình thành tài liệu — gom 3 APP thành 1 combo mới</div></div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:700;min-width:26px;">Q.5</span><div class="bi-body"><div class="bi-text" style="font-size:10.5px;">3.000 khách hàng · 1.000 follow YouTube · Bài viết viral · Mối quan hệ thật sự</div></div></div>
+      </div>
+      <div class="hl" style="padding:8px 12px;margin-bottom:8px;font-style:italic;">Trong quá trình tặng quà — cứ mỗi người đến nhận, bạn sẽ có <b>1$.</b> Sau đó tôi đổi quà lấy email và hệ thống AI Agent đã cài đặt sẵn tự chạy. <b>Chỉ cài 1 lần và chạy mãi mãi.</b></div>
+      <p class="ni" style="font-size:11px;">Tôi đã từng chia sẻ về cách làm Email Marketing... và sẽ thật vui khi có cơ hội chia sẻ điều đó với bạn.</p>
+    </div>
+    <div class="pn">35</div>
+  </div>
+
+  <!-- ══ PHẦN II · SKILL 05 — Sát Thủ Tiếp Thị $2 ══ -->
+  <div class="page cp" style="position:relative;">
+    <div class="sk-echo">05</div>
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Skill 05 · Sát Thủ Tiếp Thị — Công Thức $2</span>
+      <p class="ni">Hầu hết mọi người nghĩ ngay đến <b>quà tặng miễn phí.</b> Tôi cũng từng như vậy — và những người có tiếng nói, có thương hiệu, họ chuyển đổi rất dễ. Một bài đăng thôi là ngàn người xem.</p>
+      <p>Nhưng tôi là người mới. Và bạn đọc cuốn sách này — có thể bạn cũng vậy, người anh em của tôi. Nếu không có một chiến lược tiếp thị khác biệt, rất khó để cạnh tranh với những người như họ.</p>
+      <div class="hl" style="font-style:italic;">Trong cuộc đua kiếm 1.000$ đầu tiên — tôi không có bất kỳ lợi thế nào hết. Không kênh. Không sức ảnh hưởng. Không kinh nghiệm. Không cả máy tính xịn.</div>
+      <p class="ni">Vậy mà tôi kiếm được <b>3.000$ và 500 khách hàng</b> chỉ trong một thời gian ngắn. Bí mật nằm ở ba chữ: <b>liên tục giúp đỡ.</b></p>
+      <p class="ni">Tôi bắt đầu bằng cách chia sẻ hết những gì mình biết vào tài liệu — chăm chút từng khách hàng $2. Một ngày đẹp trời, tôi tìm được sản phẩm win và bắt đầu tiếp thị. <b>Doanh số 10.000$</b> — bạn thấy đó.</p>
+      <div style="border-radius:8px;overflow:hidden;margin:12px 0 0;box-shadow:0 2px 12px rgba(0,0,0,.18);">
+        <img src="images/z7983199391745_81fa4cf3879f40569eaf01d1f3db38ab.jpg" alt="Phong Menly #1 — $10,455" style="width:100%;height:auto;display:block;">
+      </div>
+    </div>
+    <div class="pn">36</div>
+  </div>
+
+  <!-- Skill 05 · trang 1 — ChatGPT Hook story + ảnh -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div style="border-radius:7px;overflow:hidden;margin-bottom:12px;border:1px solid rgba(184,124,20,.2);">
+        <img src="images/motatrang37.png" alt="Bộ Thẻ Diamond Hook" style="width:100%;height:160px;object-fit:cover;object-position:center top;display:block;">
+      </div>
+      <div class="hl" style="font-size:12px;margin-bottom:10px;font-style:normal;"><b>Ý tưởng đầu tiên giúp tôi kiếm 3.000$</b></div>
+      <p class="ni">Khi ChatGPT ra đời, tôi thấy mọi người dùng nó như một công cụ gõ chữ. Nhưng tôi nhận ra một điều khác — <b>GPT trợ lý có thể đóng gói thành quy trình và chuyển giao cho bất kỳ tài khoản nào dùng miễn phí.</b></p>
+      <p class="ni">Tôi bỏ ra <b>289K</b> mua bộ thẻ bài <b>Diamond Hook</b> — đã bán hơn 100.000 bản trên thế giới. Tôi đọc từng thẻ, chụp lại, đưa cho AI học và tạo ra trợ lý viết hook đầu tiên của mình: <b>Chat GPT Master Hook.</b></p>
+      <p class="ni" style="font-size:11px;">Một bộ thẻ bài 289K → một GPT trợ lý miễn phí → hàng ngàn người dùng → <b>3.000$ đầu tiên.</b> Không cần vốn lớn — chỉ cần nhìn thấy cơ hội trước người khác.</p>
+      <div class="hl" style="font-style:italic;margin-top:12px;">Chỉ cần bạn dám làm, làm theo, làm trong sự tin tưởng — tất cả những gì bạn nghi ngờ đều sẽ biến thành kết quả.<br><span style="font-style:normal;font-size:11px;font-weight:400;">Khi bạn nghi ngờ, bạn thờ ơ. Khi bạn tin tưởng — mọi nguồn lực đều ủng hộ bạn.</span></div>
+    </div>
+    <div class="pn">37</div>
+  </div>
+
+  <!-- Skill 05 · trang 2 — Selling progression + đại sứ -->
+  <div class="page cp">
+    <div class="pb">
+      <p class="ni">Người dùng có thể dùng nó với tài khoản AI miễn phí — không cần nâng cấp. Tôi đăng lên group, dùng video ghi màn hình demo. Mỗi tài khoản bán <b>249.000đ dùng trọn đời.</b></p>
+      <p class="ni">Nhưng tôi không bán 249k ngay từ đầu. Tôi bán <b>1$</b> — có 30 người. Có 30 người tôi tăng lên <b>5$</b> — được 100 người. Sau đó mới tăng lên <b>10$.</b></p>
+      <div class="hl">Thủ công và 3.000$. Điều tôi chưa từng kể với ai.</div>
+      <p class="ni">Đó là người chia sẻ là người có thẩm quyền. Lúc đó ChatGPT rất hot, nhu cầu quá nhiều nên bài post của tôi viral. Tôi không cần phục vụ nhiều vì cách dùng nó rất dễ.</p>
+      <p class="ni">Từ quà tặng miễn phí đó — tôi bắt đầu đưa khách đến những sản phẩm tôi đang tiếp thị. Tôi chỉ lo phần đổi quà lấy click. Số lượng click ngày một tăng. Và tháng gần đây — tôi đạt <b>3.100$</b> từ sản phẩm từng tiếp thị trước đó. Đó là một phần nhỏ trong mô hình kinh doanh của mình.</p>
+    </div>
+    <div class="pn">38</div>
+  </div>
+
+  <!-- Skill 05 · trang 4 — Câu chuyện Viral & Phát Hiện 2$ -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Sự cố đến đúng lúc tôi không ngờ nhất.</p>
+      <p>Kênh Facebook của tôi bỗng viral. Mười triệu traffic đổ vào chỉ trong vài ngày — từ Facebook, TikTok, YouTube, khắp nơi cùng một lúc. Tôi đứng nhìn con số nhảy liên tục mà không biết phải làm gì. Không có khóa học để bán. Không có sản phẩm lớn đã chuẩn bị sẵn. Và theo đúng tiêu chí tôi đã chọn từ đầu — mở khóa học không phải hướng tôi muốn đi. Nó sẽ ngốn toàn bộ thời gian. Mà thời gian, với tôi lúc đó, còn quý hơn cả cơ hội.</p>
+      <p>Tôi có đúng 3 tiếng đồng hồ để quyết định.</p>
+      <p>Tôi mở laptop, đóng gói lại bộ tài liệu mình đang dùng — chỉnh sửa, thêm hướng dẫn, xuất ra file PDF. Định giá <b>2$</b>. Đăng lên ngay.</p>
+      <div class="hl">50 người mua cùng một lúc.</div>
+      <p class="ni">Tôi ngạc nhiên đến mức ngồi đó chỉ nhìn tài khoản nhảy số. Tôi tăng lên <b>5$</b> — mọi người vẫn mua. Tăng lên <b>10$</b> — vẫn không dừng. Dừng lại ở đó, tôi bắt đầu tạo thêm những sản phẩm khác cùng công thức: 2$, 5$, 10$. Mỗi cái giải quyết một vấn đề cụ thể, nhỏ thôi — nhưng <b>người ta thật sự cần.</b></p>
+      <p>Và lúc đó tôi nhận ra bài học thật sự mà mình chưa từng nghe ai nói:</p>
+      <div class="hl" style="font-style:italic;">Bạn không cần thương hiệu lớn để bán được hàng. Bạn chỉ cần giải quyết đúng một vấn đề — dù nhỏ đến đâu.</div>
+    </div>
+    <div class="pn">39</div>
+  </div>
+
+  <!-- Skill 05 · trang 5 — Email là Tài Sản + CTA Phễu -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Điều quan trọng hơn tiền, hơn cả doanh thu từ 2$ — là thứ đến sau mỗi giao dịch đó: <b>email.</b></p>
+      <p>Mỗi người mua là người đã từng trả tiền cho tôi. Dù chỉ 2$, dù chỉ một lần — họ đã chứng minh rằng họ sẵn sàng mở ví. Khi tôi gửi thông tin về một sản phẩm affiliate mới, tỉ lệ họ mua lại cao hơn gấp nhiều lần so với người lạ chưa từng biết tôi. Tôi kiểm soát được danh sách đó. Đó là tệp khách hàng <i>do chính tôi</i> gây dựng — không bị phụ thuộc vào bất kỳ thuật toán hay nền tảng nào.</p>
+      <div class="hl" style="font-style:normal;"><b>Email list là tài sản thật sự của doanh nghiệp một người.</b></div>
+      <p class="ni">Mỗi ngày AI ra bản cập nhật mới, họ nâng cấp và trả phí. Hoa hồng tôi nhận — lặp lại, tự động, ngay cả khi tôi đang ngủ. Không cần giải thích lại từ đầu. Không cần phục vụ nhiều hơn.</p>
+      <p>Chiến lược này đi ngược lại gần như tất cả những gì mọi người hay làm: hoặc là cho miễn phí để build audience, hoặc là bán thẳng giá cao. Khoảng ở giữa — sản phẩm nhỏ, giá cực thấp, giải quyết vấn đề thật — gần như bị bỏ ngỏ. Và khi bạn chiếm được khoảng đó, ngay cả thương hiệu lớn cũng khó cạnh tranh.</p>
+      <div class="hl" style="font-style:italic;">Hãy nghĩ lớn — nhưng bắt đầu từ 2$.<br><span style="font-style:normal;font-size:11px;">Những đồng đô la đầu tiên sẽ tự chảy vào — và sau đó mọi thứ sẽ khác hoàn toàn.</span></div>
+    </div>
+    <div class="pn">40</div>
+  </div>
+
+  <!-- Skill 05 · trang 7 — Đàm phán nhãn hàng quốc tế -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Khi đã có danh sách khách hàng trả phí, tôi bắt đầu nhìn ra một đòn bẩy mà trước đó tôi hoàn toàn không nhận ra.</p>
+      <p>Tôi chủ động tiếp cận các nhãn hàng AI quốc tế — những nền tảng tôi đang dùng và làm tiếp thị. Thông điệp tôi gửi đi rất đơn giản: <i>"Tôi có một cộng đồng trả phí. Họ tin tưởng tôi. Tôi có thể đưa thông tin về sản phẩm của anh đến tay họ bất cứ lúc nào."</i></p>
+      <p>Tôi đính kèm dữ liệu thật — số người mua, tỉ lệ mở email, lượt tương tác. Không thổi phồng. Không hứa hão.</p>
+      <div class="hl">Họ xem dữ liệu, và họ tin tưởng tuyệt đối.</div>
+      <p class="ni">Những dự án booking đầu tiên bắt đầu đến. Tôi nhận làm video quảng cáo <b>5–8 phút</b> cho các nhãn hàng AI — mỗi video từ <b>100$ đến 300$</b>. Một số nhãn hàng ký hợp đồng <b>3–5 video mỗi tháng</b>. Đó là nguồn thu nhập cố định đầu tiên tôi có từ thị trường quốc tế.</p>
+      <p>Và rồi có điều kỳ diệu xảy ra: sau khi video được đăng tải, nhãn hàng chạy quảng cáo cho chính video đó — kênh của tôi lại càng viral thêm. Traffic mới đổ về, email list lại tăng, đơn hàng lại nảy thêm.</p>
+      <div class="hl" style="font-style:italic;">Vòng bánh đà tự quay: video → quảng cáo → traffic → khách hàng → nhãn hàng mới → video tiếp theo.</div>
+      <p class="ni">Và điều khiến tôi khác biệt so với mọi người — tôi đã có sẵn tệp khách hàng từng trả phí, sẵn sàng nhấp link, sẵn sàng mua. Đó là thứ không phải ai cũng có khi đi đàm phán.</p>
+    </div>
+    <div class="pn">41</div>
+  </div>
+
+  <!-- Skill 05 · trang 8 — Ba dòng tiền + bài học ebook + CTA -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Lúc đó, tôi đang vận hành <b>ba dòng tiền cùng một lúc</b> — mà không phải thuê thêm một người nào:</p>
+      <div class="biz-list" style="gap:8px;margin-bottom:14px;">
+        <div class="biz-item">
+          <span class="bi-num">01</span>
+          <div class="bi-body">
+            <div class="bi-label">Booking nhãn hàng</div>
+            <div class="bi-text">100$–300$ / video · hợp đồng tháng với 3–5 video</div>
+          </div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num">02</span>
+          <div class="bi-body">
+            <div class="bi-label">Hoa hồng Affiliate</div>
+            <div class="bi-text">Lặp lại mỗi tháng khi AI cập nhật — khách nâng cấp, hoa hồng tự vào</div>
+          </div>
+        </div>
+        <div class="biz-item">
+          <span class="bi-num">03</span>
+          <div class="bi-body">
+            <div class="bi-label">Sản phẩm 2$</div>
+            <div class="bi-text">Tệp khách hàng ngày càng lớn · tài sản tự nhân rộng</div>
+          </div>
+        </div>
+      </div>
+      <p class="ni">Thật ra, ban đầu tôi hoàn toàn không biết mình cần làm gì. Rồi tôi nhớ lại một điều học được từ những cao thủ internet trên thế giới: họ xây hàng trăm nghìn email subscriber — <i>chỉ nhờ quà tặng.</i></p>
+      <p>Họ dùng ebook $4. Tôi nghĩ: mình chưa đủ giỏi như họ — nhưng $2 thì mình làm được. Và quyết định đó đã mở ra cho tôi một chương hoàn toàn mới.</p>
+      <div class="hl" style="font-style:italic;">Đừng cố bắt đầu từ điều lớn. Hãy bắt đầu từ điều bạn có thể làm ngay hôm nay — dù nhỏ đến đâu.</div>
+      <p class="ni" style="font-size:11px;margin:8px 0 10px;">Cách để bạn xây cả hệ thống ba dòng tiền này — từ trang bán hàng, email tự động, đến chốt đơn bằng AI — tôi đã ứng dụng cho hơn 500 người. Đây là bước tiếp theo:</p>
+      <a href="bai-hoc.html?c=c4" target="_blank" rel="noopener" onclick="try{localStorage.setItem('mmtd_return_page',window._bookObj?window._bookObj.getCurrentPageIndex():0)}catch(e){}" style="display:block;background:linear-gradient(135deg,var(--gold),#c8880e);color:#fff;font-family:'Oswald',sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.5px;padding:11px 14px;border-radius:6px;text-decoration:none;text-align:center;line-height:1.4;">▶ Mở khóa ngay<br><span style="font-size:13px;letter-spacing:1px;">Mật Mã Phễu — Master Sale</span></a>
+    </div>
+    <div class="pn">42</div>
+  </div>
+
+  <!-- Closing — 2am letter -->
+  <div class="page cp">
+    <div class="pt">Thay Cho Lời Cảm Ơn</div>
+    <div class="pt-rule"></div>
+    <div class="pb">
+      <p class="ni">Giờ thì bạn biết hết bí mật của tôi rồi.</p>
+      <p class="ni">Khi tôi viết cuốn sách này, tôi chỉ nghĩ... <i>chỉ cần 1 người tìm thấy được con đường — xem như tôi đã là người có giá trị cho xã hội.</i></p>
+      <p class="ni">Mọi người đã trả tiền để mua sách nên không cần cảm ơn tôi. Mọi người dùng được sách mà vì yêu quý mà giới thiệu nó cho nhiều người — post 1 bài trên mạng mà tag tên tôi, tôi xem như hôm nay tôi có thêm một người bạn biết mình từ cuốn sách này.</p>
+      <div class="hl">Cảm ơn bạn.</div>
+      <p class="ni">Lúc này là 2 giờ sáng. Tôi đang gõ những dòng chữ này suốt 3 tiếng về đêm. Con tôi còn bé, việc cũng rất nhiều — nên tôi dành thời gian này để viết.</p>
+      <p class="ni">Tuần này tôi tổ chức 3 sự kiện về AI trên toàn quốc. Tôi viết lúc bạn đang ngủ. Nhưng tôi hi vọng <b>Phong Menly</b> sẽ là cái tên có giá trị với cuộc đời của bạn — và không làm bạn lãng phí bất kỳ một giây phút nào.</p>
+    </div>
+    <div class="pn">43</div>
+  </div>
+
+  <!-- ══ PHẦN III — Mở chương ══ -->
+  <div class="page ch-open has-img">
+    <div class="ch-body">
+      <div class="ch-num">Phần III</div>
+      <div class="ch-rule"></div>
+      <div class="ch-title">Kiêu Hãnh &amp;<br>Cú Ngã Trượt Dài</div>
+      <div class="ch-sub">Ăn mừng sớm và cú lừa của nghỉ ngơi.</div>
+    </div>
+    <div class="ch-img" style="border-radius:5px;">
+      <img src="images/anh biatrang32.png" alt="Kiêu Hãnh & Cú Ngã Trượt Dài" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;">
+    </div>
+    <div class="pn">44</div>
+  </div>
+  <!-- Phần III · trang 1 — Cú rơi ở đỉnh cao -->
+  <div class="page cp">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Chương 3 · Cú Ngã Trượt Dài</span>
+      <p class="ni">Mọi thứ thường xảy đến vào đúng lúc bạn đang ở trạng thái cao nhất của mình. Bạn đang đi tốt — kết quả đang đến, niềm tin đang lên — rồi một ngày, bỗng dưng mọi thứ <b>bùm</b> một cái.</p>
+      <p>Không có cảnh báo. Không có lý do rõ ràng. Chỉ là một cảm giác hụt hẫng bao trùm — và bạn không còn nhìn thấy mình cần làm gì trên hành trình của mình nữa.</p>
+      <div class="hl" style="font-style:italic;">Sự tự tin lại biến thành con dao sắc nhọn — không cho bạn đường lui.</div>
+      <p class="ni">Khi bạn chưa có gì, bạn không sợ mất. Nhưng khi bạn đã có — kết quả, thương hiệu, mối quan hệ, tiền bạc — thứ duy nhất bạn nghĩ đến là <b>không để mất đi.</b> Và chính nỗi sợ đó khóa cứng bạn lại.</p>
+      <p class="ni">Mọi thứ dần khép lại. Vòng lặp diễn ra. Bạn làm ít đi — rồi kết quả ít đi — rồi bạn mất động lực — rồi bạn làm ít hơn nữa. Cái bẫy này không ồn ào. Nó âm thầm.</p>
+      <div class="hl">Cú ngã không bao giờ xảy ra ở đáy. Nó xảy ra ở đỉnh — khi bạn đang nghĩ mình đã đến nơi.</div>
+    </div>
+    <div class="pn">45</div>
+  </div>
+
+  <!-- Phần III · trang 2 — Ngọn Hải Đăng -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="hl" style="font-style:normal;font-size:12px;margin-bottom:12px;"><b>Bạn cần quay lại thứ đơn giản nhất.</b></div>
+      <p class="ni">Lúc này không thể làm bằng cảm xúc. Cảm xúc đang bị méo — nó khuếch đại nỗi sợ và thu nhỏ khả năng của bạn lại. Lúc này bạn cần <b>đi trên lỗ hổng</b> — nhìn thẳng vào những điều đang thiếu và làm từng điều một. Không cần nhìn xa. Chỉ cần làm thứ duy nhất bạn có thể làm ngay hôm nay.</p>
+      <p>Nhưng quan trọng hơn tất cả — bạn cần tìm được <b>người dẫn đường của mình.</b></p>
+      <div class="hl" style="font-style:italic;">Trong tất cả các mối quan hệ — người duy nhất bạn cần giữ không phải là người bạn tốt nhất. Đó là người dẫn đường.</div>
+      <p class="ni">Người bạn sẽ an ủi bạn. Người dẫn đường sẽ chỉ cho bạn thấy thực tế. Một người nói rằng bạn ổn — người kia nói bạn đang sai ở đâu và cần làm gì. Trong cơn khủng hoảng, bạn không cần được an ủi. Bạn cần được <b>định hướng lại.</b></p>
+      <p class="ni">Hãy nhớ đến ngọn hải đăng. Nó không đi cùng tàu. Nó không hỏi han hay xoa dịu. Nó chỉ đứng đó — và soi sáng. Đó là tất cả những gì nó cần làm. Và người dẫn đường của bạn cũng vậy — chỉ cần một người đứng đúng chỗ, bạn không cần phải sợ bóng tối nữa.</p>
+    </div>
+    <div class="pn">46</div>
+  </div>
+
+  <!-- Phần III · trang 3 — 5 Lý Do Trượt Hướng -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl">5 Lý Do Khiến Bạn Trượt Hướng</span>
+      <div class="biz-item"><span class="bi-num">1</span><div class="bi-text"><b>Bạn không nắm rõ tiêu chí từ đầu</b> — Kèo ngon nào cũng muốn. Không có tiêu chí thì không có hướng đi nhất quán.</div></div>
+      <div class="biz-item"><span class="bi-num">2</span><div class="bi-text"><b>Bạn vội tăng nguồn lực khi chưa sẵn sàng</b> — Mở rộng quá nhanh trước khi nền tảng đủ vững là cách nhanh nhất để sập.</div></div>
+      <div class="biz-item"><span class="bi-num">3</span><div class="bi-text"><b>Bạn chán với những việc đơn giản và lặp đi lặp lại</b> — Nhưng chính những thứ đơn giản và đều đặn đó mới tạo ra kết quả bền vững.</div></div>
+      <div class="biz-item"><span class="bi-num">4</span><div class="bi-text"><b>Bạn bị ảnh hưởng bởi những mối quan hệ hợp tác</b> — Người đi cùng bạn có sức ảnh hưởng lớn hơn bạn nghĩ đến hướng đi của bạn.</div></div>
+      <div class="biz-item"><span class="bi-num">5</span><div class="bi-text"><b>Hình ảnh của bạn cao quá trong khi bạn muốn sống đơn giản</b> — Sự mâu thuẫn này dần dần tiêu hao ý chí và khiến bạn không muốn tiếp tục.</div></div>
+      <div class="hl" style="margin-top:12px;font-style:italic;">Đừng tin những lý do trên. Tôi chỉ đưa ra để bạn thấy — chúng chỉ là yếu tố bên ngoài, và lúc nào chúng cũng hiện diện ở đó.</div>
+      <p class="ni" style="margin-top:10px;">Này người anh em — <b>bạn chỉ đang nghỉ ngơi vài hôm để lấy sức trên đường dài.</b></p>
+      <p class="ni" style="font-size:12px;font-style:italic;color:var(--gold);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:0.3px;">Lúc bạn làm lại — là lúc bạn mạnh mẽ hơn bao giờ hết.</p>
+    </div>
+    <div class="pn">47</div>
+  </div>
+
+  <!-- Phần III · trang 4 — Câu chuyện của tôi -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="hl" style="font-style:normal;font-size:12px;margin-bottom:10px;"><b>Câu chuyện của tôi — và sai lầm tôi trả bằng mối quan hệ</b></div>
+      <p class="ni">Khi tôi biết bí mật và bán hàng được, tôi bắt đầu hiểu rõ tiêu chí. Và rất nhiều người đến tâm sự với tôi — đang nghĩ đến việc làm lại từ đầu, bắt đầu kinh doanh mới, đã thử nhiều nơi nhưng chưa hiểu đủ. Họ cần sự giúp đỡ.</p>
+      <p class="ni">Tôi nghĩ: mình đã trải qua những điều này, giúp đỡ mọi người là điều tốt. Tôi đưa ra dẫn chứng, phân tích tiêu chí, chỉ thẳng sai lầm — theo cách tôi nghĩ là có ích nhất.</p>
+      <p>Nhưng tôi đã nhầm.</p>
+      <div class="hl" style="font-style:italic;">Cảm xúc mỗi người là khác nhau. Suy nghĩ mỗi người là khác nhau. Và cái tôi của mỗi người — là khác nhau.</div>
+      <p class="ni">Khi tôi chưa có gì, tôi nói gì mọi người cũng thoải mái. Nhưng khi tôi đang ở trên cao — cùng một câu nói của tôi lại khiến người ta cảm thấy bị áp lực, bị phủ nhận, bị ngăn cản. Tôi không có ý đó. Nhưng ý của tôi không quan trọng bằng <b>cảm nhận của họ.</b></p>
+      <p class="ni" style="font-size:11px;color:#555;">Tôi mất đi nguồn lực. Tôi mất đi anh em. Có những lúc nguy cơ tạo ra mâu thuẫn lớn hơn — thậm chí khủng hoảng truyền thông. Tất cả chỉ vì tôi quá thẳng, quá sớm, với người chưa sẵn sàng nghe.</p>
+    </div>
+    <div class="pn">48</div>
+  </div>
+
+  <!-- Phần III · trang 5 — 5 Bước Vượt Qua Cú Ngã -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">5 Bước Để Quay Lại &amp; Vượt Qua Mọi Cú Ngã</span>
+      <p class="ni" style="font-size:11.5px;margin-bottom:10px;">Không ai vực bạn dậy ngoài chính bạn. Quần tụt thì bạn phải tự kéo lên thôi — người anh em của tôi.</p>
+      <div class="biz-item"><span class="bi-num">1</span><div class="bi-text"><b>Khoanh vùng suy nghĩ lại</b> — Đừng để nó đi xa. Dập tắt mọi thông tin bên ngoài, kéo mình trở về với hiện tại.</div></div>
+      <div class="biz-item"><span class="bi-num">2</span><div class="bi-text"><b>Tờ giấy và chiếc bút chì</b> — Viết ra những điều bạn đang làm tốt. Gạch bỏ những thứ đang lấy đi thời gian và nguồn lực của bạn.</div></div>
+      <div class="biz-item"><span class="bi-num">3</span><div class="bi-text"><b>Bắt đầu kiếm tiền ngay</b> — Khởi động lại từ chiến lược <b>$2</b>. Hãy để tiền chảy vào tài khoản — dù nhỏ, nó sẽ kéo năng lượng bạn trở lại.</div></div>
+      <div class="biz-item"><span class="bi-num">4</span><div class="bi-text"><b>Tìm lại người chưa bao giờ bỏ bạn</b> — Bạn chẳng cần làm gì nhiều. Vào Facebook, like một cái thôi — là đủ hiểu nhau rồi. Nhiều khi tôi còn ép bản thân chủ động tìm tin tức về họ nữa đấy.</div></div>
+      <div class="biz-item"><span class="bi-num">5</span><div class="bi-text"><b>Bước tiếp từ nơi bạn đang đứng</b> — Tận dụng tất cả những gì mình đang có. Và lần này, đâm xuyên vạch đích — người anh em của tôi.</div></div>
+      <div class="hl" style="margin-top:10px;font-style:italic;">Ngã không nguy hiểm. <b>Sắp ngã mà không biết mình sắp ngã</b> — mới nguy hiểm.<br><span style="font-style:normal;font-size:11px;font-weight:400;">Bạn sẽ còn gặp lại nó nhiều lần nữa. Đứng dậy và bước tiếp nào.</span></div>
+    </div>
+    <div class="pn">49</div>
+  </div>
+
+  <!-- PHẦN III · trang 6 — Ba kiểu người trên đường bạn đi -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Trên Đường Bạn Đi — Có Ba Kiểu Người</span>
+      <div class="hl" style="font-style:normal;font-size:11px;margin-bottom:10px;line-height:1.7;"><b>Mật lệnh cầm tay:</b><br>— 1 ngày gặp nhau không có nghĩa là biết hết nhau.<br>— 1 năm làm cùng nhau chưa chắc đã thật sự thân thiết.</div>
+      <p class="ni" style="font-size:11.5px;font-weight:600;margin-bottom:4px;">Những người ủng hộ bạn</p>
+      <p class="ni" style="font-size:11px;">Đôi khi chỉ cần một nhóm nhỏ — những người <b>sống đẹp và nghĩ đẹp.</b> Còn lại, việc họ có ủng hộ bạn hay không — không quan trọng.</p>
+      <div class="hl" style="font-style:italic;margin-bottom:10px;">Đường bạn — bạn đi. Đôi chân bạn — bạn đứng. Hiên ngang lên. Bạn làm đúng là được — còn lại không quan trọng.</div>
+      <p class="ni" style="font-size:11px;">Nếu bạn cũng không giỏi xây dựng mối quan hệ — đừng lo. <b>Bạn có giá trị thì mọi người vẫn luôn cần bạn.</b></p>
+      <p class="ni" style="font-size:11.5px;font-weight:600;margin-top:10px;margin-bottom:4px;">Những người thờ ơ với bạn</p>
+      <p class="ni" style="font-size:11px;">Họ có thể thờ ơ với thông điệp của bạn — nhưng đó lại là <b>những người bạn dễ làm việc nhất.</b> Rất rõ ràng về lợi ích. Họ bận với công việc của họ — và bạn cũng thế.</p>
+      <p class="ni" style="font-size:11px;">Khi bạn tiếp thị, họ có thể thờ ơ. Nhưng khi đúng cái họ cần — họ sẽ xuất hiện. Bạn chỉ cần <b>hiểu rõ nhu cầu hơn.</b> Đó là điều tôi sẽ chia sẻ kỹ hơn khi có dịp.</p>
+    </div>
+    <div class="pn">50</div>
+  </div>
+
+  <!-- PHẦN III · trang 7 — Kẻ ném đá & người ra đi -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni" style="font-size:11.5px;font-weight:600;margin-bottom:4px;">Những người ném đá bạn</p>
+      <p class="ni" style="font-size:11px;">Sẵn sàng dùng những ngôn từ xem thường. Tôi nhiều khi cũng rất bực tức — họ viết nhưng thực tế cũng chẳng hiểu gì về bạn.</p>
+      <div class="hl" style="font-style:italic;margin-bottom:10px;">Bên trong của họ tràn đầy sự uất ức về một điều gì đó. Họ không đau khổ thì sao có thể nói ra những lời như vậy? Họ vô cùng đau khổ.<br><span style="font-style:normal;font-size:10.5px;font-weight:400;">Bạn cứ kệ họ đi. Họ xả hơi rồi lại trở thành con người họ muốn. Hãy để họ là họ — bạn không cần giải thích.</span></div>
+      <p class="ni" style="font-size:11.5px;font-weight:600;margin-bottom:4px;">Người lúc đầu ủng hộ rồi biến mất</p>
+      <p class="ni" style="font-size:11px;">Sẽ có người lúc đầu ủng hộ — làm bạn cảm thấy thân thiết — rồi một ngày họ biến mất hoặc không còn ở cạnh bạn nữa.</p>
+      <p class="ni" style="font-size:11px;"><b>Hãy vui vẻ.</b> Lúc đó họ đang có một cú ngã trượt dài của riêng họ — họ sẽ tự đứng dậy. Không cần bạn phải lo lắng. Càng lo lắng — những lời khuyên sẽ thành những lời áp đặt.</p>
+      <div class="hl" style="font-style:italic;margin-bottom:12px;">Bạn của tôi — bạn chỉ cần quan tâm tới <b>suy nghĩ và cảm xúc của bạn.</b> Còn xã hội là việc của những thứ đương nhiên đang diễn ra mỗi ngày.</div>
+      <div style="border-top:1px solid rgba(184,124,20,.3);padding-top:12px;">
+        <p class="ni" style="font-size:11px;color:#555;">Một mình — nên năng lượng của bạn luôn cần phải rất mạnh mẽ. Nhớ nhé. Có tôi cổ vũ cho bạn là bạn có thêm một người — bạn cũng thế nhé.</p>
+        <div class="hl" style="font-style:italic;font-size:11px;margin-top:8px;">Lúc này tôi đã thức nhiều đêm để hoàn tất những lời tâm sự này.<br><span style="font-style:normal;font-size:10.5px;font-weight:400;">Viết cho bạn — cũng là cách mà tôi được học lại từng bước.</span></div>
+      </div>
+    </div>
+    <div class="pn">51</div>
+  </div>
+
+  <!-- ══ PHẦN IV — Mở chương ══ -->
+  <div class="page ch-open has-img">
+    <div class="ch-body">
+      <div class="ch-num">Phần IV</div>
+      <div class="ch-rule"></div>
+      <div class="ch-title">Dòng Tiền Điều<br>Khiển Traffic</div>
+      <div class="ch-sub">Làm gì khi có những kết quả nhỏ đầu tiên.</div>
+    </div>
+    <div class="ch-img" style="border-radius:5px;overflow:hidden;">
+      <img src="images/motatrang32.png" alt="Dòng Tiền Điều Khiển Traffic" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;">
+    </div>
+    <div style="margin-top:14px;padding:0 4px;">
+      <p style="font-family:'Lora',Georgia,serif;font-size:11.5px;line-height:1.7;color:#1c1c1c;text-align:center;margin:0 0 6px;"><b>Người có tiền là người nắm quyền quyết định.</b><br><span style="color:var(--gold);font-size:10.5px;letter-spacing:0.5px;">Đây là bí mật.</span></p>
+      <p style="font-family:'Lora',Georgia,serif;font-size:10.5px;line-height:1.65;color:#444;text-align:center;margin:0 0 6px;">Bán hàng hay kinh doanh — <b>thu trước, bán sau</b> luôn là chiến thuật mãi mãi trường tồn.</p>
+      <p style="font-family:'Lora',Georgia,serif;font-size:11px;line-height:1.65;color:#1c1c1c;text-align:center;margin:0;font-style:italic;">Trước khi bán hàng — hãy bán hình ảnh trước.<br><span style="font-style:normal;font-size:10px;color:var(--gold);">Bí mật đó, người anh em ơi.</span></p>
+    </div>
+    <div class="pn">52</div>
+  </div>
+  <!-- Phần IV · trang 1 — $2 Xong Rồi Làm Gì? -->
+  <div class="page cp">
+    <div class="pt">Phần IV · Dòng Tiền Điều Khiển Traffic</div>
+    <div class="pt-rule"></div>
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">$2 Xong Rồi — Bạn Làm Gì Tiếp Theo?</span>
+      <p class="ni">Tôi cá là bạn sẽ bế tắc ở đoạn này. Hầu hết mọi người — khi thấy người khác — sẽ học theo: bán ngay thứ gì đó cho bõ công, khoe doanh số, khoe đơn hàng, khoe thành tựu, rồi lại đi tìm khách hàng mới. Vòng lặp không bao giờ dừng.</p>
+      <p class="ni">Nhưng bạn thì khác. <b>$2 là phép thử</b> — để bạn biến traffic thành người đã mua hàng. Chưa phải khách hàng thật. Đó là điểm khởi đầu, không phải đích đến.</p>
+      <div class="hl" style="font-style:italic;">Bạn đang cần quyền lực để lên đỉnh. Bạn cần thương hiệu. Bạn cần nhiều người follow — và đừng chờ nền tảng đổ traffic cho bạn.</div>
+      <p class="ni">Mỗi khi tôi truyền đi một thông điệp, tôi lấy hết bí kiếp của mình chia sẻ cho một nhóm nhỏ 50 người. Sau đó cả nhóm cùng đăng bài — và ngay lập tức, thông điệp đó phủ sóng toàn bộ newsfeed của những người quan trọng nhất. <b>Không cần tiền quảng cáo. Chỉ cần đúng người.</b></p>
+      <p class="ni" style="font-size:11px;">Khi bạn có traffic và có nguồn lực — thứ bạn tạo ra lúc này không phải tiền. Nó là <b>sự chuyển dịch từ "Thu Hút" sang "Uy Tín".</b> Đây mới là bí mật thật sự của cuộc chơi.</p>
+    </div>
+    <div class="pn">53</div>
+  </div>
+
+  <!-- Phần IV · trang 2 — 7 Bậc Khách Trung Thành -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">7 Bậc Khách Trung Thành</span>
+      <div class="hl" style="font-style:italic;margin-bottom:10px;">"Bền to chưa chắc bền. Đối thủ hạ giá có thể cướp khách bất cứ lúc nào. Thứ duy nhất họ không cướp nổi là khách đi vì yêu."</div>
+      <div class="biz-list" style="gap:3px;">
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;min-width:20px;">7</span><div class="bi-text" style="font-size:11px;"><b>Fan Cuồng</b> — Tự nguyện khen, bênh vực, giới thiệu. Không hoa hồng, không tính toán — chỉ vì yêu.</div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;min-width:20px;">6</span><div class="bi-text" style="font-size:11px;"><b>Người Ủng Hộ</b> — Chủ động lan tỏa thương hiệu của bạn đến người khác.</div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;min-width:20px;">5</span><div class="bi-text" style="font-size:11px;"><b>Hội Viên</b> — Tài khoản VIP, mua đều đặn, cam kết cao.</div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;min-width:20px;">4</span><div class="bi-text" style="font-size:11px;"><b>Khách Quen</b> — Đây mới là "khách thật". Mua từ lần 2 trở lên.</div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;min-width:20px;">3</span><div class="bi-text" style="font-size:11px;"><b>Mua 1 Lần</b> — Phá vỡ rào cản đầu tiên. Thường bắt đầu từ sản phẩm $2.</div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;min-width:20px;">2</span><div class="bi-text" style="font-size:11px;"><b>Khách Tiềm Năng</b> — Đã nghe danh, quan tâm, để lại thông tin.</div></div>
+        <div class="biz-item"><span class="bi-num" style="font-size:10px;min-width:20px;">1</span><div class="bi-text" style="font-size:11px;"><b>Thị Trường</b> — Đám đông mục tiêu. Họ chưa biết bạn là ai.</div></div>
+      </div>
+      <p class="ni" style="font-size:11px;margin-top:10px;">Nhiệm vụ của bạn không phải tìm thêm khách mới mãi. Nhiệm vụ của bạn là <b>nhấc khách hàng lên từng bậc.</b></p>
+      <p class="ni">Nhưng tôi phải thành thật: tôi <b>ngại bán hàng.</b> Không phải vì không biết cách — mà vì tôi không thích đứng ở phía "người bán", nhìn ai đó như một ví tiền. Mỗi lần định nhắn tin mời mua, tôi lại tự hỏi: <i>"Mình có đang làm phiền không?"</i></p>
+      <p class="ni">Rồi tôi nhận ra — cái sự ngại đó không chỉ là tính cách. Đó là dấu hiệu của việc <b>một mình ôm quá nhiều thứ.</b> Vừa làm nội dung, vừa chăm khách, vừa tìm traffic, vừa theo từng bậc — một mình vận hành hết, dù giỏi đến đâu, cũng có lúc mệt tới mức không muốn bán nữa.</p>
+      <div class="hl" style="font-style:italic;margin-top:6px;">Không phải bạn lười. Không phải bạn sai. Là vì hệ thống cần nhiều hơn một người — và đây là giải pháp của tôi.</div>
+    </div>
+    <div class="pn">54</div>
+  </div>
+
+  <!-- Phần IV · trang 3 — Hợp Tác Thay Vì Bán Hàng -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="hl" style="font-style:normal;font-size:12px;margin-bottom:10px;"><b>Thay vì bán hàng — tôi chuyển sang hợp tác.</b></div>
+      <p class="ni">Tôi không thể khôn hơn khách hàng. Và không ai ngu để mua hàng của tôi mãi mà không nhận lại gì xứng đáng. Vì vậy tôi chọn một cách khác:</p>
+      <p class="ni"><b>Bán cho 1 người $2 → tìm cách giúp người đó kiếm lại $10.</b> Hoặc hòa vốn. Hoặc kiếm được tiền như mình. Từ đó, tôi tạo ra những người anh em trong Affiliate Network — cùng làm, cùng phủ sóng.</p>
+      <div class="hl" style="font-style:italic;">Đối thủ kiếm của khách 10 triệu, trao lại cho họ 1 triệu. Bạn được khách trả $2 — bạn mang lại giá trị $100. Ai nghĩ bạn ngu?</div>
+      <p class="ni">Hãy phục vụ thật tận tâm — từ tài liệu, hình ảnh, thông tin đến tất cả những gì bạn có. <b>Xong đó, mời hợp tác.</b></p>
+      <p class="ni">Tôi hay giới thiệu về khách hàng của mình. Hay cổ vũ. Hay làm như hiển nhiên — không tính toán. Tôi không giỏi giữ chân khách hàng.</p>
+      <div class="hl" style="font-style:italic;margin-top:10px;">Tôi đi cùng họ.</div>
+    </div>
+    <div class="pn">55</div>
+  </div>
+
+  <!-- Phần IV · trang 4 — Dòng Tiền Đi Trước -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Dòng Tiền Đi Trước — Traffic Theo Sau</span>
+      <p class="ni">Đây là điều tôi học được từ chính trải nghiệm của mình. <b>Bạn muốn bao nhiêu là đủ? Hãy đặt con số trước — có tiền trước — sau đó bạn sẽ biết mình cần làm gì tiếp.</b></p>
+      <p class="ni">Ví dụ: tôi muốn làm một dự án affiliate cho sản phẩm A. Tôi sẽ tính ra mình cần bao nhiêu tiền — rồi làm theo thứ tự:</p>
+      <div class="biz-item" style="margin-bottom:4px;"><span class="bi-num">1</span><div class="bi-text">Đàm phán với nhãn hàng — chốt điều kiện trước khi ra quân.</div></div>
+      <div class="biz-item" style="margin-bottom:4px;"><span class="bi-num">2</span><div class="bi-text">Hỏi xem có bao nhiêu người thật sự quan tâm — đo cầu trước khi làm cung.</div></div>
+      <div class="biz-item" style="margin-bottom:10px;"><span class="bi-num">3</span><div class="bi-text">Chọn cách truyền thông phù hợp — tăng click trước, chuyển đổi theo dần.</div></div>
+      <p class="ni">Và điều tôi luôn làm: <b>tìm người trả tiền trước.</b> Có thể là nhãn hàng, có thể là khách hàng — miễn là có một khoản nhỏ đủ lo sinh hoạt. Khi đó tôi làm mà không lo mưu sinh. Không lo mưu sinh — tôi làm được tốt hơn gấp đôi.</p>
+      <div class="hl" style="font-style:italic;">Muốn đánh trận lớn — phải có lương thực trước. Không có lương thực, mọi chiến lược đều là lý thuyết.</div>
+    </div>
+    <div class="pn">56</div>
+  </div>
+
+  <!-- Phần IV · trang 5 — Dòng tiền dương / âm -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="hl" style="font-style:normal;font-size:12px;margin-bottom:10px;"><b>Dòng tiền dương — sức mạnh nhân lên. Dòng tiền âm — mọi thứ về không.</b></div>
+      <p class="ni">Khi tiền đang chảy vào, mọi quyết định bạn đưa ra đều sắc bén hơn. Bạn không sợ. Bạn không do dự. Bạn hành động nhanh hơn bất kỳ thuật toán nào — vì bạn đang ở trạng thái <b>dòng tiền dương.</b></p>
+      <p class="ni">Khi tiền không vào — dù bạn có kế hoạch xuất sắc đến đâu, dù bạn có ý tưởng tốt đến mức nào — sức mạnh của bạn chỉ là một con số nhỏ nhân với con số âm. Kết quả vẫn là không.</p>
+      <div class="hl" style="font-style:italic;">Khi đang thành công — phải thừa thắng xông lên. Cứ tiến, cứ làm, cứ tin. Vì lúc đó bạn đang làm việc ở tần số mà không ai cản được bạn — kể cả AI.</div>
+      <p class="ni">Đây là điều tôi học được không phải từ sách. Tôi học được khi nhìn lại những tháng mình kiếm được nhiều nhất — tôi không làm gì khác đi. Tôi chỉ đang <b>ở đúng trạng thái đó.</b></p>
+      <p class="ni" style="font-size:11px;color:#555;">Và khi trạng thái đó mất đi — tôi cũng nhận ra: không phải vì thị trường thay đổi. Mà vì tôi đã ngừng tiến trước khi đúng lúc.</p>
+    </div>
+    <div class="pn">57</div>
+  </div>
+
+  <!-- Phần IV · trang 6 — Ba tầng traffic -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl">Ba Tầng Traffic — Bạn Đang Làm Việc Với Ai?</span>
+      <p class="ni">Khi bạn đã có dòng tiền, đây là lúc nhìn lại bài toán traffic một cách chính xác hơn. Không phải tất cả traffic đều như nhau — và việc không phân biệt được ba tầng này là lý do phần lớn người làm affiliate mãi không thoát khỏi vòng lặp.</p>
+      <div class="biz-item"><span class="bi-num">1</span><div class="bi-text"><b>Traffic Thu Hút</b> — Người lạ, chưa biết bạn là ai. Họ đến vì nội dung hấp dẫn. Cần nhiều công sức để chuyển đổi.</div></div>
+      <div class="biz-item"><span class="bi-num">2</span><div class="bi-text"><b>Traffic Uy Tín</b> — Người đã theo dõi, đã đọc, đã nghe bạn. Họ tin bạn. Khi bạn nói — họ lắng nghe.</div></div>
+      <div class="biz-item"><span class="bi-num">3</span><div class="bi-text"><b>Traffic Chuyển Đổi</b> — Người đã mua ít nhất một lần. Họ biết bạn không lừa. Họ sẵn sàng mua lại.</div></div>
+      <div class="hl" style="margin-top:10px;font-style:italic;">Tôi thích bán hàng cho traffic uy tín — vì họ là người có nhu cầu rõ ràng nhất. Không cần thuyết phục nhiều. Chỉ cần đúng lúc.</div>
+      <p class="ni" style="font-size:11px;margin-top:8px;">Bạn cần biết mình đang làm việc với tầng nào — vì chiến lược, sản phẩm và mức giá hoàn toàn khác nhau ở mỗi tầng. Khi biết rõ, bạn sẽ biết <b>số tiền nào sẽ thuộc về bạn.</b></p>
+    </div>
+    <div class="pn">58</div>
+  </div>
+
+  <!-- Phần IV · trang 7 — Công thức Doanh Thu -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl">Đến Lúc Tính Rồi</span>
+      <div style="border:1.5px solid rgba(184,124,20,.35);border-radius:6px;padding:10px 14px;margin-bottom:14px;background:rgba(251,248,241,.8);">
+        <div style="font-family:'Oswald',sans-serif;font-weight:300;font-size:9px;letter-spacing:2px;color:rgba(184,124,20,.7);text-transform:uppercase;margin-bottom:6px;">Công thức doanh thu</div>
+        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:13.5px;letter-spacing:1px;color:var(--gold);text-align:center;">Doanh Thu = Traffic × Giá TB Đơn × Số Lần Mua</div>
+      </div>
+      <p class="ni"><b>Traffic</b> — Bạn huy động ở đâu và tiếp cận nhanh nhất bằng cách nào? Câu trả lời đơn giản nhất: danh sách khách hàng do <b>chính bạn sở hữu.</b> Họ có thể trò chuyện với bạn bất cứ lúc nào. Nếu có thể — hãy dùng cách thủ công nhất: nói chuyện trực tiếp với từng người.</p>
+      <p class="ni"><b>Giá trị trung bình đơn</b> — Thiết kế sản phẩm cộng sinh để khách mua nhiều hơn trong một lần. Và có một bí mật ngược đời: tạo ra một ưu đãi điên rồ cho 50 người đầu tiên — sau đó xóa hết dấu vết và liên tục tăng giá. Càng ít người biết, giá trị cảm nhận càng cao.</p>
+      <p class="ni"><b>Số lần mua</b> — Quảng bá sản phẩm chủ lực, nhưng <b>sản phẩm bán lại</b> là sản phẩm nhỏ đến mức không ai nghĩ tới. Một khi khách đã mua <b>$2</b> từ bạn — cánh cửa đã mở. Từ đó trở đi, mỗi lần mua tiếp theo dễ dàng hơn gấp bội.</p>
+      <div class="hl" style="font-style:italic;margin-top:10px;">Hãy thử bán thứ gì đó chỉ $2–$5. Bạn sẽ mở ra cánh cửa kỳ diệu mà mình chưa từng tưởng tượng.</div>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px;">
+        <div style="font-size:10.5px;line-height:1.55;color:#1c1c1c;padding:5px 9px;border-left:2px solid var(--gold);background:rgba(184,124,20,.06);">→ <b>Đang thiếu traffic?</b> Tập trung vào khách hàng nhỏ trước.</div>
+        <div style="font-size:10.5px;line-height:1.55;color:#1c1c1c;padding:5px 9px;border-left:2px solid var(--gold);background:rgba(184,124,20,.06);">→ <b>Đã có khách hàng nhỏ?</b> Tăng số lần mua bằng chăm sóc.</div>
+        <div style="font-size:10.5px;line-height:1.55;color:#1c1c1c;padding:5px 9px;border-left:2px solid var(--gold);background:rgba(184,124,20,.06);">→ <b>Đã có hệ thống & trang bán hàng?</b> Lúc này mới tăng traffic khách lạ.</div>
+      </div>
+    </div>
+    <div class="pn">59</div>
+  </div>
+
+  <!-- ══ PHẦN V — Mở chương ══ -->
+  <div class="page ch-open has-img gold-open">
+    <div class="ch-body">
+      <div class="ch-num">Phần V · Cao Trào</div>
+      <div class="ch-rule"></div>
+      <div class="ch-title">Cuộc Chơi<br>Của System</div>
+      <div class="ch-sub">Bí mật là hệ thống.<br>Hãy chơi cuộc chơi của hệ thống — bạn sẽ nắm trong tay tất cả.</div>
+    </div>
+    <div class="ch-img" style="border-radius:5px;overflow:hidden;">
+      <img src="kol-ai-system-banner.png" alt="KOL AI System" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;">
+    </div>
+    <div class="pn">60</div>
+  </div>
+  <!-- PHẦN V · trang 1 — 8 Bậc -->
   <div class="page cp">
     <div class="pt">Phần V · Cuộc Chơi Của System</div>
     <div class="pt-rule"></div>
     <div class="pb">
-      <p class="ni">✍️ <i>Phần này đang được viết. Thay đoạn này bằng nội dung của bạn.</i></p>
+      <span class="step-lbl" style="margin-top:0;">8 Bậc Kiếm Tiền Với AI — Con Đường Một Người</span>
+      <p class="ni">Đây không phải lý thuyết. Đây là bản đồ tôi đã bước qua — từng bậc, từng bước, không có ai cầm tay dẫn lối.</p>
+      <div class="biz-item"><span class="bi-num">1</span><div class="bi-text"><b>Product $2</b> — Sản phẩm nhỏ. Rào cản mua thấp. Mở cửa cho tất cả mọi người bước vào.</div></div>
+      <div class="biz-item"><span class="bi-num">2</span><div class="bi-text"><b>Affiliate Commission</b> — Giới thiệu sản phẩm người khác. Không cần vốn, không cần kho hàng.</div></div>
+      <div class="biz-item"><span class="bi-num">3</span><div class="bi-text"><b>Booking từ Video</b> — Video kéo khách, khách đặt lịch, bạn nhận tiền.</div></div>
+      <div class="biz-item"><span class="bi-num">4</span><div class="bi-text"><b>Submit Tools / Hợp Tác</b> — Đưa công cụ AI lên nền tảng. Hợp tác nhãn hàng, đối tác chiến lược.</div></div>
+      <div class="biz-item"><span class="bi-num">5</span><div class="bi-text"><b>Quảng Cáo Website / Ladipage + Agent</b> — Hệ thống tự chạy, tự thu tiền. Bạn ngủ cũng ra tiền.</div></div>
+      <div class="biz-item"><span class="bi-num">6</span><div class="bi-text"><b>Agency — Dịch Vụ Giá Cao</b> — Phục vụ doanh nghiệp. Ít khách, thu nhiều hơn.</div></div>
+      <div class="biz-item"><span class="bi-num">7</span><div class="bi-text"><b>Mentor / Đào Tạo / Coaching</b> — Dạy người khác con đường bạn đã đi. Giá trị nhân lên theo lần.</div></div>
+      <div class="biz-item"><span class="bi-num">8</span><div class="bi-text"><b>Vendor / Brand AI SaaS</b> — Tạo ra phần mềm của riêng mình. Bậc khó nhất — đòi hỏi tất cả những gì trước đó.</div></div>
     </div>
-    <div class="pn">21</div>
+    <div class="pn">61</div>
   </div>
+
+  <!-- PHẦN V · trang 1b — Hình 8 bậc + câu chuyện sai lầm -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div style="border-radius:7px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 14px rgba(0,0,0,.15);">
+        <img src="images/mô tả mô hình kinh doanh 8 bậc.png" alt="8 Bậc Kiếm Tiền Với AI" style="width:100%;height:180px;object-fit:cover;object-position:center top;display:block;">
+      </div>
+      <p class="ni">Bạn có thể bắt đầu từ nhiều mô hình — nhưng hãy bắt đầu <b>một cách chiến lược.</b> Làm đúng thứ tự, bạn có thể cân tất cả các bậc.</p>
+      <p class="ni">Tôi đã sai. Tôi bắt đầu từ <b>Affiliate Tool</b> — thị trường còn quá mới, nhiều người cùng đi. Vấn đề là quá nhiều thứ miễn phí khiến việc giới thiệu gặp khó khăn. Người dùng không thoát được khỏi những đợt ưu đãi từ các ông lớn như Google.</p>
+      <p class="ni">Vì vậy tôi chọn con đường khác: <b>$2.</b> Và tôi đã sắp xếp lại từng bước để bạn đi trong sự nhàn nhã.</p>
+      <div class="hl" style="font-style:italic;margin-top:8px;">Sẽ có người kiếm tiền ngay ở bước 7 — nhưng bạn của tôi ơi, một người mới đừng vội leo cao.<br><span style="font-style:normal;font-size:11px;font-weight:400;">Bạn có cả một gia sản ở 6 bước dưới — trước khi bạn đến bước 7–8 và chạm tới tự do thực sự.</span></div>
+    </div>
+    <div class="pn">62</div>
+  </div>
+
+  <!-- PHẦN V · trang 2 — Câu chuyện 7 bậc + vạch xuất phát -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <p class="ni">Tại sao đến cuối sách tôi mới thật sự nói cho bạn bí mật này?</p>
+      <p class="ni">Vì nếu tôi nói sớm — bạn sẽ nhảy thẳng lên bậc 7, bậc 8 mà không có nền tảng. Và bạn sẽ ngã. Ngã đau. Không gượng dậy nổi.</p>
+      <p class="ni">Tôi đã đi qua <b>7 bậc.</b> Bậc cuối cùng — tôi không bước vào. Không phải vì không đủ giỏi. Mà vì tôi biết mình là ai, ở đâu, và năng lực của mình đang ở mức nào.</p>
+      <div class="hl" style="font-style:italic;">Đây là lý do tôi nói tôi chưa phải người thành công lớn — nhưng lại tìm được tự do năm 31 tuổi. Biết mình ở đâu, là ai, và năng lực gì — đó cũng là một dạng khôn ngoan.</div>
+      <p class="ni">Anh Sơn Piaz đứng ở bậc 8. Tôi và bạn — chúng ta chơi tốt 7 bậc còn lại. Không phải vì chúng ta kém. Mà vì <b>vạch xuất phát khác nhau.</b></p>
+      <p class="ni">Những người làm tốt bậc 8 thường đã thành thạo affiliate marketing — họ tự tạo ra traffic, chủ động từ đầu đến cuối. Khi ra mắt sản phẩm, họ không phụ thuộc vào bất kỳ yếu tố bên ngoài nào.</p>
+      <p class="ni" style="font-size:11px;color:#555;">Bạn chưa cần đến đó. Hãy làm tốt bậc của mình — và từng bậc sẽ tự đưa bạn lên.</p>
+    </div>
+    <div class="pn">63</div>
+  </div>
+
+  <!-- PHẦN V · trang 3 — KOL AI SYSTEM CTA -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div style="text-align:center;border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);padding:10px 8px;margin-bottom:14px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--gold);letter-spacing:1px;">KOL AI SYSTEM</div>
+        <div style="font-size:11px;color:#444;margin-top:4px;">Nếu bạn muốn đi từng bậc — có người đồng hành thật sự.</div>
+      </div>
+      <p class="ni">Tôi sẽ cùng bạn đi qua từng thang bậc bằng những chiến thuật đơn giản, thực tế và áp dụng được ngay. Không lý thuyết suông. Không hứa hẹn điên rồ.</p>
+      <div class="biz-item" style="margin-bottom:5px;"><span class="bi-num" style="background:var(--gold);">✓</span><div class="bi-text"><b>60 ngày</b> cùng chiến đấu — tôi ở bên bạn từng bước thật sự.</div></div>
+      <div class="biz-item" style="margin-bottom:5px;"><span class="bi-num" style="background:var(--gold);">✓</span><div class="bi-text"><b>1 năm</b> nhận đặc quyền riêng của cộng đồng KOL AI GO GLOBAL.</div></div>
+      <div class="biz-item" style="margin-bottom:12px;"><span class="bi-num" style="background:var(--gold);">✓</span><div class="bi-text">Từ vội vàng, hỗn loạn → đến <b>thoải mái và tự do.</b></div></div>
+      <div class="hl" style="font-style:italic;margin-bottom:12px;">Chương trình này có phí — nhưng bạn sẽ không tìm được mức đầu tư nào xứng đáng hơn cho sự nghiệp của bạn.<br><span style="font-style:normal;font-size:10.5px;font-weight:400;">Tôi đã tự do. Tôi làm tất cả điều này để bạn có cơ hội chạm vào nó.</span></div>
+      <div style="text-align:center;">
+        <a href="https://kolaisystemladipage.vercel.app" target="_blank" rel="noopener" style="display:inline-block;background:var(--gold);color:#fff;font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:10px 22px;border-radius:4px;text-decoration:none;">Bấm Vào Đây Để Tham Gia →</a>
+      </div>
+    </div>
+    <div class="pn">64</div>
+  </div>
+
+  <!-- PHẦN V · trang 4 — Giai đoạn 1 & 2 -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Hệ Thống Cuối Cùng — 5 Giai Đoạn</span>
+      <div style="margin-bottom:10px;padding:9px 11px;border-left:3px solid var(--gold);background:rgba(184,124,20,.05);">
+        <div style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px;">Giai Đoạn 1</div>
+        <div style="font-size:12px;font-weight:700;color:#1c1c1c;margin-bottom:5px;">Chọn Ngành</div>
+        <p style="font-size:11px;line-height:1.65;margin:0;color:#333;"><b>Chọn 1 thứ, làm 1 thứ.</b> Tôi đã bỏ mỹ phẩm, tiêu dùng, Livestream TikTok để chọn AI. Sau này công cụ có thể thay đổi — nhưng hệ thống thì luôn chạy đúng như vậy. Ứng dụng AI vào công việc đang có kết quả → nhân lên. Không có kết quả → nhân lên sẽ chỉ tăng chi phí.</p>
+      </div>
+      <div style="padding:9px 11px;border-left:3px solid var(--gold);background:rgba(184,124,20,.05);">
+        <div style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px;">Giai Đoạn 2</div>
+        <div style="font-size:12px;font-weight:700;color:#1c1c1c;margin-bottom:5px;">Chọn Sản Phẩm</div>
+        <p style="font-size:11px;line-height:1.65;margin:0;color:#333;">Tạo ra <b>1 sản phẩm nhỏ</b> — dễ chuyển đổi, số tiền cực nhỏ — và cho nó chạy. Tự động hoặc thủ công đều được. Điều này giữ dòng tiền luôn dương và năng lượng của bạn luôn hừng hực sáng và tối.</p>
+      </div>
+      <div style="margin-top:10px;padding:9px 11px;border-left:3px solid var(--gold);background:rgba(184,124,20,.05);">
+        <div style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px;">Giai Đoạn 3</div>
+        <div style="font-size:12px;font-weight:700;color:#1c1c1c;margin-bottom:6px;">Làm Content — 4 Loại AI Bạn Cần</div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#333;">
+          <div>🖼 <b>AI tạo hình ảnh</b> — Dễ, làm được ngay hôm nay.</div>
+          <div>🎬 <b>AI tạo video</b> — Dễ, cần thêm chút sáng tạo.</div>
+          <div>🛒 <b>AI tạo trang bán hàng</b> — Dễ khi đã có sản phẩm cụ thể.</div>
+          <div>⚙️ <b>AI Agent — vận hành tự động</b> — Dễ khi đã dùng nhiều lần.</div>
+        </div>
+        <p style="font-size:10px;margin:6px 0 0;color:#888;font-style:italic;">Nhiều năm nữa đọc lại — công cụ sẽ khác. Nhưng hệ thống thì luôn chạy đúng như vậy.</p>
+      </div>
+    </div>
+    <div class="pn">65</div>
+  </div>
+
+  <!-- PHẦN V · trang 5 — Giai đoạn 4 & 5 + Closing -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div style="margin-bottom:10px;padding:9px 11px;border-left:3px solid var(--gold);background:rgba(184,124,20,.05);">
+        <div style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px;">Giai Đoạn 4</div>
+        <div style="font-size:12px;font-weight:700;color:#1c1c1c;margin-bottom:5px;">Đổi Quà Tặng Thành Lead</div>
+        <p style="font-size:11px;line-height:1.65;margin:0;color:#333;">Bạn có nhiều quà tặng → bạn có nhiều khách hàng. Phễu ở đây là <b>tặng quà để tạo uy tín.</b> Đừng cố lừa gì cả — không có khách hàng nào khờ. Chỉ có lòng tin mà họ trao cho bạn. Họ mua vì <b>trách nhiệm và uy tín</b> của bạn — và sau này dù có người không hài lòng, bạn vẫn tự hào về những gì bạn đã làm.</p>
+      </div>
+      <div style="margin-bottom:10px;padding:9px 11px;border-left:3px solid var(--gold);background:rgba(184,124,20,.05);">
+        <div style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:3px;">Giai Đoạn 5</div>
+        <div style="font-size:12px;font-weight:700;color:#1c1c1c;margin-bottom:5px;">Chuyển Đổi — Ở Gần Khách Nhất</div>
+        <p style="font-size:11px;line-height:1.65;margin:0 0 5px;color:#333;">Nhóm Zalo · Zoom · Email marketing · Video hướng dẫn · Chuyển đổi $2 / $5 / $10. Giai đoạn này — <b>đi nhanh, không đi chậm.</b></p>
+        <p style="font-size:10.5px;line-height:1.55;margin:0;color:#666;border-top:1px solid rgba(184,124,20,.2);padding-top:5px;"><i>Khó tiếp thị? Hãy học, đừng ngại thử cái mới. Thiếu thời gian? Chọn dịch vụ giá cao — phục vụ ít người mà vẫn đảm bảo thu nhập.</i></p>
+      </div>
+      <p class="ni" style="font-size:11px;">Không phải cuốn sách dài nhất, hay nhất, hay bán chạy nhất. Đây là <b>tấm bản đồ đơn giản nhất</b> để bạn — một mình — bước từng bước hướng tới tự do. Tôi đã có mặt ở tất cả các chương, trong tất cả hành trình của bạn.</p>
+      <div class="hl" style="font-style:normal;margin-top:10px;text-align:center;border-left:none;border-top:2px solid rgba(184,124,20,.5);border-bottom:2px solid rgba(184,124,20,.5);padding:12px 8px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:4px;">LÊN · LÊN · LÊN · VÀ LÊNNNNNN</div>
+        <div style="font-size:11px;color:#555;">Đi rồi bạn sẽ đến. Câu thần chú của chúng ta — người anh em ơi.</div>
+      </div>
+    </div>
+    <div class="pn">66</div>
+  </div>
+
+  <!-- PHẦN V · Phần Tặng Thêm — Quản Trị Thời Gian (1/2) -->
+  <div class="page cp">
+    <div class="pt" style="letter-spacing:2.5px;font-size:8.5px;text-transform:uppercase;color:var(--gold);opacity:.85;">Phần Tặng Thêm</div>
+    <div class="pt-rule"></div>
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Quản Trị Thời Gian — Bí Quyết Của Người Đi Một Mình</span>
+      <div class="hl" style="font-style:normal;font-size:11.5px;margin-bottom:10px;">Bạn không cần học thêm nhiều. Bạn cần <b>những kết quả nhỏ đầu tiên</b> — để giữ được năng lượng và tiếp tục chiến đấu mỗi ngày.</div>
+      <p class="ni" style="font-size:11px;margin-bottom:7px;">Nhớ <b>bảng tiêu chí từ Phần I</b>? Đó là vũ khí chính tôi dùng để bảo vệ thời gian của mình:</p>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
+        <div style="font-size:10.5px;padding:6px 10px;border-left:3px solid #27ae60;background:rgba(39,174,96,.06);line-height:1.6;border-radius:0 4px 4px 0;"><b>✓ Kèo tham gia:</b> đúng ngành đang chạy, ra tiền được ngay, dùng kỹ năng đang có, tiêu chí phù hợp — dù nhỏ.</div>
+        <div style="font-size:10.5px;padding:6px 10px;border-left:3px solid #c0392b;background:rgba(192,57,43,.05);line-height:1.6;border-radius:0 4px 4px 0;"><b>✗ Kèo ngon nhưng không tham gia:</b> dù thu nhập cao, dù hấp dẫn — nếu trái tiêu chí, nếu không phải thời điểm của mình. Đành từ chối.</div>
+      </div>
+      <p class="ni" style="font-size:11px;"><b>Những gì làm một lần — dùng được nhiều năm</b> mới là thứ tiết kiệm thời gian thực sự. Một video YouTube, một cuốn sách, một hệ thống affiliate... tất cả đều tích lũy theo năm tháng.</p>
+      <p class="ni" style="font-size:11px;"><b>Đang ở đâu — kiếm tiền ở đó.</b> Tôi chọn Facebook và YouTube vì YouTube cho phép tôi xây cả hệ thống một lần và dùng trong nhiều năm. Lúc đầu đi chậm — nhưng hiện tại <b>không ai cản được nữa.</b> Đó là bí mật của sự khác biệt.</p>
+      <div class="hl" style="font-style:italic;margin-top:8px;">Không ai chọn con đường ít người đi. Đó là lý do tại sao có thể lúc nào cũng làm việc — mà mãi không tìm được sự tự do.<br><span style="font-style:normal;font-size:10.5px;font-weight:400;">Con đường dài hơn một chút ở đầu — nhưng đó là con đường duy nhất dẫn đến tự do thực sự.</span></div>
+    </div>
+    <div class="pn">67</div>
+  </div>
+
+  <!-- PHẦN V · Phần Tặng Thêm — Quản Trị Thời Gian (2/2) -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Làm Ít — Nhưng Làm Đúng — Và Làm Lại</span>
+      <p class="ni" style="font-size:11px;margin-bottom:8px;"><b>Chọn một mục tiêu lớn cho từng giai đoạn.</b> Cuốn sách này không nhiều trang — nhưng có rất nhiều chiến lược. Nếu đang bắt đầu: đi từ <b>Bước 1 · Chiến lược 1 · Bậc 1.</b> Đừng nhảy cóc.</p>
+      <p class="ni" style="font-size:11px;margin-bottom:10px;">Mỗi ngày — chỉ làm những việc <b>quan trọng và không quá cấp bách.</b> Có <b>5 việc</b> cần hoàn thành. Làm xong từng cái — tâm trạng thoải mái, năng lượng bền vững.</p>
+      <div style="background:rgba(184,124,20,.05);border:1px solid rgba(184,124,20,.2);border-radius:6px;padding:10px 13px;margin-bottom:10px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:8.5px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;">Công thức lặp lại chiến thắng</div>
+        <div style="font-size:11px;line-height:1.8;color:#1c1c1c;">Content win → <b>làm lại.</b><br>Cách ra đơn win → <b>làm lại.</b><br>Quy trình tiết kiệm thời gian → <b>chuẩn hóa và làm lại.</b></div>
+      </div>
+      <div class="hl" style="font-style:italic;margin-bottom:12px;">Đừng chê cái đang hiệu quả — vì nó vốn là công thức. Càng làm lại, bạn càng tận dụng được nhiều tài nguyên đã có sẵn.<br><span style="font-style:normal;font-size:10.5px;font-weight:400;">Người giỏi không làm nhiều thứ mới — họ làm thật tốt thứ đã chứng minh được.</span></div>
+      <div style="border-top:1.5px solid rgba(184,124,20,.35);padding-top:12px;text-align:center;">
+        <p style="font-family:'Lora',Georgia,serif;font-size:12px;line-height:1.7;color:#1c1c1c;margin:0 0 6px;font-style:italic;"><b>Chào mừng bạn — bước đầu tiên<br>trên hành trình tự do của mình.</b></p>
+        <p style="font-family:'Lora',Georgia,serif;font-size:10.5px;line-height:1.65;color:#555;margin:0 0 10px;">Nếu cần một nơi đi đúng hướng, cần có người để hỏi — hãy đến với <b>KOL AI SYSTEM.</b><br>Nơi đó có anh em đi cùng. Bạn sẽ không còn cô đơn.</p>
+        <a href="https://kolaisystemladipage.vercel.app" target="_blank" rel="noopener" style="display:inline-block;background:var(--gold);color:#fff;font-family:'Oswald',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;border-radius:4px;text-decoration:none;">Vào KOL AI SYSTEM →</a>
+      </div>
+    </div>
+    <div class="pn">68</div>
+  </div>
+
+  <!-- LỜI KẾT · trang 1 -->
+  <div class="page cp">
+    <div class="pt" style="letter-spacing:2.5px;font-size:8.5px;text-transform:uppercase;color:var(--gold);opacity:.85;">Lời Kết</div>
+    <div class="pt-rule"></div>
+    <div class="pb">
+      <span class="step-lbl" style="margin-top:0;">Tôi Trao Bạn Cuốn Sổ Này</span>
+      <div style="width:100%;height:152px;overflow:hidden;border-radius:6px;margin-bottom:10px;">
+        <img src="images/motatrang69.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block;">
+      </div>
+      <p class="ni">Tôi chỉ đi cách bạn vài bước. Không nhiều hơn thế. Nhưng trên những bước đó — tôi phát hiện ra một điều mà lẽ ra bạn phải trả giá nhiều lần, mất nhiều năm mới hiểu được.</p>
+      <p class="ni">Khi bạn có <b>tự do về thu nhập</b>, <b>tự do về thời gian</b>, <b>tự do về cảm xúc</b>, <b>tự do về sức khỏe trí tuệ</b>, <b>tự do về mối quan hệ</b> — lúc đó bạn có thể đứng trên nhìn thấy đường. Nhìn xung quanh và thấy rõ ràng mọi thứ.</p>
+      <div class="hl" style="font-style:italic;">Như đứng trên đỉnh dốc nhìn xuống thung lũng — bạn thấy cả bản đồ, không chỉ thấy bước chân phía trước mình.</div>
+      <p class="ni">Tôi không muốn nói bạn kém hơn. Tôi chỉ muốn trao cuốn sổ này cho bạn — để soi sáng con đường phía trước.</p>
+      <p class="ni">Thay vì tự mình trải nghiệm từng sai lầm — bạn có thể ấn vào từng chương để làm sáng tỏ mọi thứ. <b>Thời gian của bạn là vàng.</b> Và tôi mong cuốn sách này là bước đầu tiên — ngay cả trong suy nghĩ — trên hành trình tự do của bạn.</p>
+    </div>
+    <div class="pn">69</div>
+  </div>
+
+  <!-- LỜI KẾT · trang 2 -->
+  <div class="page cp cp-cont">
+    <div class="pb">
+      <div class="hl" style="font-style:normal;margin-bottom:12px;"><b>Một lời thú thật —</b><br><span style="font-style:italic;font-weight:400;">Tiêu đề cuốn sách này nghe có vẻ như một tiểu thuyết. Nhưng hầu hết nội dung lại là chiến lược kinh doanh thực chiến — những đòn đánh <b>marketing du kích</b> đã được kiểm chứng qua thực tế.</span></div>
+      <p class="ni">Tôi từng mở nhiều công ty. Từng nhồi vào đầu hàng ngàn thứ — sách, khóa học, hội thảo, thầy này thầy kia. Giờ đây — những điều chia sẻ trong cuốn sách nhỏ này tuy đơn giản, nhưng hiệu quả cao. Và nó thắp sáng con đường phía trước của bạn.</p>
+      <div style="text-align:center;border-top:2px solid rgba(184,124,20,.45);border-bottom:2px solid rgba(184,124,20,.45);padding:13px 8px;margin:14px 0 16px;">
+        <div style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:3px;">MẬT MÃ TỰ DO</div>
+        <div style="font-size:10.5px;color:#666;font-style:italic;letter-spacing:.5px;">Sống cuộc đời bạn muốn.</div>
+      </div>
+      <div style="width:100%;height:203px;overflow:hidden;border-radius:6px;">
+        <img src="images/motatrang70.png" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;">
+      </div>
+    </div>
+    <div class="pn">70</div>
+  </div>
+
+  <!-- Trang trống: canh bìa sau về vị trí đơn trang (LEFT), giống cách bìa trước hiện một mình -->
+  <div class="page" style="background-color:var(--paper-color);background-image:var(--paper-img)"></div>
 
   <!-- ══ BÌA SAU ══ -->
   <div class="page bc">
@@ -1565,6 +2699,7 @@ const pf = new St.PageFlip(document.getElementById('book'),{
   swipeDistance:       20,
   startZIndex:         10,
 });
+window._bookObj = pf;
 
 /* ── CHỈ MOBILE: nội dung thừa của 1 trang tự tràn sang trang mới (desktop giữ nguyên) ── */
 function paginateMobile(){
@@ -1613,7 +2748,7 @@ function updateInfo(){
   const i = pf.getCurrentPageIndex();
   const t = pf.getPageCount();
   document.getElementById('info').textContent =
-    i===0?'Bìa':i>=t-1?'Kết thúc':`Trang ${i}`;
+    i===0?'Bìa':i>=t-1?'Kết thúc':`Trang ${i+1}`;
   seek.max = Math.max(1,t-1);
   if(!seeking){ seek.value = i; paintSeek(i); }
   navL.disabled = i<=0;          /* ở bìa → ẩn nút lùi */
@@ -1621,7 +2756,18 @@ function updateInfo(){
 }
 
 pf.on('flip',()=>{playFlip();updateInfo();refreshLayout();onFlipForRead();});
-pf.on('init',()=>{updateInfo();refreshLayout();});
+pf.on('init',()=>{
+  updateInfo();refreshLayout();
+  /* Khôi phục trang nếu user bấm Back từ khóa học */
+  try{
+    const saved = localStorage.getItem('mmtd_return_page');
+    if(saved !== null){
+      const idx = parseInt(saved, 10);
+      localStorage.removeItem('mmtd_return_page');
+      if(idx > 0) setTimeout(()=>pf.flip(idx), 100);
+    }
+  }catch(e){}
+});
 
 /* ══════════════════════════════════════════
    NGHE ĐỌC — audiobook tiếng Việt
@@ -2019,12 +3165,16 @@ function applyTransform(){
 /* Canh giữa bìa/bìa sau (1 trang) và bật gáy khi mở đôi */
 function refreshLayout(){
   const app=document.getElementById('app');
-  if(IS_MOBILE){ gOffset=0; app.classList.remove('spread'); applyTransform(); return; }
   const i=pf.getCurrentPageIndex(), t=pf.getPageCount();
-  if(i<=0)            gOffset=-PW/2;   /* bìa trước → kéo vào giữa */
-  else if(i>=t-1)     gOffset= PW/2;   /* bìa sau   → kéo vào giữa */
-  else                gOffset= 0;      /* mở đôi    → căn giữa sẵn */
+  const isCoverFront=i<=0, isCoverBack=i>=t-1;
+  app.classList.toggle('cover-front', isCoverFront);
+  app.classList.toggle('cover-back',  !isCoverFront && isCoverBack);
+  if(IS_MOBILE){ gOffset=0; app.classList.remove('spread'); applyTransform(); return; }
+  if(isCoverFront)      gOffset=-PW/2;   /* bìa trước → kéo vào giữa */
+  else if(isCoverBack)  gOffset= PW/2;   /* bìa sau   → kéo vào giữa */
+  else                  gOffset= 0;      /* mở đôi    → căn giữa sẵn */
   app.classList.toggle('spread', gOffset===0);
+  document.documentElement.style.setProperty('--PW', PW+'px');
   applyTransform();
 }
 
@@ -2214,15 +3364,52 @@ async function mmtdTrackReader(email,name){
   }catch(e){ console.warn('[MMTD]',e); }
 }
 
-gateAuth.onAuthStateChanged(async user=>{
-  if(!user){ gateEl.style.display='flex'; hideSachLock(); return; }
+const EARLY_ACCESS = new Set(['phongconson@gmail.com']);
+const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+if(IS_LOCAL){
   gateEl.style.display='none';
-  mmtdTrackReader(user.email, user.displayName||user.email.split('@')[0]);   // ghi nhận độc giả đã đăng nhập
-  if(!isBookUnlocked()) await syncBookEntitlement(user.email);   // thử khôi phục quyền theo email
-  if(isBookUnlocked()){
-    if(new Date() < SACH_LAUNCH) showSachWaiting(); else hideSachLock();
-  } else { showSachLock(); }
-});
+  localStorage.setItem('kh_unlocked','1');
+  hideSachLock();
+} else {
+  gateAuth.onAuthStateChanged(async user=>{
+    if(!user){ gateEl.style.display='flex'; hideSachLock(); return; }
+    gateEl.style.display='none';
+    mmtdTrackReader(user.email, user.displayName||user.email.split('@')[0]);
+    if(EARLY_ACCESS.has(user.email)) localStorage.setItem('kh_unlocked','1');
+    if(!isBookUnlocked()) await syncBookEntitlement(user.email);
+    if(isBookUnlocked()){
+      if(new Date() < SACH_LAUNCH && !EARLY_ACCESS.has(user.email)) showSachWaiting(); else hideSachLock();
+    } else { showSachLock(); }
+  });
+}
+</script>
+
+<!-- ══ LIGHTBOX ══ -->
+<div id="lb" onclick="this.classList.remove('show')">
+  <span id="lb-close" onclick="document.getElementById('lb').classList.remove('show')">×</span>
+  <img id="lb-img" src="" alt="" onclick="event.stopPropagation()">
+  <div id="lb-hint">Nhấn bất kỳ đâu hoặc Esc để đóng</div>
+</div>
+<script>
+(function(){
+  function openLb(src,alt){
+    var i=document.getElementById('lb-img');
+    i.src=src; i.alt=alt||'';
+    document.getElementById('lb').classList.add('show');
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('.page img').forEach(function(img){
+      img.addEventListener('click',function(e){
+        e.stopPropagation();
+        openLb(this.src, this.alt);
+      });
+    });
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape') document.getElementById('lb').classList.remove('show');
+  });
+})();
 </script>
 </body>
 </html>

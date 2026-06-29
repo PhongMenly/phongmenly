@@ -346,6 +346,13 @@ a{text-decoration:none;color:inherit}
 .rv-dt{font-size:11px;color:rgba(255,255,255,.3)}
 .rv-ttl{font-size:14px;font-weight:700;margin-bottom:4px}
 .rv-txt{font-size:13px;color:rgba(255,255,255,.65);line-height:1.75}
+.rv-txt-clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+.rv-txt-clamp.expanded{display:block;-webkit-line-clamp:unset;overflow:visible;}
+.rv-toggle{background:none;border:none;color:#FFD700;font-size:12px;cursor:pointer;padding:5px 0 0;text-decoration:underline;display:block;font-family:inherit;text-align:left;}
+.rv-toggle:hover{color:#FFA500;}
+.rv-nm{font-size:14px;font-weight:700;line-height:1.2;cursor:pointer;transition:color .15s;}
+.rv-nm:hover{color:#FFD700;}
+.rv-av-wrap{cursor:pointer;}
 .rv-foot{display:flex;align-items:center;gap:8px;margin-top:10px}
 .rv-help-btn{background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,.4);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
 .rv-help-btn:hover{border-color:#FFD700;color:#FFD700}
@@ -1621,6 +1628,7 @@ function timeAgo(ts){
   if(s<86400)return Math.floor(s/3600)+' giờ trước';if(s<2592000)return Math.floor(s/86400)+' ngày trước';
   if(s<31536000)return Math.floor(s/2592000)+' tháng trước';return d.toLocaleDateString('vi-VN');
 }
+function rvToggle(id,btn){var el=document.getElementById('rvt-'+id);if(!el)return;var exp=el.classList.toggle('expanded');btn.textContent=exp?'Thu gọn ↑':'Xem thêm ↓';}
 function cardHTML(r,myUid){
   var ini=(r.displayName||'?')[0].toUpperCase();
   var av=r.photoURL
@@ -1629,20 +1637,27 @@ function cardHTML(r,myUid){
   var myVote=myUid&&(r.helpfulBy||[]).indexOf(myUid)>=0;
   var hCount=r.helpful||0;
   var helpTxt='👍 Hữu ích'+(hCount>0?' ('+hCount+')':'');
+  var content=esc(r.content).replace(/\n/g,'<br>');
+  var isLong=r.content&&r.content.length>160;
+  var txtHtml=isLong
+    ?'<div class="rv-txt rv-txt-clamp" id="rvt-'+r.id+'">'+content+'</div>'
+     +'<button class="rv-toggle" onclick="rvToggle(\''+r.id+'\',this)">Xem thêm ↓</button>'
+    :'<div class="rv-txt">'+content+'</div>';
   return '<div class="rv-card" data-id="'+r.id+'">'
-    +'<div class="rv-ch"><div class="rv-av-wrap">'+av+'</div>'
-    +'<div class="rv-body"><div class="rv-nm-row"><span class="rv-nm">'+esc(r.displayName||'Ẩn danh')+'</span>'
-    +'<span class="rv-vbdg">✓ Đã mua</span></div>'
+    +'<div class="rv-ch"><div class="rv-av-wrap" title="'+esc(r.displayName||'Ẩn danh')+'">'+av+'</div>'
+    +'<div class="rv-body"><div class="rv-nm-row">'
+    +'<span class="rv-nm" onclick="rvToggle(\''+r.id+'\',this.closest(\'.rv-card\').querySelector(\'.rv-toggle\'))" title="Bấm để xem đánh giá đầy đủ">'+esc(r.displayName||'Ẩn danh')+'</span>'
+    +'<span class="rv-vbdg" title="Đã xác minh mua sách trên nền tảng">✓ Đã xác minh</span></div>'
     +'<div class="rv-st-row">'+stars(r.rating)+'</div>'
     +'<div class="rv-dt">'+timeAgo(r.createdAt)+'</div></div></div>'
     +(r.title?'<div class="rv-ttl">'+esc(r.title)+'</div>':'')
-    +'<div class="rv-txt">'+esc(r.content).replace(/\n/g,'<br>')+'</div>'
+    +txtHtml
     +'<div class="rv-foot"><button class="rv-help-btn'+(myVote?' on':'')+'" '
     +'onclick="rvVoteHelp(\''+r.id+'\',this,'+hCount+','+myVote+')">'+helpTxt+'</button></div></div>';
 }
 function summaryHTML(revs){
   var n=revs.length;
-  if(!n)return'<div class="rv-empty-sum">Hãy là người đầu tiên đánh giá sách!</div>';
+  if(!n)return'<div class="rv-empty-sum" style="text-align:center;padding:20px 0"><div style="font-size:36px;margin-bottom:10px">✍️</div><div style="font-size:15px;font-weight:800;margin-bottom:6px">Chưa có đánh giá nào</div><div style="font-size:13px;color:rgba(255,255,255,.4)">Hãy là người đầu tiên chia sẻ cảm nhận của bạn!</div></div>';
   var avg=revs.reduce(function(s,r){return s+r.rating;},0)/n;
   var dist={5:0,4:0,3:0,2:0,1:0};
   revs.forEach(function(r){dist[r.rating]=(dist[r.rating]||0)+1;});
@@ -1658,22 +1673,18 @@ function summaryHTML(revs){
 function renderList(el,revs,myUid){
   var flt=_filter==='all'?revs:revs.filter(function(r){return r.rating===parseInt(_filter);});
   el.innerHTML=flt.length?flt.map(function(r){return cardHTML(r,myUid);}).join('')
-    :'<div class="rv-empty">Chưa có đánh giá nào cho mức sao này.</div>';
+    :'<div class="rv-empty" style="padding:40px 20px"><div style="font-size:36px;margin-bottom:10px">📝</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">Chưa có đánh giá nào</div><div style="font-size:13px;color:rgba(255,255,255,.4)">Người đọc đầu tiên — hãy chia sẻ cảm nhận của bạn!</div></div>';
 }
+function sortDesc(arr){return arr.slice().sort(function(a,b){var ta=a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0,tb=b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0;return tb-ta;});}
 function loadAll(){
-  var q=db().collection(RV_COL).where('product','==',RV_PROD).orderBy('createdAt','desc');
-  if(_opts.limit)q=q.limit(_opts.limit);
+  var q=db().collection(RV_COL).where('product','==',RV_PROD);
   q.get().then(function(snap){
-    _all=snap.docs.map(function(d){var o=d.data();o.id=d.id;return o;});
+    var all=snap.docs.map(function(d){var o=d.data();o.id=d.id;return o;});
+    all=sortDesc(all);
+    _all=_opts.limit?all.slice(0,_opts.limit):all;
     var sumEl=_opts.sumEl?document.getElementById(_opts.sumEl):null;
     var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;
-    if(sumEl){
-      if(_opts.limit){
-        db().collection(RV_COL).where('product','==',RV_PROD).get().then(function(a){
-          sumEl.innerHTML=summaryHTML(a.docs.map(function(d){return d.data();}));
-        });
-      }else{sumEl.innerHTML=summaryHTML(_all);}
-    }
+    if(sumEl)sumEl.innerHTML=summaryHTML(all);
     if(listEl)renderList(listEl,_all,_user&&_user.uid);
   }).catch(function(e){
     console.error('rv:',e);
