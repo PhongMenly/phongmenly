@@ -7,6 +7,7 @@
 <title>Mật Mã Tự Do — Affiliate AI | Phong Menly</title>
 <meta name="description" content="5 Cánh Cửa Định Mệnh - Làm Chủ Hệ Thống Affiliate x AI - Mở Ra Cánh Cửa Tự Do">
 <meta property="og:type" content="website">
+<link rel="canonical" href="https://phongmenlyai.com/">
 <meta property="og:url" content="https://phongmenlyai.com/">
 <meta property="og:title" content="Mật Mã Tự Do — Affiliate AI | Phong Menly">
 <meta property="og:description" content="5 Cánh Cửa Định Mệnh - Làm Chủ Hệ Thống Affiliate x AI - Mở Ra Cánh Cửa Tự Do">
@@ -577,6 +578,14 @@ footer p{font-size:12px;color:var(--dim)}
   .rv-fi{padding:5px 10px;font-size:11px}
 }
 </style>
+<!-- Google Analytics 4 — thay G-XXXXXXXXXX bằng Measurement ID thật của bạn -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','G-XXXXXXXXXX');
+</script>
 </head>
 <body>
 
@@ -872,6 +881,41 @@ function inappCopyLink(){
     </div>
   </div>
 </section>
+
+<!-- LEAD CAPTURE -->
+<section id="lead-capture" style="background:linear-gradient(135deg,rgba(255,215,0,.06),rgba(255,149,0,.04));border-top:1px solid rgba(255,215,0,.12);border-bottom:1px solid rgba(255,215,0,.12);padding:36px 20px;text-align:center">
+  <div style="max-width:480px;margin:0 auto">
+    <div style="font-size:.72rem;font-weight:800;color:#FFD700;letter-spacing:1px;margin-bottom:8px">🎁 TẶNG MIỄN PHÍ</div>
+    <h3 style="font-size:1.15rem;font-weight:900;color:#fff;margin-bottom:8px">Checklist 5 Bước Xây Dòng Tiền Affiliate × AI</h3>
+    <p style="font-size:.85rem;color:#A1A1AA;margin-bottom:18px;line-height:1.7">Nhập email để nhận ngay — không spam, có thể hủy bất cứ lúc nào.</p>
+    <div style="display:flex;gap:10px;max-width:380px;margin:0 auto;flex-wrap:wrap">
+      <input id="lc-email" type="email" placeholder="email@example.com" style="flex:1;min-width:180px;background:#1c1c1c;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;color:#fff;font-size:.9rem;outline:none;font-family:inherit">
+      <button onclick="lcSubmit()" id="lc-btn" style="background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:10px;padding:11px 20px;font-size:.88rem;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap">Nhận ngay →</button>
+    </div>
+    <div id="lc-msg" style="display:none;margin-top:12px;font-size:.85rem;color:#4ADE80;font-weight:700"></div>
+  </div>
+</section>
+<script>
+function lcSubmit(){
+  const email = document.getElementById('lc-email').value.trim();
+  const btn = document.getElementById('lc-btn');
+  const msg = document.getElementById('lc-msg');
+  if(!email.includes('@')){ document.getElementById('lc-email').style.borderColor='#E53E3E'; return; }
+  document.getElementById('lc-email').style.borderColor='';
+  btn.textContent='Đang gửi...'; btn.disabled=true;
+  fetch('https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action:'lead_capture', email, source:'checklist_cta', aff: mmtdGetAff ? mmtdGetAff() : null })
+  }).catch(()=>{}).finally(()=>{
+    btn.style.display='none';
+    document.getElementById('lc-email').style.display='none';
+    msg.style.display='block';
+    msg.textContent='✓ Đã gửi! Kiểm tra email (cả thư mục Spam nhé)';
+    try{ gtag('event','generate_lead',{value:0,currency:'VND'}); }catch(e){}
+  });
+}
+document.getElementById('lc-email').addEventListener('keydown',e=>{ if(e.key==='Enter') lcSubmit(); });
+</script>
 
 <!-- NỘI DUNG SÁCH -->
 <section class="sec sec-alt">
@@ -1978,6 +2022,11 @@ function mmtdShowOkScreen(){
         <div style="font-size:.82rem;color:#fff;font-weight:700;margin-bottom:8px">Vào nhóm Zalo để hỏi đáp &amp; nhận hỗ trợ từ tác giả</div>
         <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1')" style="display:block;background:#0068FF;color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:10px;font-size:.85rem;font-weight:800">🔵 Vào Nhóm Zalo Ngay</a>
       </div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;margin-bottom:12px;text-align:left">
+        <div style="font-size:.7rem;font-weight:800;color:#A1A1AA;letter-spacing:.8px;margin-bottom:8px">🚀 NÂNG CẤP THÊM KHÓA HỌC</div>
+        <p style="font-size:.8rem;color:#A1A1AA;margin-bottom:10px;line-height:1.6">Mua riêng từng chủ đề để đi sâu hơn — hoặc mua tất cả trong Học Viện.</p>
+        <a href="hoc-vien.html" onclick="mmtdClose()" style="display:block;text-align:center;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);color:#FFD700;border-radius:9px;padding:9px;font-size:.82rem;font-weight:800;text-decoration:none">🎓 Xem thêm khóa học →</a>
+      </div>
       <button onclick="mmtdDownloadReceipt()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;color:#A1A1AA;font-size:.82rem;cursor:pointer;font-family:inherit;margin-bottom:8px">📄 Tải biên lai thanh toán</button>
       <button onclick="mmtdClose()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>`;
   } else {
@@ -2191,6 +2240,7 @@ function mmtdShowQRDirect(){
   document.getElementById('mmtd-step-ok').style.display   = 'none';
   document.body.style.overflow = 'hidden';
 
+  try{ gtag('event','begin_checkout',{value:686000,currency:'VND',items:[{item_id:'mmtd-book',item_name:'Mật Mã Tự Do',price:686000}]}); }catch(e){}
   if(mmtdPoll){ clearInterval(mmtdPoll); mmtdPoll=null; }
   mmtdRef = mmtdGenCode(name);
   mmtdPayContent = 'SEVQR ' + mmtdRef;
@@ -2223,6 +2273,7 @@ function mmtdStartPoll(){
         localStorage.setItem('kh_unlocked','1');
         localStorage.setItem('mmtd_last_ref', mmtdRef);
         updateBuyButton();
+        try{ gtag('event','purchase',{transaction_id:mmtdRef,value:686000,currency:'VND',items:[{item_id:'mmtd-book',item_name:'Mật Mã Tự Do',price:686000,quantity:1}]}); }catch(e){}
         document.getElementById('mmtd-step-qr').style.display='none';
         document.getElementById('mmtd-step-ok').style.display='block';
         mmtdShowOkScreen();
@@ -2360,6 +2411,7 @@ function mmtdSubmit(e){
   const errEl = document.getElementById('mmtd-err');
   if (!name){ errEl.textContent = 'Vui lòng nhập họ và tên.'; errEl.style.display='block'; return; }
   errEl.style.display = 'none';
+  try{ localStorage.setItem('mmtd_prefill_name', name); localStorage.setItem('mmtd_prefill_phone', phone||''); }catch(e){}
   const btn = document.getElementById('mmtd-btn');
   btn.textContent = 'Đang tạo...'; btn.disabled = true;
 
@@ -2741,6 +2793,17 @@ window.rvSubmit=function(){
       alert('Lỗi: '+e.message);
     });
 };
+})();
+</script>
+
+<!-- BACK TO TOP -->
+<button id="btt-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Lên đầu trang" style="display:none;position:fixed;bottom:80px;right:18px;z-index:4900;width:42px;height:42px;border-radius:50%;background:rgba(30,30,30,.92);border:1px solid rgba(255,215,0,.3);color:#FFD700;font-size:18px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:opacity .2s">↑</button>
+<script>
+(function(){
+  var btn=document.getElementById('btt-btn');
+  window.addEventListener('scroll',function(){
+    btn.style.display=window.scrollY>600?'block':'none';
+  },{passive:true});
 })();
 </script>
 

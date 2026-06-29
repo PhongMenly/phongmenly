@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /doc-thu.html
+Disallow: /doc-sach.html
+Disallow: /hoc-vien.html
+Disallow: /bai-hoc.html
+Disallow: /affiliate.html
+Disallow: /quan-ly.html
+
+Sitemap: https://phongmenlyai.com/sitemap.xml

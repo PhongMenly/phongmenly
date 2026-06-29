@@ -73,6 +73,22 @@ Deno.serve(async (req: Request) => {
 
     const action = body.action as string;
 
+    if (action === 'lead_capture') {
+      const { email, source, aff } = body;
+      await supabase.from('leads').upsert({
+        email, source: source || 'unknown', aff_code: aff || null,
+        created_at: new Date().toISOString(),
+      }, { onConflict: 'email' }).catch(() => {});
+      const makeWebhook = Deno.env.get('MAKE_WEBHOOK_URL');
+      if (makeWebhook) {
+        await fetch(makeWebhook, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: 'lead_captured', email, source, aff }),
+        }).catch(() => {});
+      }
+      return json({ ok: true });
+    }
+
     if (action === 'register') {
       const { ref, aff, product, pkg, name, phone, email, price, referrer } = body;
       await supabase.from('orders').upsert({
