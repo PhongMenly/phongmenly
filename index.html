@@ -1362,7 +1362,10 @@ function pmInitFirebase() {
       if (result.additionalUserInfo?.isNewUser) {
         mmtdTrackReader(result.user.email, result.user.displayName || '');
       }
-    }).catch(e => console.error('Redirect result:', e));
+    }).catch(e => {
+      if(e && e.code==='auth/unauthorized-domain') console.error('[Auth] Domain chưa được thêm vào Firebase Authorized Domains:',location.hostname);
+      else console.error('Redirect result:', e);
+    });
 
     if (pmAuth.isSignInWithEmailLink(window.location.href)) {
       let email = localStorage.getItem('pm_email_for_link');

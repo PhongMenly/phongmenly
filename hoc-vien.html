@@ -794,7 +794,9 @@ function hvInit(){
   try{
     if(!firebase.apps.length) firebase.initializeApp(PM_FIREBASE_CONFIG);
     hvAuth = firebase.auth();
-    hvAuth.getRedirectResult().then(r => { if(r && r.user) pmCloseModal(); }).catch(()=>{});
+    hvAuth.getRedirectResult().then(r => { if(r && r.user) pmCloseModal(); }).catch(e=>{
+      if(e && e.code==='auth/unauthorized-domain') console.error('[Auth] Domain chưa được thêm vào Firebase Authorized Domains:',location.hostname);
+    });
     hvAuth.onAuthStateChanged(user => {
       if(user){
         const name = user.displayName || user.email.split('@')[0];
