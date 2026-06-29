@@ -554,11 +554,26 @@ footer p{font-size:12px;color:var(--dim)}
 .rv-see-all{font-size:14px;color:#FFD700;font-weight:700;text-decoration:none;border-bottom:1px solid rgba(255,215,0,.3);transition:.2s;display:inline-block}
 .rv-see-all:hover{border-color:#FFD700}
 @media(max-width:640px){
-  .rv-sum{flex-direction:column;gap:14px;padding:16px}
-  .rv-big{display:flex;align-items:center;gap:14px;text-align:left}
-  .rv-big-num{font-size:42px}
-  .rv-sum-act{flex-direction:row;justify-content:space-between;align-items:center;width:100%}
-  .rv-pnote{max-width:none;text-align:left}
+  #review-sec{padding:32px 0 24px !important}
+  .rv-wrap{padding:0}
+  /* Summary: rating + button cùng 1 hàng ngang, bars xuống dưới */
+  .rv-sum{flex-wrap:wrap;gap:6px;padding:12px 14px;align-items:center}
+  .rv-big{flex:1;min-width:0;display:flex;flex-direction:row;align-items:center;gap:5px;text-align:left}
+  .rv-big-num{font-size:22px;font-weight:900;flex-shrink:0;line-height:1}
+  .rv-big-stars span{font-size:13px !important}
+  .rv-big-cnt{font-size:11px;color:rgba(255,255,255,.4);white-space:nowrap;flex-shrink:0}
+  .rv-bars{width:100%;order:4;margin-top:2px}
+  .rv-bar-row{margin-bottom:3px}
+  .rv-bar-lbl{font-size:10px;width:18px}
+  .rv-bar-pc{font-size:10px;width:22px}
+  .rv-sum-act{flex-shrink:0;flex-direction:column;gap:3px;align-items:flex-end}
+  .btn-write-rv{font-size:11px;padding:7px 11px;gap:3px}
+  .rv-pnote{display:none}
+  .rv-card{padding:13px 14px}
+  .rv-form-box{padding:16px 14px}
+  .rv-gate{padding:16px 14px}
+  .rv-fis{gap:6px}
+  .rv-fi{padding:5px 10px;font-size:11px}
 }
 </style>
 </head>
@@ -1207,7 +1222,7 @@ function inappCopyLink(){
 <!-- ════ MMTD FOOTER BANNER (dùng chung mọi trang) ════ -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
-.mmtd-foot{position:relative;overflow:hidden;padding:54px 30px 30px;min-height:320px;background:#080808 url('images/kol-ai-system-banner.jpg') center right/cover no-repeat;font-family:'Be Vietnam Pro',system-ui,sans-serif}
+.mmtd-foot{position:relative;overflow:hidden;padding:54px 30px 30px;min-height:320px;background:#080808 url('images/kol-ai-system-banner.jpg') center right/cover no-repeat;font-family:'Be Vietnam Pro',system-ui,sans-serif;border-top:none}
 .mmtd-foot *{box-sizing:border-box}
 .mmtd-foot::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#080808 0%,#080808 20%,rgba(8,8,8,.72) 50%,rgba(8,8,8,.6) 70%,rgba(8,8,8,.92) 100%),linear-gradient(90deg,rgba(8,8,8,.92) 0%,rgba(8,8,8,.55) 55%,rgba(8,8,8,.2) 100%)}
 .mmtd-in{position:relative;z-index:1;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1.3fr;gap:34px}
