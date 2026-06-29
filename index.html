@@ -1294,6 +1294,7 @@ function inappCopyLink(){
         <li><a href="hoc-vien.html">Khu Học Viện</a></li>
         <li><a href="doc-thu.html">Đọc thử sách</a></li>
         <li><a href="https://www.facebook.com/groups/808925604828645" target="_blank" rel="noopener">Cộng đồng</a></li>
+        <li><a href="affiliate.html">🤝 Chương trình Đối tác</a></li>
       </ul>
     </div>
     <div class="mmtd-col">
@@ -1977,11 +1978,46 @@ function mmtdShowOkScreen(){
         <div style="font-size:.82rem;color:#fff;font-weight:700;margin-bottom:8px">Vào nhóm Zalo để hỏi đáp &amp; nhận hỗ trợ từ tác giả</div>
         <a href="https://zalo.me/g/v4hes98opxvnxraqires" target="_blank" onclick="localStorage.setItem('zalo_joined','1')" style="display:block;background:#0068FF;color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:10px;font-size:.85rem;font-weight:800">🔵 Vào Nhóm Zalo Ngay</a>
       </div>
+      <button onclick="mmtdDownloadReceipt()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px;color:#A1A1AA;font-size:.82rem;cursor:pointer;font-family:inherit;margin-bottom:8px">📄 Tải biên lai thanh toán</button>
       <button onclick="mmtdClose()" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đóng</button>`;
   } else {
     /* Pre-launch: countdown + đọc thử */
     mmtdStartOkCountdown();
   }
+}
+
+function mmtdDownloadReceipt(){
+  const user = pmAuth && pmAuth.currentUser;
+  const email = user ? user.email : '—';
+  const ref = mmtdRef || localStorage.getItem('mmtd_last_ref') || '—';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const timeStr = now.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  const html = `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
+<title>Biên lai — Mật Mã Tự Do</title>
+<style>body{font-family:Arial,sans-serif;max-width:480px;margin:40px auto;padding:24px;color:#111;border:2px solid #000}
+h1{font-size:1.3rem;margin:0 0 4px}p{margin:4px 0;font-size:.9rem}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
+.total{font-weight:bold;font-size:1.05rem}.stamp{color:#4CAF50;font-weight:bold;font-size:1.1rem;text-align:center;margin:16px 0;letter-spacing:2px;border:2px solid #4CAF50;padding:6px}
+</style></head><body>
+<h1>BIÊN LAI THANH TOÁN</h1>
+<p>Mật Mã Tự Do — phongmenlyai.com</p>
+<hr>
+<div class="row"><span>Mã đơn hàng</span><span>${ref}</span></div>
+<div class="row"><span>Ngày giao dịch</span><span>${dateStr} ${timeStr}</span></div>
+<div class="row"><span>Email</span><span>${email}</span></div>
+<div class="row"><span>Sản phẩm</span><span>Mật Mã Tự Do + 5 Khóa học</span></div>
+<div class="row"><span>Ngân hàng</span><span>VietinBank — 105887395942</span></div>
+<div class="row total"><span>Số tiền</span><span>686.000 VNĐ</span></div>
+<div class="stamp">✓ ĐÃ THANH TOÁN</div>
+<p style="font-size:.78rem;color:#666;text-align:center">Cảm ơn bạn! Hỗ trợ: zalo.me/0978076936 · phongtyphu95@gmail.com</p>
+</body></html>`;
+  const blob = new Blob([html],{type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bien-lai-mmtd-${ref}.html`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
 }
 
 // ─── Modal chờ ra mắt cho người đã mua sách ───
@@ -2185,6 +2221,7 @@ function mmtdStartPoll(){
       if(r.ok){ const d=await r.json(); if(d?.paid){
         clearInterval(mmtdPoll); mmtdPoll=null;
         localStorage.setItem('kh_unlocked','1');
+        localStorage.setItem('mmtd_last_ref', mmtdRef);
         updateBuyButton();
         document.getElementById('mmtd-step-qr').style.display='none';
         document.getElementById('mmtd-step-ok').style.display='block';
@@ -2704,6 +2741,37 @@ window.rvSubmit=function(){
       alert('Lỗi: '+e.message);
     });
 };
+})();
+</script>
+
+<!-- FLOATING MOBILE CTA -->
+<div id="mob-cta" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;padding:12px 16px 20px;background:linear-gradient(180deg,rgba(10,10,10,0) 0%,rgba(10,10,10,.97) 30%);pointer-events:none">
+  <button id="mob-cta-btn" onclick="mmtdOpenCheckout()" style="pointer-events:all;width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:50px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 32px rgba(255,215,0,.4)">MỞ KHÓA NGAY — 686.000đ</button>
+</div>
+<style>
+@media(min-width:641px){#mob-cta{display:none!important}}
+</style>
+<script>
+(function(){
+  const mob = document.getElementById('mob-cta');
+  const mobBtn = document.getElementById('mob-cta-btn');
+  if(!mob) return;
+  const mainBtn = document.getElementById('btn-buy-main');
+  let hidden = false;
+  function syncMobCta(){
+    if(isBookUnlocked()){
+      if(mobBtn) mobBtn.textContent = '📖 Đọc sách ngay';
+    }
+  }
+  function update(){
+    if(!mainBtn){ mob.style.display='none'; return; }
+    const r = mainBtn.getBoundingClientRect();
+    const inView = r.top < window.innerHeight && r.bottom > 0;
+    mob.style.display = inView ? 'none' : 'block';
+  }
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update, {passive:true});
+  setTimeout(()=>{ syncMobCta(); update(); }, 1000);
 })();
 </script>
 </body>

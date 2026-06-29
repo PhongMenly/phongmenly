@@ -676,6 +676,7 @@ function inappCopyLink(){
         <li><a href="hoc-vien.html">Khu Học Viện</a></li>
         <li><a href="doc-thu.html">Đọc thử sách</a></li>
         <li><a href="https://www.facebook.com/groups/808925604828645" target="_blank" rel="noopener">Cộng đồng</a></li>
+        <li><a href="affiliate.html">🤝 Chương trình Đối tác</a></li>
       </ul>
     </div>
     <div class="mmtd-col">
@@ -751,6 +752,13 @@ function renderCourses(){
         : `href="javascript:void(0)" onclick="openPay('${c.id}')"`;
     }
     const tagCls = (open && !c.special) ? ' pc-unlocked' : '';
+    let progressBar = '';
+    if(open && !c.special && !c.book && c.lessons > 0){
+      let arr=[]; try{arr=JSON.parse(localStorage.getItem('done_'+c.id)||'[]');}catch(e){}
+      const dn=Math.min(arr.length,c.lessons);
+      const pt=Math.round(dn/c.lessons*100);
+      progressBar=`<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:.72rem;color:#A1A1AA;margin-bottom:4px"><span>Tiến độ</span><span>${dn}/${c.lessons} bài</span></div><div style="background:rgba(255,255,255,.1);border-radius:3px;height:3px"><div style="width:${pt}%;height:3px;background:linear-gradient(90deg,#FFD700,#FF9500);border-radius:3px"></div></div></div>`;
+    }
     return `
     <a class="pc${c.special?' special':''}${c.book?' book':''}" id="${c.id}" ${attrs}>
       <div class="pc-poster" style="background-image:url('${c.img}')">
@@ -761,6 +769,7 @@ function renderCourses(){
       <div class="pc-body">
         <div class="pc-name">${c.name}</div>
         <div class="pc-meta"><span class="pc-lessons">${metaText}</span></div>
+        ${progressBar}
         ${c.book ? '<div class="pc-rv-mini" id="book-rv-mini"></div>' : ''}
       </div>
     </a>`;

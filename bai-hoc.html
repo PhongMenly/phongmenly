@@ -305,6 +305,7 @@ img{max-width:100%;display:block}
         <li><a href="hoc-vien.html">Khu Học Viện</a></li>
         <li><a href="index.html#san-pham">Sản phẩm</a></li>
         <li><a href="https://www.facebook.com/groups/808925604828645" target="_blank" rel="noopener">Cộng đồng</a></li>
+        <li><a href="affiliate.html">🤝 Chương trình Đối tác</a></li>
       </ul>
     </div>
     <div class="ft-col">
@@ -457,7 +458,25 @@ function render(){
 
 function select(i){ cur=i; history.replaceState({},'', '?c='+cid+'&l='+i); render(); window.scrollTo({top:0,behavior:'smooth'}); if(window.innerWidth<=760) toggleAside(true); }
 function go(dir){ const n=cur+dir; if(n>=0&&n<course.lessons.length) select(n); }
-function toggleDone(){ const s=doneSet(); if(s.has(cur)) s.delete(cur); else s.add(cur); saveDone(s); render(); }
+function toggleDone(){
+  const s=doneSet();
+  const wasAdding = !s.has(cur);
+  if(s.has(cur)) s.delete(cur); else s.add(cur);
+  saveDone(s); render();
+  if(wasAdding && cur < course.lessons.length-1){
+    const btn=document.getElementById('btn-next');
+    if(btn){
+      btn.style.background='linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,149,0,.2))';
+      btn.style.borderColor='rgba(255,215,0,.5)';
+      btn.style.color='#FFD700';
+      btn.textContent='→ Bài tiếp theo';
+      setTimeout(()=>{
+        btn.style.background=''; btn.style.borderColor=''; btn.style.color='';
+        btn.textContent='Bài sau →';
+      }, 2500);
+    }
+  }
+}
 function toggleAside(forceClose){
   const a=document.getElementById('aside'), o=document.getElementById('aside-ov');
   if(forceClose){ a.classList.remove('open'); o.classList.remove('open'); return; }
