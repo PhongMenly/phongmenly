@@ -546,6 +546,12 @@ function inappCopyLink(){
         <p class="page-sub">5 combo theo 5 chương + cuốn đặc biệt KOL AI SYSTEM — học theo lộ trình.</p>
       </div>
 
+      <!-- Toast: unlock thành công từ link email -->
+      <div id="unlock-success-toast" style="display:none;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(74,222,128,.12),rgba(74,222,128,.06));border:1px solid rgba(74,222,128,.4);border-radius:12px;padding:14px 20px;margin-bottom:16px">
+        <span style="font-size:22px">🔓</span>
+        <span style="font-size:14px;font-weight:700;color:#4ADE80">Đã mở khóa thành công! Bạn có thể truy cập trên thiết bị này.</span>
+      </div>
+
       <div class="unlock-banner" id="unlock-banner" style="display:none">
         <div class="ub-l">🔒 Bạn chưa mở khóa. <b>Đã có sách Mật Mã Tự Do?</b> Nhập mật mã để mở trọn 5 combo — hoặc đặt sách để nhận mã.</div>
         <div class="ub-acts">
@@ -866,7 +872,28 @@ function applyState(){
   document.getElementById('unlock-banner').style.display = master ? 'none' : 'flex';
 }
 
+// Unlock đa thiết bị qua ?unlock=REF trong URL (từ welcome email)
+async function hvUnlockFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const ref = params.get('unlock');
+  if(!ref) return;
+  try{
+    const r = await fetch(MMTD_WEBHOOK + '?ref=' + encodeURIComponent(ref));
+    const d = await r.json();
+    if(d && d.paid){
+      localStorage.setItem('kh_unlocked','1');
+      localStorage.setItem('book_unlocked','1');
+      // Xóa param khỏi URL
+      const clean = location.pathname + (params.toString().replace(/unlock=[^&]*/,'').replace(/^&|&$/,'') ? '?'+params.toString().replace(/unlock=[^&]*/,'').replace(/^&|&$/,'') : '');
+      history.replaceState(null,'',clean);
+      const banner = document.getElementById('unlock-success-toast');
+      if(banner){ banner.style.display='flex'; setTimeout(()=>banner.style.display='none',4000); }
+    }
+  }catch(e){}
+}
+
 function hvInit(){
+  hvUnlockFromUrl().then(()=>applyState());
   applyState();
   try{
     if(!firebase.apps.length) firebase.initializeApp(PM_FIREBASE_CONFIG);
