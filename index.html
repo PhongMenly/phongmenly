@@ -289,6 +289,12 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .order-title{font-size:21px;font-weight:900;line-height:1.25;margin-bottom:5px;white-space:nowrap}
 .order-title span{white-space:nowrap}
 .order-sub{font-size:13px;color:var(--muted);margin-bottom:0;line-height:1.6}
+.order-rv-mini{display:none;align-items:center;gap:8px;margin-top:13px;flex-wrap:wrap;cursor:pointer}
+.order-rv-mini:hover .order-rv-mini-link{text-decoration:underline}
+.order-rv-mini-stars{color:#FFD700;font-size:16px;letter-spacing:2px;line-height:1}
+.order-rv-mini-avg{font-weight:900;font-size:17px;color:#FFD700;line-height:1}
+.order-rv-mini-cnt{font-size:12px;color:rgba(255,255,255,.45)}
+.order-rv-mini-link{font-size:12px;color:#FFD700;font-weight:700;white-space:nowrap}
 .order-divider{height:1px;background:var(--bdr-s);margin:22px 0}
 .order-price-block{margin-bottom:18px}
 .order-orig{font-size:13px;color:var(--dim);margin-bottom:4px}
@@ -1078,6 +1084,12 @@ function inappCopyLink(){
         <div class="order-lbl">📘 Ebook · 5 Chương Đầy Đủ</div>
         <h3 class="order-title">Mật Mã Tự Do — <span style="color:var(--gold)">Affiliate AI</span></h3>
         <p class="order-sub">Cập nhật vĩnh viễn khi có phiên bản mới + 4 Bonus kèm theo</p>
+        <a href="#review-sec" class="order-rv-mini" id="order-rv-mini">
+          <span class="order-rv-mini-avg" id="omini-avg"></span>
+          <span class="order-rv-mini-stars" id="omini-stars"></span>
+          <span class="order-rv-mini-cnt" id="omini-cnt"></span>
+          <span class="order-rv-mini-link">Xem đánh giá ↓</span>
+        </a>
       </div>
 
       <!-- Mô tả + giá (mobile: dưới cùng) -->
@@ -2507,6 +2519,13 @@ function loadAll(){
     var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;
     if(sumEl)sumEl.innerHTML=summaryHTML(all);
     if(listEl)renderList(listEl,_all,_user&&_user.uid);
+    // mini stars widget near book
+    if(all.length>0){
+      var avg=all.reduce(function(s,r){return s+(r.rating||0);},0)/all.length;
+      var starsStr='';for(var si=1;si<=5;si++)starsStr+=si<=Math.round(avg)?'★':'☆';
+      var mini=document.getElementById('order-rv-mini');
+      if(mini){document.getElementById('omini-avg').textContent=avg.toFixed(1);document.getElementById('omini-stars').textContent=starsStr;document.getElementById('omini-cnt').textContent='('+all.length+' đánh giá)';mini.style.display='flex';}
+    }
   }).catch(function(e){
     console.error('rv:',e);
     var listEl=_opts.listEl?document.getElementById(_opts.listEl):null;

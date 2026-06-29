@@ -9,6 +9,7 @@
 <script src="https://unpkg.com/page-flip/dist/js/page-flip.browser.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 /* ══════════════════════════════════════════
    RESET & BASE
@@ -2755,7 +2756,7 @@ function updateInfo(){
   navR.disabled = i>=t-1;        /* ở cuối → ẩn nút tiến */
 }
 
-pf.on('flip',()=>{playFlip();updateInfo();refreshLayout();onFlipForRead();});
+pf.on('flip',()=>{playFlip();updateInfo();refreshLayout();onFlipForRead();if(typeof chRvCheckShow==='function')chRvCheckShow();});
 pf.on('init',()=>{
   updateInfo();refreshLayout();
   /* Khôi phục trang nếu user bấm Back từ khóa học */
@@ -3409,6 +3410,105 @@ if(IS_LOCAL){
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape') document.getElementById('lb').classList.remove('show');
   });
+})();
+</script>
+
+<!-- ══ CHAPTER REVIEW PROMPT ══ -->
+<div id="ch-rv-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0">
+  <div id="ch-rv-box" style="background:#181818;border:1px solid rgba(255,215,0,.18);border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:26px 22px 40px;position:relative;animation:ch-rv-slide .35s cubic-bezier(.16,1,.3,1)">
+    <style>@keyframes ch-rv-slide{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+    <button onclick="chRvDismiss()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.5);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+    <div id="ch-rv-kicker" style="font-size:10px;font-weight:800;color:#FFD700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">📖 Hoàn thành Chương 1</div>
+    <h3 style="font-size:18px;font-weight:900;margin:0 0 5px;color:#fff">Cảm nhận của bạn thế nào?</h3>
+    <p style="font-size:12.5px;color:rgba(255,255,255,.4);margin:0 0 18px;line-height:1.5">Đánh giá nhanh giúp độc giả khác tìm thấy cuốn sách này.</p>
+    <div id="ch-rv-stars" style="display:flex;gap:8px;margin-bottom:15px;justify-content:center">
+      <span class="ch-rv-s" data-v="1" onclick="chRvSetStar(1)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="2" onclick="chRvSetStar(2)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="3" onclick="chRvSetStar(3)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="4" onclick="chRvSetStar(4)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="5" onclick="chRvSetStar(5)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
+    </div>
+    <textarea id="ch-rv-text" placeholder="Chia sẻ cảm nhận... (không bắt buộc)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 13px;color:#fff;font-size:13px;font-family:inherit;resize:none;height:72px;margin-bottom:12px;box-sizing:border-box;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(255,215,0,.4)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'"></textarea>
+    <div id="ch-rv-err" style="font-size:12px;color:#f87171;margin-bottom:8px;display:none"></div>
+    <button onclick="chRvSubmit()" id="ch-rv-btn" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;padding:13px;border-radius:50px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:9px;transition:.2s">Gửi Đánh Giá →</button>
+    <button onclick="chRvDismiss()" style="width:100%;background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;font-family:inherit;padding:4px 0">Để sau</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const RV_COL='book_reviews', RV_PROD='book_mmtd';
+  const MILESTONES=[{idx:13,label:'📖 Hoàn thành Chương 1'},{idx:43,label:'📖 Đang đọc tốt lắm!'},{idx:60,label:'📖 Gần xong rồi!'}];
+  let chRvRating=0;
+  let rvDb;
+  function getRvDb(){return rvDb||(rvDb=firebase.firestore());}
+
+  window.chRvCheckShow=function(){
+    if(localStorage.getItem('mmtd_rv_done')==='1') return;
+    const i=pf.getCurrentPageIndex();
+    for(const m of MILESTONES){
+      if(i>=m.idx && !localStorage.getItem('mmtd_rv_m'+m.idx)){
+        localStorage.setItem('mmtd_rv_m'+m.idx,'1');
+        setTimeout(function(){ chRvShow(m.label); }, 2000);
+        break;
+      }
+    }
+  };
+
+  function chRvShow(label){
+    chRvRating=0;
+    document.querySelectorAll('.ch-rv-s').forEach(function(s){s.style.color='#555';});
+    var t=document.getElementById('ch-rv-text'); if(t) t.value='';
+    var err=document.getElementById('ch-rv-err'); if(err){err.style.display='none';err.textContent='';}
+    var k=document.getElementById('ch-rv-kicker'); if(k) k.textContent=label;
+    var btn=document.getElementById('ch-rv-btn'); if(btn){btn.disabled=false;btn.textContent='Gửi Đánh Giá →';}
+    var modal=document.getElementById('ch-rv-modal');
+    if(modal){modal.style.display='flex';}
+  }
+
+  window.chRvDismiss=function(){
+    var modal=document.getElementById('ch-rv-modal');
+    if(modal) modal.style.display='none';
+  };
+
+  window.chRvSetStar=function(v){
+    chRvRating=v;
+    document.querySelectorAll('.ch-rv-s').forEach(function(s){
+      s.style.color=parseInt(s.dataset.v)<=v?'#FFD700':'#555';
+    });
+    var err=document.getElementById('ch-rv-err'); if(err) err.style.display='none';
+  };
+
+  window.chRvSubmit=async function(){
+    var err=document.getElementById('ch-rv-err');
+    if(!chRvRating){
+      if(err){err.textContent='Vui lòng chọn số sao trước.';err.style.display='block';} return;
+    }
+    var btn=document.getElementById('ch-rv-btn');
+    if(btn){btn.disabled=true;btn.textContent='Đang gửi...';}
+    var text=(document.getElementById('ch-rv-text')||{}).value||'';
+    var user=typeof gateAuth!=='undefined'?gateAuth.currentUser:null;
+    var data={
+      product:RV_PROD, rating:chRvRating, content:text.trim(), title:'',
+      uid:user?user.uid:'anonymous',
+      displayName:user?user.displayName||user.email.split('@')[0]:'Độc giả',
+      photoURL:user&&user.photoURL?user.photoURL:null,
+      email:user?user.email:'',
+      verified:true,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+      helpful:0, helpfulBy:[]
+    };
+    try{
+      await getRvDb().collection(RV_COL).add(data);
+      localStorage.setItem('mmtd_rv_done','1');
+      var box=document.getElementById('ch-rv-box');
+      if(box) box.innerHTML='<div style="text-align:center;padding:40px 24px 56px"><div style="font-size:44px;margin-bottom:12px">🎉</div><div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px">Cảm ơn bạn!</div><div style="font-size:13px;color:rgba(255,255,255,.45)">Đánh giá đã được ghi nhận và sẽ giúp được nhiều độc giả khác.</div></div>';
+      setTimeout(chRvDismiss, 2200);
+    }catch(e){
+      if(btn){btn.disabled=false;btn.textContent='Gửi Đánh Giá →';}
+      if(err){err.textContent='Có lỗi xảy ra. Thử lại.';err.style.display='block';}
+    }
+  };
 })();
 </script>
 </body>
