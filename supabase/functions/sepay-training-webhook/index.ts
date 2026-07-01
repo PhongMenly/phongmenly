@@ -194,6 +194,32 @@ Deno.serve(async (req: Request) => {
 
     const action = body.action as string;
 
+    if (action === 'grant_access') {
+      const { email, name, admin_key } = body;
+      const expectedKey = Deno.env.get('ADMIN_KEY');
+      if (!expectedKey || admin_key !== expectedKey) {
+        return json({ error: 'unauthorized' }, 401);
+      }
+      const emailNorm = String(email || '').toLowerCase().trim();
+      if (!emailNorm || !emailNorm.includes('@')) {
+        return json({ error: 'invalid email' }, 400);
+      }
+      const ref = 'ADMINGRANT' + Date.now().toString(36).toUpperCase();
+      const { error: insertErr } = await supabase.from('orders').insert({
+        ref,
+        email: emailNorm,
+        name: name || 'Admin Grant',
+        product: 'Mật Mã Tự Do',
+        pkg: 'book',
+        price: 0,
+        paid: true,
+        paid_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      });
+      if (insertErr) return json({ error: insertErr.message }, 500);
+      return json({ ok: true, ref });
+    }
+
     if (action === 'lead_capture') {
       const { email, source, aff } = body;
       await supabase.from('leads').upsert({

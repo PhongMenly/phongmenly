@@ -130,9 +130,19 @@ function inappCopyLink(){
     </div>
     <div id="ql-result" style="display:none;background:#0d0d0d;border-radius:10px;padding:13px 16px;font-size:13px;line-height:1.7;margin-bottom:12px"></div>
 
+    <!-- Cấp quyền thủ công -->
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07)">
+      <p style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:8px">➕ Cấp quyền thủ công</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="ql-grant-email" type="email" placeholder="email cần cấp quyền..." style="flex:1;min-width:200px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 13px;color:#fff;font-size:13px;font-family:inherit;outline:none">
+        <button onclick="qlGrantAccess()" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ADE80;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">✅ Cấp quyền</button>
+      </div>
+      <div id="ql-grant-result" style="display:none;margin-top:8px;background:#0d0d0d;border-radius:9px;padding:10px 14px;font-size:12px;line-height:1.7"></div>
+    </div>
+
     <!-- Tạo link mở khóa thủ công -->
     <details style="margin-top:8px">
-      <summary style="font-size:12px;color:#A1A1AA;cursor:pointer;user-select:none">▶ Tạo link mở khóa thủ công (khi người dùng đã chuyển khoản nhưng hệ thống chưa cập nhật)</summary>
+      <summary style="font-size:12px;color:#A1A1AA;cursor:pointer;user-select:none">▶ Tạo link mở khóa (khi người dùng đã chuyển khoản nhưng hệ thống chưa cập nhật)</summary>
       <div style="margin-top:12px">
         <p style="font-size:11px;color:#A1A1AA;margin-bottom:10px;line-height:1.6">Nhập mã thanh toán (SEVQR BOOKXXX...) từ SePay Dashboard. Hệ thống sẽ tạo link để gửi cho người dùng.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -195,6 +205,30 @@ async function qlCheckAccess(){
     res.innerHTML = html;
   }catch(e){
     res.innerHTML = `<span style="color:#f87171">❌ Lỗi kết nối: ${e.message}</span>`;
+  }
+}
+
+async function qlGrantAccess(){
+  const email = document.getElementById('ql-grant-email').value.trim();
+  const res = document.getElementById('ql-grant-result');
+  if(!email || !email.includes('@')){ alert('Nhập email hợp lệ'); return; }
+  res.style.display='block';
+  res.innerHTML='<span style="color:#A1A1AA">⏳ Đang cấp quyền...</span>';
+  try{
+    const r = await fetch(WH, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'grant_access', email, name: email.split('@')[0], admin_key:'mmtdAdm89SC6RIIMR1Z2L4O' })
+    });
+    const d = await r.json();
+    if(d.ok){
+      res.innerHTML=`<span style="color:#4ADE80;font-weight:700">✅ Đã cấp quyền cho <b>${email}</b>.<br>Họ chỉ cần đăng nhập lại là vào được sách.</span>`;
+      document.getElementById('ql-grant-email').value='';
+    } else {
+      res.innerHTML=`<span style="color:#f87171">❌ Lỗi: ${d.error||'unknown'}</span>`;
+    }
+  }catch(e){
+    res.innerHTML=`<span style="color:#f87171">❌ Lỗi kết nối: ${e.message}</span>`;
   }
 }
 
