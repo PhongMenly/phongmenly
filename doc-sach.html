@@ -3476,20 +3476,55 @@ async function mmtdTrackReader(email,name){
 const EARLY_ACCESS = new Set(['phongconson@gmail.com']);
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
+/* ── Xử lý ?unlock=REF từ email chào mừng (giống hoc-vien.html) ── */
+async function sachUnlockFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const ref = params.get('unlock');
+  if(!ref) return;
+  try{
+    const r = await fetch(MMTD_WEBHOOK + '?ref=' + encodeURIComponent(ref));
+    if(!r.ok) return;
+    const d = await r.json();
+    if(d && d.paid){
+      localStorage.setItem('kh_unlocked','1');
+      localStorage.setItem('book_unlocked','1');
+      /* Xóa param unlock khỏi URL để không lộ ref */
+      const clean = location.pathname;
+      history.replaceState(null,'',clean);
+    }
+  }catch(e){}
+}
+
 if(IS_LOCAL){
   gateEl.style.display='none';
   localStorage.setItem('kh_unlocked','1');
   hideSachLock();
 } else {
-  gateAuth.onAuthStateChanged(async user=>{
-    if(!user){ gateEl.style.display='flex'; hideSachLock(); return; }
-    gateEl.style.display='none';
-    mmtdTrackReader(user.email, user.displayName||user.email.split('@')[0]);
-    if(EARLY_ACCESS.has(user.email)) localStorage.setItem('kh_unlocked','1');
-    if(!isBookUnlocked()) await syncBookEntitlement(user.email);
-    if(isBookUnlocked()){
-      if(new Date() < SACH_LAUNCH && !EARLY_ACCESS.has(user.email)) showSachWaiting(); else hideSachLock();
-    } else { showSachLock(); }
+  /* Xử lý ?unlock= trước khi check auth — để localStorage được set trước */
+  sachUnlockFromUrl().then(()=>{
+    gateAuth.onAuthStateChanged(async user=>{
+      if(!user){ gateEl.style.display='flex'; hideSachLock(); return; }
+      gateEl.style.display='none';
+      mmtdTrackReader(user.email, user.displayName||user.email.split('@')[0]);
+      if(EARLY_ACCESS.has(user.email)) localStorage.setItem('kh_unlocked','1');
+      /* Luôn sync từ server để đảm bảo quyền mới nhất */
+      if(!isBookUnlocked()){
+        await syncBookEntitlement(user.email);
+      }
+      if(isBookUnlocked()){
+        if(new Date() < SACH_LAUNCH && !EARLY_ACCESS.has(user.email)) showSachWaiting(); else hideSachLock();
+      } else {
+        /* Thử sync lần 2 phòng mạng chậm lần đầu */
+        try{
+          await syncBookEntitlement(user.email);
+        }catch(e){}
+        if(isBookUnlocked()){
+          if(new Date() < SACH_LAUNCH && !EARLY_ACCESS.has(user.email)) showSachWaiting(); else hideSachLock();
+        } else {
+          showSachLock();
+        }
+      }
+    });
   });
 }
 </script>
@@ -3522,24 +3557,24 @@ if(IS_LOCAL){
 </script>
 
 <!-- ══ CHAPTER REVIEW PROMPT ══ -->
-<div id="ch-rv-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0">
-  <div id="ch-rv-box" style="background:#181818;border:1px solid rgba(255,215,0,.18);border-radius:22px 22px 0 0;width:100%;max-width:520px;padding:26px 22px 40px;position:relative;animation:ch-rv-slide .35s cubic-bezier(.16,1,.3,1)">
-    <style>@keyframes ch-rv-slide{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
-    <button onclick="chRvDismiss()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.5);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
-    <div id="ch-rv-kicker" style="font-size:10px;font-weight:800;color:#FFD700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">📖 Hoàn thành Chương 1</div>
-    <h3 style="font-size:18px;font-weight:900;margin:0 0 5px;color:#fff">Cảm nhận của bạn thế nào?</h3>
-    <p style="font-size:12.5px;color:rgba(255,255,255,.4);margin:0 0 18px;line-height:1.5">Đánh giá nhanh giúp độc giả khác tìm thấy cuốn sách này.</p>
-    <div id="ch-rv-stars" style="display:flex;gap:8px;margin-bottom:15px;justify-content:center">
-      <span class="ch-rv-s" data-v="1" onclick="chRvSetStar(1)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
-      <span class="ch-rv-s" data-v="2" onclick="chRvSetStar(2)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
-      <span class="ch-rv-s" data-v="3" onclick="chRvSetStar(3)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
-      <span class="ch-rv-s" data-v="4" onclick="chRvSetStar(4)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
-      <span class="ch-rv-s" data-v="5" onclick="chRvSetStar(5)" style="font-size:34px;cursor:pointer;color:#555;transition:.15s;user-select:none">★</span>
+<div id="ch-rv-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px">
+  <div id="ch-rv-box" style="background:#fff;border-radius:18px;width:100%;max-width:380px;padding:24px 20px 22px;position:relative;animation:ch-rv-pop .28s cubic-bezier(.16,1,.3,1);box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <style>@keyframes ch-rv-pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}</style>
+    <button onclick="chRvDismiss()" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.07);border:none;color:#888;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+    <div id="ch-rv-kicker" style="font-size:10px;font-weight:800;color:#b87c14;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">📖 Hoàn thành Chương 1</div>
+    <h3 style="font-size:17px;font-weight:900;margin:0 0 4px;color:#111">Cảm nhận của bạn thế nào?</h3>
+    <p style="font-size:12px;color:#888;margin:0 0 16px;line-height:1.5">Đánh giá nhanh giúp độc giả khác tìm thấy cuốn sách này.</p>
+    <div id="ch-rv-stars" style="display:flex;gap:6px;margin-bottom:14px;justify-content:center">
+      <span class="ch-rv-s" data-v="1" onclick="chRvSetStar(1)" style="font-size:36px;cursor:pointer;color:#ddd;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="2" onclick="chRvSetStar(2)" style="font-size:36px;cursor:pointer;color:#ddd;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="3" onclick="chRvSetStar(3)" style="font-size:36px;cursor:pointer;color:#ddd;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="4" onclick="chRvSetStar(4)" style="font-size:36px;cursor:pointer;color:#ddd;transition:.15s;user-select:none">★</span>
+      <span class="ch-rv-s" data-v="5" onclick="chRvSetStar(5)" style="font-size:36px;cursor:pointer;color:#ddd;transition:.15s;user-select:none">★</span>
     </div>
-    <textarea id="ch-rv-text" placeholder="Chia sẻ cảm nhận... (không bắt buộc)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 13px;color:#fff;font-size:13px;font-family:inherit;resize:none;height:72px;margin-bottom:12px;box-sizing:border-box;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(255,215,0,.4)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'"></textarea>
-    <div id="ch-rv-err" style="font-size:12px;color:#f87171;margin-bottom:8px;display:none"></div>
-    <button onclick="chRvSubmit()" id="ch-rv-btn" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;padding:13px;border-radius:50px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:9px;transition:.2s">Gửi Đánh Giá →</button>
-    <button onclick="chRvDismiss()" style="width:100%;background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;font-family:inherit;padding:4px 0">Để sau</button>
+    <textarea id="ch-rv-text" placeholder="Chia sẻ cảm nhận... (không bắt buộc)" style="width:100%;background:#f7f7f7;border:1px solid #e5e5e5;border-radius:10px;padding:10px 13px;color:#222;font-size:13px;font-family:inherit;resize:none;height:68px;margin-bottom:12px;box-sizing:border-box;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='#FFD700'" onblur="this.style.borderColor='#e5e5e5'"></textarea>
+    <div id="ch-rv-err" style="font-size:12px;color:#e53e3e;margin-bottom:8px;display:none"></div>
+    <button onclick="chRvSubmit()" id="ch-rv-btn" style="width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;padding:12px;border-radius:50px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:.2s">Gửi Đánh Giá →</button>
+    <button onclick="chRvDismiss()" style="width:100%;background:none;border:none;color:#bbb;font-size:12px;cursor:pointer;font-family:inherit;padding:3px 0">Để sau</button>
   </div>
 </div>
 
@@ -3565,7 +3600,7 @@ if(IS_LOCAL){
 
   function chRvShow(label){
     chRvRating=0;
-    document.querySelectorAll('.ch-rv-s').forEach(function(s){s.style.color='#555';});
+    document.querySelectorAll('.ch-rv-s').forEach(function(s){s.style.color='#ddd';});
     var t=document.getElementById('ch-rv-text'); if(t) t.value='';
     var err=document.getElementById('ch-rv-err'); if(err){err.style.display='none';err.textContent='';}
     var k=document.getElementById('ch-rv-kicker'); if(k) k.textContent=label;

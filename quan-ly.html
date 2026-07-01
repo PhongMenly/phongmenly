@@ -117,6 +117,37 @@ function inappCopyLink(){
 
 <!-- APP: editor -->
 <div class="wrap hidden" id="app">
+
+  <!-- ════ QUẢN LÝ QUYỀN SÁCH ════ -->
+  <div style="background:#141416;border:1px solid rgba(255,215,0,.22);border-radius:14px;padding:20px 22px;margin-bottom:28px">
+    <h2 style="font-size:15px;font-weight:900;color:#FFD700;margin-bottom:4px">🔑 Quản lý Quyền Đọc Sách</h2>
+    <p style="font-size:12px;color:#A1A1AA;margin-bottom:16px;line-height:1.6">Kiểm tra xem một email có quyền đọc sách chưa, hoặc tạo link mở khóa thủ công.</p>
+
+    <!-- Kiểm tra quyền -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <input id="ql-email" type="email" placeholder="email người dùng..." style="flex:1;min-width:200px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 13px;color:#fff;font-size:13px;font-family:inherit;outline:none">
+      <button onclick="qlCheckAccess()" style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:#FFD700;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">🔍 Kiểm tra</button>
+    </div>
+    <div id="ql-result" style="display:none;background:#0d0d0d;border-radius:10px;padding:13px 16px;font-size:13px;line-height:1.7;margin-bottom:12px"></div>
+
+    <!-- Tạo link mở khóa thủ công -->
+    <details style="margin-top:8px">
+      <summary style="font-size:12px;color:#A1A1AA;cursor:pointer;user-select:none">▶ Tạo link mở khóa thủ công (khi người dùng đã chuyển khoản nhưng hệ thống chưa cập nhật)</summary>
+      <div style="margin-top:12px">
+        <p style="font-size:11px;color:#A1A1AA;margin-bottom:10px;line-height:1.6">Nhập mã thanh toán (SEVQR BOOKXXX...) từ SePay Dashboard. Hệ thống sẽ tạo link để gửi cho người dùng.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="ql-ref" type="text" placeholder="SEVQR BOOKNAMEXXX hoặc REF..." style="flex:1;min-width:220px;background:#0d0d0d;border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:9px 13px;color:#fff;font-size:13px;font-family:inherit;outline:none;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+          <button onclick="qlGenLink()" style="background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:#4ADE80;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">🔗 Tạo link</button>
+        </div>
+        <div id="ql-link-box" style="display:none;margin-top:10px;background:#0d0d0d;border-radius:10px;padding:12px 14px">
+          <div style="font-size:11px;color:#A1A1AA;margin-bottom:6px">Link mở khóa (gửi cho người dùng):</div>
+          <div id="ql-link-text" style="font-size:12px;color:#4ADE80;word-break:break-all;margin-bottom:8px"></div>
+          <button onclick="qlCopyLink()" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:#4ADE80;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📋 Sao chép</button>
+        </div>
+      </div>
+    </details>
+  </div>
+
   <div class="intro">
     📺 Cách dùng: mở 1 combo → dán <b>link YouTube (Unlisted)</b> vào ô của từng bài → bấm <b>Lưu combo này</b>. Học viên sẽ xem được ngay. Dán link kiểu nào cũng được (youtu.be/… hoặc youtube.com/watch?v=…).
   </div>
@@ -126,6 +157,64 @@ function inappCopyLink(){
 <script>
 const WH = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
 const ADMIN_FALLBACK = 'phongconson@gmail.com'; // chỉ để hiện thông báo; quyền ghi do webhook kiểm tra
+
+/* ════ QUẢN LÝ QUYỀN SÁCH ════ */
+async function qlCheckAccess(){
+  const email = document.getElementById('ql-email').value.trim();
+  const res = document.getElementById('ql-result');
+  if(!email || !email.includes('@')){ alert('Nhập email hợp lệ'); return; }
+  res.style.display='block';
+  res.innerHTML='<span style="color:#A1A1AA">⏳ Đang kiểm tra...</span>';
+  try{
+    const r = await fetch(WH + '?paid_email=' + encodeURIComponent(email));
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    const hasBook = !!(d && d.book);
+    const codes = (d && d.codes) || [];
+    const hasMap6 = codes.some(c => String(c).toUpperCase().startsWith('MAP6'));
+    const refs = (d && d.refs) || [];
+    let html = '';
+    if(hasBook){
+      html += `<div style="color:#4ADE80;font-weight:800;margin-bottom:6px">✅ CÓ QUYỀN ĐỌC SÁCH (đã mua đầy đủ)</div>`;
+    } else if(hasMap6){
+      html += `<div style="color:#4ADE80;font-weight:800;margin-bottom:6px">✅ CÓ QUYỀN ĐỌC SÁCH (admin cấp MAP6)</div>`;
+    } else {
+      html += `<div style="color:#f87171;font-weight:800;margin-bottom:6px">❌ CHƯA CÓ QUYỀN đọc sách</div>`;
+    }
+    if(codes.length) html += `<div style="font-size:11px;color:#A1A1AA">Codes: ${codes.join(', ')}</div>`;
+    if(refs.length) html += `<div style="font-size:11px;color:#A1A1AA;margin-top:4px">Refs: ${refs.slice(0,3).join(', ')}</div>`;
+    if(!hasBook && !hasMap6){
+      const ref = refs && refs[0];
+      if(ref){
+        const link = `https://phongmenlyai.com/hoc-vien.html?unlock=${encodeURIComponent(ref)}`;
+        html += `<div style="margin-top:8px;font-size:11px;color:#FFD700">Ref có sẵn — thử gửi link unlock:<br><span style="color:#4ADE80;word-break:break-all">${link}</span></div>`;
+      } else {
+        html += `<div style="margin-top:8px;font-size:11px;color:#A1A1AA">Không tìm thấy ref thanh toán. Hãy tạo link thủ công bên dưới.</div>`;
+      }
+    }
+    res.innerHTML = html;
+  }catch(e){
+    res.innerHTML = `<span style="color:#f87171">❌ Lỗi kết nối: ${e.message}</span>`;
+  }
+}
+
+function qlGenLink(){
+  const ref = document.getElementById('ql-ref').value.trim().replace(/^SEVQR\s*/i,'');
+  if(!ref){ alert('Nhập mã thanh toán'); return; }
+  const fullRef = ref.startsWith('BOOK') || ref.startsWith('SEVQR') ? ref : 'BOOK'+ref;
+  const link = `https://phongmenlyai.com/hoc-vien.html?unlock=${encodeURIComponent(fullRef)}`;
+  document.getElementById('ql-link-text').textContent = link;
+  document.getElementById('ql-link-box').style.display = 'block';
+}
+
+function qlCopyLink(){
+  const txt = document.getElementById('ql-link-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn = event.target;
+    btn.textContent = '✓ Đã sao chép!';
+    setTimeout(()=>{ btn.textContent = '📋 Sao chép'; }, 2000);
+  });
+}
 
 // Khung bài mặc định (để bạn điền link) — khớp 5 combo
 const DEFAULTS = {

@@ -155,6 +155,27 @@ Deno.serve(async (req: Request) => {
     return json({ clicks: null, orders: orderCount, commission });
   }
 
+  // GET ?paid_email=EMAIL — check book/course entitlements by email
+  if (req.method === 'GET' && url.searchParams.has('paid_email')) {
+    const email = url.searchParams.get('paid_email')!.toLowerCase().trim();
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('ref, pkg, paid, code')
+      .eq('email', email)
+      .eq('paid', true);
+
+    if (!orders || orders.length === 0) {
+      return json({ book: false, codes: [], refs: [] });
+    }
+
+    type Order = { ref: string; pkg: string; paid: boolean; code: string | null };
+    const hasBook = (orders as Order[]).some(o => o.pkg === 'book');
+    const codes: string[] = (orders as Order[]).map(o => o.code).filter(Boolean) as string[];
+    const refs: string[] = (orders as Order[]).map(o => o.ref).filter(Boolean) as string[];
+
+    return json({ book: hasBook, codes, refs });
+  }
+
   // GET ?content=COURSE_ID — course lessons
   if (req.method === 'GET' && url.searchParams.has('content')) {
     const cid = url.searchParams.get('content')!;
