@@ -2344,12 +2344,36 @@ function mmtdStartPoll(){
         return;
       }}
     }catch(e){}
-    if(Date.now()-started > 10*60*1000){
+    if(Date.now()-started > 20*60*1000){
       clearInterval(mmtdPoll); mmtdPoll=null;
       if(waiting) waiting.style.display='none';
       if(timeout) timeout.style.display='block';
     }
   }, 4000);
+}
+
+async function mmtdNotifyPaid(){
+  const btn = document.getElementById('mmtd-notify-btn');
+  const msg = document.getElementById('mmtd-notify-msg');
+  if(btn){ btn.disabled=true; btn.textContent='Đang gửi...'; }
+  const user = pmAuth && pmAuth.currentUser;
+  try{
+    await fetch(MMTD_WEBHOOK, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        action:'register',
+        ref: mmtdRef || 'UNKNOWN',
+        name: user ? (user.displayName||user.email.split('@')[0]) : 'Khách',
+        email: user ? user.email : null,
+        product:'Mật Mã Tự Do', pkg:'book', price:MMTD_PRICE,
+        phone:'', referrer:'manual-notify'
+      })
+    });
+  }catch(e){}
+  if(btn){ btn.style.display='none'; }
+  if(msg){ msg.style.display='block'; }
+  // Tiếp tục poll thêm 10 phút sau khi báo admin
+  mmtdStartPoll();
 }
 
 function mmtdRetry(){
@@ -2651,8 +2675,10 @@ document.addEventListener('DOMContentLoaded',()=>{
         Đang chờ xác nhận thanh toán...
       </div>
       <div id="mmtd-poll-timeout" style="display:none;margin-bottom:16px">
-        <p style="font-size:.82rem;color:#A1A1AA;margin-bottom:10px">Chưa nhận được xác nhận.<br>Nếu bạn đã chuyển khoản, hãy thử kiểm tra lại:</p>
-        <button onclick="mmtdRetry()" style="background:linear-gradient(135deg,#FFD700,#FF9500);border:none;border-radius:10px;padding:10px 24px;color:#000;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px">🔄 Kiểm tra lại</button>
+        <p style="font-size:.82rem;color:#A1A1AA;margin-bottom:10px">Chưa nhận được xác nhận.<br>Nếu bạn đã chuyển khoản, bấm nút bên dưới:</p>
+        <button onclick="mmtdRetry()" style="background:linear-gradient(135deg,#FFD700,#FF9500);border:none;border-radius:10px;padding:10px 24px;color:#000;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;width:100%">🔄 Kiểm tra lại</button>
+        <button onclick="mmtdNotifyPaid()" id="mmtd-notify-btn" style="background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);border-radius:10px;padding:10px 24px;color:#4ADE80;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%">✅ Tôi đã chuyển khoản — báo admin kiểm tra</button>
+        <div id="mmtd-notify-msg" style="display:none;margin-top:8px;font-size:.78rem;color:#4ADE80;text-align:center">Đã báo admin! Admin sẽ duyệt đơn cho bạn trong vài phút.</div>
       </div>
       <button onclick="mmtdClose()" style="background:none;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 24px;color:#A1A1AA;font-size:.82rem;cursor:pointer;font-family:inherit">Quay lại sau</button>
     </div>

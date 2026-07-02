@@ -11,24 +11,25 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
 
-async function sendTelegramNotification(order: Record<string, unknown>) {
+async function sendTelegramText(text: string) {
   const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
   const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
   if (!botToken || !chatId) return;
+  await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text }),
+  }).catch(() => {});
+}
 
+async function sendTelegramNotification(order: Record<string, unknown>) {
   const name = (order.name as string) || 'Ẩn danh';
   const email = (order.email as string) || 'N/A';
   const ref = (order.ref as string) || '';
   const price = Number(order.price || 686000).toLocaleString('vi-VN');
   const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-
   const text = `━━━━━━━━━━━━━━━━\nĐƠN MỚI · Mật Mã Tự Do\n━━━━━━━━━━━━━━━━\nKhách:     ${name}\nEmail:     ${email}\nSố tiền:   ${price}đ\nMã đơn:    ${ref}\nLúc:       ${now}\n━━━━━━━━━━━━━━━━`;
-
-  await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
-  }).catch(() => {});
+  await sendTelegramText(text);
 }
 
 async function sendWelcomeEmail(order: Record<string, unknown>) {
@@ -243,6 +244,9 @@ Deno.serve(async (req: Request) => {
         name, phone, email, price, referrer,
         paid: false, created_at: new Date().toISOString(),
       }, { onConflict: 'ref' });
+      // Thông báo admin ngay khi có đơn mới
+      const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+      await sendTelegramText(`🛒 ĐƠN MỚI · Chờ thanh toán\n──────────────────\nKhách: ${name || 'Ẩn danh'}\nEmail: ${email || 'N/A'}\nMã đơn: ${ref}\nLúc: ${now}`);
       return json({ ok: true });
     }
 
@@ -264,15 +268,40 @@ Deno.serve(async (req: Request) => {
     }
 
     // SePay payment webhook — auto confirm
-    if (body.transferAmount || body.content) {
-      const content = String(body.content || body.transferContent || '');
-      const refMatch = content.match(/SEVQR\s+(\S+)/i);
+    if (body.transferAmount || body.content || body.transferContent) {
+      const content = String(body.content || body.transferContent || body.code || '');
+      const amount = Number(body.transferAmount || body.amount || 0);
+
+      // Tìm REF trong nội dung chuyển khoản (flexible matching)
+      const refMatch = content.match(/SEVQR\s*(\S+)/i) || content.match(/(BOOK[A-Z0-9]+)/i);
+
       if (refMatch) {
         const ref = refMatch[1];
         const { data: order } = await supabase.from('orders').select('*').eq('ref', ref).single();
         if (order && !order.paid) {
           await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', ref);
           await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
+        }
+      } else if (amount >= 680000) {
+        // Fallback: không khớp REF → tìm đơn pending gần nhất theo số tiền
+        const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+        const { data: pending } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('paid', false)
+          .gte('created_at', cutoff)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (pending && pending.length === 1) {
+          // Chỉ có 1 đơn pending → tự động duyệt
+          const order = pending[0];
+          await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', order.ref);
+          await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
+        } else {
+          // Nhiều đơn pending → báo admin xét thủ công
+          const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+          await sendTelegramText(`⚠️ NHẬN TIỀN KHÔNG KHỚP ĐƠN\n──────────────────\nSố tiền: ${amount.toLocaleString('vi-VN')}đ\nNội dung: ${content || '(trống)'}\nSố đơn pending: ${pending?.length ?? 0}\nLúc: ${now}\n→ Vào quan-ly.html để xét thủ công`);
         }
       }
       return json({ success: true });
