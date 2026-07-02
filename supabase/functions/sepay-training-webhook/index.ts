@@ -23,21 +23,20 @@ async function sendTelegramText(text: string) {
 }
 
 async function sendTelegramNotification(order: Record<string, unknown>) {
-  const name = (order.name as string) || 'Ẩn danh';
-  const email = (order.email as string) || 'N/A';
-  const ref = (order.ref as string) || '';
-  const price = Number(order.price || 686000).toLocaleString('vi-VN');
+  const name = (order.customer_name as string) || 'Ẩn danh';
+  const email = (order.customer_email as string) || 'N/A';
+  const ref = (order.order_code as string) || '';
+  const price = Number(order.amount || 686000).toLocaleString('vi-VN');
   const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-  const text = `━━━━━━━━━━━━━━━━\nĐƠN MỚI · Mật Mã Tự Do\n━━━━━━━━━━━━━━━━\nKhách:     ${name}\nEmail:     ${email}\nSố tiền:   ${price}đ\nMã đơn:    ${ref}\nLúc:       ${now}\n━━━━━━━━━━━━━━━━`;
-  await sendTelegramText(text);
+  await sendTelegramText(`━━━━━━━━━━━━━━━━\n✅ ĐÃ THANH TOÁN · Mật Mã Tự Do\n━━━━━━━━━━━━━━━━\nKhách:   ${name}\nEmail:   ${email}\nSố tiền: ${price}đ\nMã đơn:  ${ref}\nLúc:     ${now}\n━━━━━━━━━━━━━━━━`);
 }
 
 async function sendWelcomeEmail(order: Record<string, unknown>) {
   const apiKey = Deno.env.get('RESEND_API_KEY');
-  if (!apiKey || !order.email) return;
+  if (!apiKey || !order.customer_email) return;
 
-  const name = (order.name as string) || 'bạn';
-  const ref = order.ref as string;
+  const name = (order.customer_name as string) || 'bạn';
+  const ref = order.order_code as string;
 
   const html = `<!DOCTYPE html>
 <html lang="vi">
@@ -117,7 +116,7 @@ async function sendWelcomeEmail(order: Record<string, unknown>) {
     },
     body: JSON.stringify({
       from: 'Phong Menly <phongmenly@kolaisystem.com>',
-      to: [order.email as string],
+      to: [order.customer_email as string],
       subject: '🔐 Mật Mã Tự Do đã mở — Chào mừng bạn!',
       html,
     }),
@@ -131,15 +130,15 @@ Deno.serve(async (req: Request) => {
 
   const url = new URL(req.url);
 
-  // GET ?ref=CODE — check payment status
+  // GET ?ref=ORDER_CODE — client poll kiểm tra trạng thái thanh toán
   if (req.method === 'GET' && url.searchParams.has('ref')) {
     const ref = url.searchParams.get('ref')!;
     const { data } = await supabase
       .from('orders')
-      .select('paid')
-      .eq('ref', ref)
+      .select('status')
+      .eq('order_code', ref)
       .single();
-    return json({ paid: data?.paid === true });
+    return json({ paid: data?.status === 'paid' });
   }
 
   // GET ?aff_stats=CODE — affiliate stats
@@ -147,37 +146,34 @@ Deno.serve(async (req: Request) => {
     const code = url.searchParams.get('aff_stats')!;
     const { data: orders, error } = await supabase
       .from('orders')
-      .select('ref, amount, paid, created_at')
-      .eq('aff_code', code)
-      .eq('paid', true);
+      .select('order_code, amount, status, created_at')
+      .eq('ref_slug', code)
+      .eq('status', 'paid');
     if (error) return json({ clicks: 0, orders: 0, commission: 0 });
     const orderCount = orders?.length ?? 0;
     const commission = orderCount * 205800;
     return json({ clicks: null, orders: orderCount, commission });
   }
 
-  // GET ?paid_email=EMAIL — check book/course entitlements by email
+  // GET ?paid_email=EMAIL — kiểm tra quyền sách/khóa học theo email
   if (req.method === 'GET' && url.searchParams.has('paid_email')) {
     const email = url.searchParams.get('paid_email')!.toLowerCase().trim();
     const { data: orders } = await supabase
       .from('orders')
-      .select('ref, pkg, paid, code')
-      .eq('email', email)
-      .eq('paid', true);
+      .select('order_code, status, ref_slug')
+      .eq('customer_email', email)
+      .eq('status', 'paid');
 
     if (!orders || orders.length === 0) {
       return json({ book: false, codes: [], refs: [] });
     }
 
-    type Order = { ref: string; pkg: string; paid: boolean; code: string | null };
-    const hasBook = (orders as Order[]).some(o => o.pkg === 'book');
-    const codes: string[] = (orders as Order[]).map(o => o.code).filter(Boolean) as string[];
-    const refs: string[] = (orders as Order[]).map(o => o.ref).filter(Boolean) as string[];
-
-    return json({ book: hasBook, codes, refs });
+    const refs: string[] = (orders as {order_code:string}[]).map(o => o.order_code).filter(Boolean);
+    // Tất cả đơn paid trong hệ thống này đều là sách — book luôn = true
+    return json({ book: true, codes: [], refs });
   }
 
-  // GET ?content=COURSE_ID — course lessons
+  // GET ?content=COURSE_ID — nội dung khóa học
   if (req.method === 'GET' && url.searchParams.has('content')) {
     const cid = url.searchParams.get('content')!;
     const { data } = await supabase
@@ -188,13 +184,14 @@ Deno.serve(async (req: Request) => {
     return json(data ?? {});
   }
 
-  // POST — handle actions
+  // POST — xử lý các actions
   if (req.method === 'POST') {
     let body: Record<string, unknown>;
     try { body = await req.json(); } catch { return json({ error: 'bad json' }, 400); }
 
     const action = body.action as string;
 
+    // Cấp quyền thủ công từ admin (quan-ly.html)
     if (action === 'grant_access') {
       const { email, name, admin_key } = body;
       const expectedKey = Deno.env.get('ADMIN_KEY');
@@ -207,13 +204,13 @@ Deno.serve(async (req: Request) => {
       }
       const ref = 'ADMINGRANT' + Date.now().toString(36).toUpperCase();
       const { error: insertErr } = await supabase.from('orders').insert({
-        ref,
-        email: emailNorm,
-        name: name || 'Admin Grant',
+        order_code: ref,
+        customer_email: emailNorm,
+        customer_name: String(name || emailNorm),
+        customer_phone: '',
         product: 'Mật Mã Tự Do',
-        pkg: 'book',
-        price: 0,
-        paid: true,
+        amount: 0,
+        status: 'paid',
         paid_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
       });
@@ -221,6 +218,15 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, ref });
     }
 
+    // Khách bấm "tôi đã chuyển khoản" — chỉ alert admin
+    if (action === 'notify_paid') {
+      const { ref, name, email } = body;
+      const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+      await sendTelegramText(`🔔 KHÁCH BÁO ĐÃ CHUYỂN KHOẢN\n──────────────────\nKhách: ${name || 'Ẩn danh'}\nEmail: ${email || 'N/A'}\nMã đơn: ${ref || 'N/A'}\nLúc: ${now}\n→ Kiểm tra SePay và duyệt tại quan-ly.html nếu cần`);
+      return json({ ok: true });
+    }
+
+    // Lead capture
     if (action === 'lead_capture') {
       const { email, source, aff } = body;
       await supabase.from('leads').upsert({
@@ -237,95 +243,78 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true });
     }
 
+    // Khách mở QR checkout — tạo đơn hàng pending
     if (action === 'register') {
-      const { ref, aff, product, pkg, name, phone, email, price, referrer } = body;
-      await supabase.from('orders').upsert({
-        ref, aff_code: aff || null, product, pkg,
-        name, phone, email, price, referrer,
-        paid: false, created_at: new Date().toISOString(),
-      }, { onConflict: 'ref' });
-      // Thông báo admin ngay khi có đơn mới
+      const { ref, aff, product, name, phone, email, price } = body;
+      const { error: insertErr } = await supabase.from('orders').insert({
+        order_code: ref,
+        customer_name: String(name || email || 'Khách'),
+        customer_email: email || null,
+        customer_phone: String(phone || ''),
+        product: product || 'Mật Mã Tự Do',
+        amount: Number(price) || 686000,
+        ref_slug: aff || null,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      });
+      // Nếu đơn đã tồn tại (trùng order_code), bỏ qua lỗi
+      if (insertErr && !insertErr.message.includes('duplicate')) {
+        return json({ ok: false, error: insertErr.message });
+      }
+      // Báo admin ngay khi có đơn mới
       const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
       await sendTelegramText(`🛒 ĐƠN MỚI · Chờ thanh toán\n──────────────────\nKhách: ${name || 'Ẩn danh'}\nEmail: ${email || 'N/A'}\nMã đơn: ${ref}\nLúc: ${now}`);
       return json({ ok: true });
     }
 
-    if (action === 'notify_paid') {
-      // Khách bấm "tôi đã chuyển khoản" — chỉ alert admin, không tạo đơn mới
-      const { ref, name, email } = body;
-      const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-      await sendTelegramText(`🔔 KHÁCH BÁO ĐÃ CHUYỂN KHOẢN\n──────────────────\nKhách: ${name || 'Ẩn danh'}\nEmail: ${email || 'N/A'}\nMã đơn: ${ref || 'N/A'}\nLúc: ${now}\n→ Kiểm tra SePay và duyệt tại quan-ly.html`);
-      return json({ ok: true });
-    }
-
+    // Fallback: client phát hiện paid=true qua poll → xác nhận nếu SePay chưa fire
     if (action === 'order_confirmed') {
-      // Chỉ là fallback khi SePay webhook không fire — không gửi email nếu đã paid rồi
       const { ref } = body;
-      const { data: existing } = await supabase.from('orders').select('paid').eq('ref', ref).single();
-      if (existing?.paid) return json({ ok: true }); // SePay đã xác nhận rồi, bỏ qua
-      // SePay chưa fire → tự confirm từ client detection
-      await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', ref);
-      const { data: order } = await supabase.from('orders').select('*').eq('ref', ref).single();
-      if (order) {
-        await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
-        const makeWebhook = Deno.env.get('MAKE_WEBHOOK_URL');
-        if (makeWebhook) {
-          await fetch(makeWebhook, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event: 'order_paid', ...order }),
-          }).catch(() => {});
-        }
-      }
+      const { data: order } = await supabase.from('orders').select('*').eq('order_code', ref).single();
+      if (!order || order.status === 'paid') return json({ ok: true });
+      await supabase.from('orders').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('order_code', ref);
+      await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
       return json({ ok: true });
     }
 
-    // SePay payment webhook — auto confirm
+    // SePay payment webhook — tự động duyệt khi nhận tiền
     if (body.transferAmount || body.content || body.transferContent) {
       const content = String(body.content || body.transferContent || body.code || '');
       const amount = Number(body.transferAmount || body.amount || 0);
 
-      // Tìm REF trong nội dung chuyển khoản (flexible matching)
+      // Khớp mã đơn trong nội dung chuyển khoản
       const refMatch = content.match(/SEVQR\s*(\S+)/i) || content.match(/(BOOK[A-Z0-9]+)/i);
 
       if (refMatch) {
         const ref = refMatch[1];
-        // Dùng eq('paid',false) để tránh race condition — chỉ update nếu chưa paid
-        const { data: updated } = await supabase
-          .from('orders')
-          .update({ paid: true, paid_at: new Date().toISOString() })
-          .eq('ref', ref)
-          .eq('paid', false)
-          .select()
-          .single();
-        if (updated) {
-          // Chỉ gửi email nếu vừa update thành công (tránh gửi 2 lần)
-          await Promise.all([sendWelcomeEmail(updated), sendTelegramNotification(updated)]);
+        const { data: order } = await supabase.from('orders').select('*').eq('order_code', ref).single();
+        if (order && order.status !== 'paid') {
+          await supabase.from('orders').update({
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+            seepay_data: body,
+          }).eq('order_code', ref);
+          await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
         }
       } else if (amount >= 680000) {
-        // Fallback: không khớp REF → tìm đơn pending gần nhất theo số tiền
+        // Fallback: không khớp mã → tìm đơn pending gần nhất theo số tiền
         const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
         const { data: pending } = await supabase
           .from('orders')
           .select('*')
-          .eq('paid', false)
+          .eq('status', 'pending')
           .gte('created_at', cutoff)
           .order('created_at', { ascending: false })
           .limit(5);
 
         if (pending && pending.length === 1) {
-          // Chỉ có 1 đơn pending → tự động duyệt
-          const { data: updated } = await supabase
-            .from('orders')
-            .update({ paid: true, paid_at: new Date().toISOString() })
-            .eq('ref', pending[0].ref)
-            .eq('paid', false)
-            .select()
-            .single();
-          if (updated) {
-            await Promise.all([sendWelcomeEmail(updated), sendTelegramNotification(updated)]);
-          }
+          await supabase.from('orders').update({
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+            seepay_data: body,
+          }).eq('order_code', pending[0].order_code);
+          await Promise.all([sendWelcomeEmail(pending[0]), sendTelegramNotification(pending[0])]);
         } else {
-          // Nhiều đơn pending → báo admin xét thủ công
           const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
           await sendTelegramText(`⚠️ NHẬN TIỀN KHÔNG KHỚP ĐƠN\n──────────────────\nSố tiền: ${amount.toLocaleString('vi-VN')}đ\nNội dung: ${content || '(trống)'}\nSố đơn pending: ${pending?.length ?? 0}\nLúc: ${now}\n→ Vào quan-ly.html để xét thủ công`);
         }
