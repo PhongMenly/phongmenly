@@ -250,8 +250,20 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true });
     }
 
+    if (action === 'notify_paid') {
+      // Khách bấm "tôi đã chuyển khoản" — chỉ alert admin, không tạo đơn mới
+      const { ref, name, email } = body;
+      const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+      await sendTelegramText(`🔔 KHÁCH BÁO ĐÃ CHUYỂN KHOẢN\n──────────────────\nKhách: ${name || 'Ẩn danh'}\nEmail: ${email || 'N/A'}\nMã đơn: ${ref || 'N/A'}\nLúc: ${now}\n→ Kiểm tra SePay và duyệt tại quan-ly.html`);
+      return json({ ok: true });
+    }
+
     if (action === 'order_confirmed') {
+      // Chỉ là fallback khi SePay webhook không fire — không gửi email nếu đã paid rồi
       const { ref } = body;
+      const { data: existing } = await supabase.from('orders').select('paid').eq('ref', ref).single();
+      if (existing?.paid) return json({ ok: true }); // SePay đã xác nhận rồi, bỏ qua
+      // SePay chưa fire → tự confirm từ client detection
       await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', ref);
       const { data: order } = await supabase.from('orders').select('*').eq('ref', ref).single();
       if (order) {
@@ -277,10 +289,17 @@ Deno.serve(async (req: Request) => {
 
       if (refMatch) {
         const ref = refMatch[1];
-        const { data: order } = await supabase.from('orders').select('*').eq('ref', ref).single();
-        if (order && !order.paid) {
-          await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', ref);
-          await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
+        // Dùng eq('paid',false) để tránh race condition — chỉ update nếu chưa paid
+        const { data: updated } = await supabase
+          .from('orders')
+          .update({ paid: true, paid_at: new Date().toISOString() })
+          .eq('ref', ref)
+          .eq('paid', false)
+          .select()
+          .single();
+        if (updated) {
+          // Chỉ gửi email nếu vừa update thành công (tránh gửi 2 lần)
+          await Promise.all([sendWelcomeEmail(updated), sendTelegramNotification(updated)]);
         }
       } else if (amount >= 680000) {
         // Fallback: không khớp REF → tìm đơn pending gần nhất theo số tiền
@@ -295,9 +314,16 @@ Deno.serve(async (req: Request) => {
 
         if (pending && pending.length === 1) {
           // Chỉ có 1 đơn pending → tự động duyệt
-          const order = pending[0];
-          await supabase.from('orders').update({ paid: true, paid_at: new Date().toISOString() }).eq('ref', order.ref);
-          await Promise.all([sendWelcomeEmail(order), sendTelegramNotification(order)]);
+          const { data: updated } = await supabase
+            .from('orders')
+            .update({ paid: true, paid_at: new Date().toISOString() })
+            .eq('ref', pending[0].ref)
+            .eq('paid', false)
+            .select()
+            .single();
+          if (updated) {
+            await Promise.all([sendWelcomeEmail(updated), sendTelegramNotification(updated)]);
+          }
         } else {
           // Nhiều đơn pending → báo admin xét thủ công
           const now = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });

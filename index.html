@@ -2288,7 +2288,7 @@ function mmtdOpenCheckout(){
   mmtdShowQRDirect();
 }
 
-function mmtdShowQRDirect(){
+async function mmtdShowQRDirect(){
   const user = pmAuth && pmAuth.currentUser;
   const name  = user ? (user.displayName || user.email.split('@')[0]) : 'Khach';
   const email = user ? user.email : null;
@@ -2309,12 +2309,15 @@ function mmtdShowQRDirect(){
   document.getElementById('mmtd-qr').src = qr;
   document.getElementById('mmtd-ref').textContent = mmtdPayContent;
 
-  fetch(MMTD_WEBHOOK,{
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ action:'register', ref:mmtdRef, aff:mmtdGetAff(),
-      product:'Mật Mã Tự Do', pkg:'book', name, price:MMTD_PRICE,
-      email, referrer:document.referrer||'' })
-  }).catch(()=>{});
+  // Await để chắc chắn đơn hàng vào DB trước khi SePay webhook fire
+  try{
+    await fetch(MMTD_WEBHOOK,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'register', ref:mmtdRef, aff:mmtdGetAff(),
+        product:'Mật Mã Tự Do', pkg:'book', name, price:MMTD_PRICE,
+        email, referrer:document.referrer||'' })
+    });
+  }catch(e){}
 
   mmtdStartPoll();
 }
@@ -2361,12 +2364,10 @@ async function mmtdNotifyPaid(){
     await fetch(MMTD_WEBHOOK, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        action:'register',
+        action:'notify_paid',
         ref: mmtdRef || 'UNKNOWN',
         name: user ? (user.displayName||user.email.split('@')[0]) : 'Khách',
         email: user ? user.email : null,
-        product:'Mật Mã Tự Do', pkg:'book', price:MMTD_PRICE,
-        phone:'', referrer:'manual-notify'
       })
     });
   }catch(e){}
