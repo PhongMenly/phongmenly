@@ -318,8 +318,13 @@ async function enterApp(){
 }
 
 async function loadCombo(cid){
+  // 1) Ưu tiên bản nháp đang gõ trên máy (không mất công dù F5/đóng tab)
+  let draft=null; try{ draft=JSON.parse(localStorage.getItem('draft_'+cid)||'null'); }catch(e){}
+  if(draft && Array.isArray(draft) && draft.length){ state[cid]=draft; return; }
+  // 2) Nội dung đã đăng lên hệ thống
   let lessons = null;
   try{ const r=await fetch(WH+'?content='+cid); if(r.ok){ const d=await r.json(); if(Array.isArray(d.lessons)&&d.lessons.length) lessons=d.lessons; } }catch(e){}
+  // 3) Khung mặc định
   if(!lessons) lessons = DEFAULTS[cid].lessons.map(l=>({t:l.t,d:l.d,yt:'',desc:''}));
   else lessons = lessons.map(l=>({t:l.t||l.title||'',d:l.d||'',yt:l.yt||l.youtube||'',desc:l.desc||''}));
   state[cid] = lessons;
@@ -361,9 +366,14 @@ function lesRow(cid,l,i){
   </div>`;
 }
 function chkYt(inp){ const box=inp.parentElement.querySelector('.yt-ok'); const id=ytId(inp.value); if(id){box.textContent='✓ Nhận diện video: '+id;box.classList.add('show');}else{box.classList.remove('show');} }
-function upd(cid,i,k,v){ state[cid][i][k]=v; }
-function addLes(cid){ state[cid].push({t:'Bài học mới',d:'',yt:'',desc:''}); renderCombo(cid,true); }
-function delLes(cid,i){ if(!confirm('Xoá bài này?'))return; state[cid].splice(i,1); renderCombo(cid,true); }
+function saveDraft(cid){
+  try{ localStorage.setItem('draft_'+cid, JSON.stringify(state[cid])); }catch(e){}
+  const el=document.getElementById('stt-'+cid);
+  if(el){ el.style.color='var(--muted)'; el.textContent='✎ Đã lưu nháp trên máy — nhớ bấm "Lưu combo" để đăng lên hệ thống'; }
+}
+function upd(cid,i,k,v){ state[cid][i][k]=v; saveDraft(cid); }
+function addLes(cid){ state[cid].push({t:'Bài học mới',d:'',yt:'',desc:''}); saveDraft(cid); renderCombo(cid,true); }
+function delLes(cid,i){ if(!confirm('Xoá bài này?'))return; state[cid].splice(i,1); saveDraft(cid); renderCombo(cid,true); }
 function renderCombo(cid,keepOpen){ render(); if(keepOpen) document.getElementById('cb-'+cid).classList.add('open'); }
 
 async function saveCombo(cid){
@@ -373,9 +383,9 @@ async function saveCombo(cid){
     const r=await fetch(WH,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({action:'save_content',email:userEmail,course:cid,lessons})});
     const d=await r.json();
-    if(d&&d.success){ stt.style.color='var(--grn)'; stt.textContent='✓ Đã lưu '+d.count+' bài'; render(); document.getElementById('cb-'+cid).classList.add('open'); }
-    else { stt.style.color='#E53E3E'; stt.textContent = d&&d.error==='not admin' ? '✗ Tài khoản này không có quyền admin' : '✗ Lỗi lưu'; }
-  }catch(e){ stt.style.color='#E53E3E'; stt.textContent='✗ Lỗi kết nối'; }
+    if(d&&d.success){ localStorage.setItem('draft_'+cid, JSON.stringify(state[cid])); stt.style.color='var(--grn)'; stt.textContent='✓ Đã đăng lên hệ thống ('+d.count+' bài)'; render(); document.getElementById('cb-'+cid).classList.add('open'); }
+    else { stt.style.color='#E53E3E'; stt.textContent = '✗ ' + (d&&d.error==='not admin' ? 'Tài khoản '+userEmail+' chưa có quyền admin' : (d&&d.error ? d.error : 'Lỗi lưu')) + ' — nháp vẫn được giữ trên máy'; }
+  }catch(e){ stt.style.color='#E53E3E'; stt.textContent='✗ Lỗi kết nối — nháp vẫn được giữ trên máy'; }
 }
 </script>
 </body>
