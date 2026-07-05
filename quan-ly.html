@@ -49,6 +49,13 @@ input:focus,textarea:focus{border-color:var(--gold);background:rgba(255,215,0,.0
 textarea{resize:vertical;min-height:54px}
 .yt-ok{font-size:11px;color:var(--grn);margin-top:4px;display:none}
 .yt-ok.show{display:block}
+.yt-thumb{width:200px;max-width:100%;border-radius:10px;margin-top:8px;cursor:pointer;border:1px solid var(--bdr-s);display:block;position:relative}
+.yt-thumb-wrap{position:relative;width:200px;max-width:100%;margin-top:8px;cursor:pointer}
+.yt-thumb-wrap img{width:100%;border-radius:10px;border:1px solid var(--bdr-s);display:block}
+.yt-thumb-wrap:hover img{border-color:var(--gold)}
+.yt-thumb-wrap .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none}
+.yt-embed{margin-top:8px;width:300px;max-width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;border:1px solid var(--bdr)}
+.yt-embed iframe{width:100%;height:100%;border:0;display:block}
 .les-actions{display:flex;justify-content:flex-end}
 .combo-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px;flex-wrap:wrap}
 .save-stt{font-size:13px;font-weight:700;color:var(--grn);min-height:20px}
@@ -358,14 +365,23 @@ function lesRow(cid,l,i){
     <div class="row2">
       <div class="dur"><label>Thời lượng</label><input placeholder="12:30" value="${(l.d||'').replace(/"/g,'&quot;')}" oninput="upd('${cid}',${i},'d',this.value)"></div>
       <div style="flex:1"><label>Link YouTube (Unlisted)</label>
-        <input placeholder="https://youtu.be/..." value="${(l.yt||'').replace(/"/g,'&quot;')}" oninput="upd('${cid}',${i},'yt',this.value);chkYt(this)">
-        <div class="yt-ok ${ytId(l.yt)?'show':''}">✓ Nhận diện video: ${ytId(l.yt)||''}</div></div>
+        <input placeholder="Dán link rồi bấm ảnh bên dưới để xem thử" value="${(l.yt||'').replace(/"/g,'&quot;')}" oninput="upd('${cid}',${i},'yt',this.value);chkYt(this,'${cid}',${i})">
+        <div class="yt-ok ${ytId(l.yt)?'show':''}">✓ Nhận diện video: ${ytId(l.yt)||''}</div>
+        <div class="yt-prev" id="prev-${cid}-${i}">${ytId(l.yt)?ytThumb(ytId(l.yt)):''}</div></div>
     </div>
     <div><label>Mô tả (không bắt buộc)</label><textarea placeholder="Tóm tắt nội dung bài..." oninput="upd('${cid}',${i},'desc',this.value)">${(l.desc||'')}</textarea></div>
     <div class="les-actions"><button class="btn red sm" onclick="delLes('${cid}',${i})">🗑 Xoá bài</button></div>
   </div>`;
 }
-function chkYt(inp){ const box=inp.parentElement.querySelector('.yt-ok'); const id=ytId(inp.value); if(id){box.textContent='✓ Nhận diện video: '+id;box.classList.add('show');}else{box.classList.remove('show');} }
+function ytThumb(id){ return '<div class="yt-thumb-wrap" onclick="playPrev(this,\''+id+'\')"><img src="https://img.youtube.com/vi/'+id+'/mqdefault.jpg" alt="preview"><span class="play">▶</span></div>'; }
+function playPrev(el,id){ el.outerHTML = '<div class="yt-embed"><iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>'; }
+function chkYt(inp,cid,i){
+  const box=inp.parentElement.querySelector('.yt-ok');
+  const prev=document.getElementById('prev-'+cid+'-'+i);
+  const id=ytId(inp.value);
+  if(id){ box.textContent='✓ Nhận diện video: '+id; box.classList.add('show'); if(prev) prev.innerHTML=ytThumb(id); }
+  else { box.classList.remove('show'); if(prev) prev.innerHTML=''; }
+}
 function saveDraft(cid){
   try{ localStorage.setItem('draft_'+cid, JSON.stringify(state[cid])); }catch(e){}
   const el=document.getElementById('stt-'+cid);
