@@ -173,6 +173,10 @@ function inappCopyLink(){
 
 <script>
 const WH = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+// Lưu/đọc nội dung thẳng vào Supabase (không cần webhook) — chỉ cần chạy SQL tạo bảng 1 lần
+const SB = 'https://ryhogciybrffiumuawrk.supabase.co';
+const SK = 'sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
+const SH = { 'apikey':SK, 'Authorization':'Bearer '+SK, 'Content-Type':'application/json' };
 const ADMIN_FALLBACK = 'phongconson@gmail.com'; // chỉ để hiện thông báo; quyền ghi do webhook kiểm tra
 
 /* ════ QUẢN LÝ QUYỀN SÁCH ════ */
@@ -328,9 +332,9 @@ async function loadCombo(cid){
   // 1) Ưu tiên bản nháp đang gõ trên máy (không mất công dù F5/đóng tab)
   let draft=null; try{ draft=JSON.parse(localStorage.getItem('draft_'+cid)||'null'); }catch(e){}
   if(draft && Array.isArray(draft) && draft.length){ state[cid]=draft; return; }
-  // 2) Nội dung đã đăng lên hệ thống
+  // 2) Nội dung đã đăng lên hệ thống (đọc thẳng Supabase)
   let lessons = null;
-  try{ const r=await fetch(WH+'?content='+cid); if(r.ok){ const d=await r.json(); if(Array.isArray(d.lessons)&&d.lessons.length) lessons=d.lessons; } }catch(e){}
+  try{ const r=await fetch(SB+'/rest/v1/course_content?course=eq.'+cid+'&select=lessons',{headers:SH}); if(r.ok){ const rows=await r.json(); if(rows&&rows[0]&&Array.isArray(rows[0].lessons)&&rows[0].lessons.length) lessons=rows[0].lessons; } }catch(e){}
   // 3) Khung mặc định
   if(!lessons) lessons = DEFAULTS[cid].lessons.map(l=>({t:l.t,d:l.d,yt:'',desc:''}));
   else lessons = lessons.map(l=>({t:l.t||l.title||'',d:l.d||'',yt:l.yt||l.youtube||'',desc:l.desc||''}));
@@ -396,11 +400,17 @@ async function saveCombo(cid){
   const stt=document.getElementById('stt-'+cid); stt.style.color='var(--muted)'; stt.textContent='Đang lưu...';
   const lessons = state[cid].map(l=>({t:l.t,d:l.d,yt:ytId(l.yt),desc:l.desc}));
   try{
-    const r=await fetch(WH,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'save_content',email:userEmail,course:cid,lessons})});
-    const d=await r.json();
-    if(d&&d.success){ localStorage.setItem('draft_'+cid, JSON.stringify(state[cid])); stt.style.color='var(--grn)'; stt.textContent='✓ Đã đăng lên hệ thống ('+d.count+' bài)'; render(); document.getElementById('cb-'+cid).classList.add('open'); }
-    else { stt.style.color='#E53E3E'; stt.textContent = '✗ ' + (d&&d.error==='not admin' ? 'Tài khoản '+userEmail+' chưa có quyền admin' : (d&&d.error ? d.error : 'Lỗi lưu')) + ' — nháp vẫn được giữ trên máy'; }
+    const r=await fetch(SB+'/rest/v1/course_content',{method:'POST',
+      headers:{...SH,'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({course:cid,lessons,updated_at:new Date().toISOString()})});
+    if(r.ok){ localStorage.setItem('draft_'+cid, JSON.stringify(state[cid])); stt.style.color='var(--grn)'; stt.textContent='✓ Đã đăng lên hệ thống ('+lessons.length+' bài) — học viên xem được ngay'; render(); document.getElementById('cb-'+cid).classList.add('open'); }
+    else {
+      const t = await r.text();
+      let msg;
+      if(r.status===401||r.status===404||/relation|does not exist|permission|policy/i.test(t)) msg='Chưa tạo bảng/quyền — hãy chạy SQL Bước A (1 lần)';
+      else msg = t ? t.slice(0,120) : ('Lỗi '+r.status);
+      stt.style.color='#E53E3E'; stt.textContent='✗ '+msg+' — nháp vẫn được giữ trên máy';
+    }
   }catch(e){ stt.style.color='#E53E3E'; stt.textContent='✗ Lỗi kết nối — nháp vẫn được giữ trên máy'; }
 }
 </script>

@@ -491,11 +491,13 @@ function toggleAside(forceClose){
 // Tải nội dung động từ hệ thống (admin gắn link video) — không có thì dùng mặc định
 async function loadContent(){
   try{
-    const r = await fetch('https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook?content='+cid);
+    const SB='https://ryhogciybrffiumuawrk.supabase.co', SK='sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
+    const r = await fetch(SB+'/rest/v1/course_content?course=eq.'+cid+'&select=lessons',{headers:{apikey:SK,'Authorization':'Bearer '+SK}});
     if(r.ok){
-      const d = await r.json();
-      if(d && Array.isArray(d.lessons) && d.lessons.length){
-        course.lessons = d.lessons.map(l=>({ t:l.t||l.title||'Bài học', d:l.d||l.dur||'', yt:l.yt||l.youtube||'', desc:l.desc||'' }));
+      const rows = await r.json();
+      const L = rows && rows[0] && rows[0].lessons;
+      if(Array.isArray(L) && L.length){
+        course.lessons = L.map(l=>({ t:l.t||l.title||'Bài học', d:l.d||l.dur||'', yt:l.yt||l.youtube||'', desc:l.desc||'' }));
         if(cur > course.lessons.length-1) cur = 0;
       }
     }
