@@ -2751,10 +2751,18 @@ function updateInfo(){
   navR.disabled = i>=t-1;        /* ở cuối → ẩn nút tiến */
 }
 
+let _trackPageTimer = null;
 pf.on('flip',()=>{
   playFlip();updateInfo();refreshLayout();onFlipForRead();
   if(typeof chRvCheckShow==='function')chRvCheckShow();
-  try{ localStorage.setItem('mmtd_book_pos', String(pf.getCurrentPageIndex())); }catch(e){}
+  const pg = pf.getCurrentPageIndex();
+  try{ localStorage.setItem('mmtd_book_pos', String(pg)); }catch(e){}
+  // Lưu last_page lên Supabase sau 3s dừng lật (debounce)
+  clearTimeout(_trackPageTimer);
+  _trackPageTimer = setTimeout(()=>{
+    const user = typeof gateAuth !== 'undefined' ? gateAuth.currentUser : null;
+    if(user && user.email) mmtdTrackPage(user.email, pg);
+  }, 3000);
 });
 pf.on('init',()=>{
   updateInfo();refreshLayout();
@@ -3467,10 +3475,18 @@ function showSachWaiting(){
 const _MMTD_WH='https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
 async function mmtdTrackReader(email,name){
   if(!email) return;
+  const page = parseInt(localStorage.getItem('mmtd_book_pos')||'0',10);
   try{
     await fetch(_MMTD_WH,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'reader_login',email,name:name||email.split('@')[0]})});
+      body:JSON.stringify({action:'reader_login',email,name:name||email.split('@')[0],last_page:page||0})});
   }catch(e){ console.warn('[MMTD]',e); }
+}
+async function mmtdTrackPage(email,page){
+  if(!email) return;
+  try{
+    await fetch(_MMTD_WH,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'reader_login',email,last_page:page})});
+  }catch(e){}
 }
 
 const EARLY_ACCESS = new Set(['phongconson@gmail.com']);
