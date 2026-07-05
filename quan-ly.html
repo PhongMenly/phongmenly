@@ -46,7 +46,10 @@ a{color:var(--gold);text-decoration:none}
 label{font-size:11px;font-weight:700;color:var(--muted);display:block;margin:0 0 4px 2px;text-transform:uppercase;letter-spacing:.5px}
 input,textarea{width:100%;padding:11px 13px;background:rgba(255,255,255,.05);border:1px solid var(--bdr-s);border-radius:10px;color:var(--txt);font-size:14px;font-family:inherit;outline:none;transition:.16s}
 input:focus,textarea:focus{border-color:var(--gold);background:rgba(255,215,0,.04)}
-textarea{resize:vertical;min-height:54px}
+textarea{resize:vertical;min-height:90px;line-height:1.7}
+.desc-label{font-size:11px;font-weight:700;color:var(--muted);margin:10px 0 4px 2px;text-transform:uppercase;letter-spacing:.5px}
+.desc-prev{white-space:pre-wrap;font-size:13.5px;color:var(--muted);line-height:1.85;background:rgba(255,255,255,.03);border:1px dashed var(--bdr-s);border-radius:10px;padding:13px 15px;min-height:22px}
+.desc-prev .empty{color:var(--dim);font-style:italic}
 .yt-ok{font-size:11px;color:var(--grn);margin-top:4px;display:none}
 .yt-ok.show{display:block}
 .yt-thumb{width:200px;max-width:100%;border-radius:10px;margin-top:8px;cursor:pointer;border:1px solid var(--bdr-s);display:block;position:relative}
@@ -373,9 +376,19 @@ function lesRow(cid,l,i){
         <div class="yt-ok ${ytId(l.yt)?'show':''}">✓ Nhận diện video: ${ytId(l.yt)||''}</div>
         <div class="yt-prev" id="prev-${cid}-${i}">${ytId(l.yt)?ytThumb(ytId(l.yt)):''}</div></div>
     </div>
-    <div><label>Mô tả (không bắt buộc)</label><textarea placeholder="Tóm tắt nội dung bài..." oninput="upd('${cid}',${i},'desc',this.value)">${(l.desc||'')}</textarea></div>
+    <div><label>Mô tả (không bắt buộc)</label>
+      <textarea placeholder="Gõ mô tả — Enter để xuống dòng. Hiển thị y hệt bên dưới." oninput="upd('${cid}',${i},'desc',this.value);descPrev('${cid}',${i},this.value)">${(l.desc||'')}</textarea>
+      <div class="desc-label">👁 Xem trước (giống hệ thống)</div>
+      <div class="desc-prev" id="dp-${cid}-${i}">${l.desc && l.desc.trim() ? esc(l.desc) : '<span class="empty">(chưa có mô tả — hệ thống sẽ tự điền mô tả mặc định)</span>'}</div>
+    </div>
     <div class="les-actions"><button class="btn red sm" onclick="delLes('${cid}',${i})">🗑 Xoá bài</button></div>
   </div>`;
+}
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function descPrev(cid,i,val){
+  const el=document.getElementById('dp-'+cid+'-'+i); if(!el) return;
+  if(val && val.trim()) el.textContent = val;
+  else el.innerHTML = '<span class="empty">(chưa có mô tả — hệ thống sẽ tự điền mô tả mặc định)</span>';
 }
 function ytThumb(id){ return '<div class="yt-thumb-wrap" onclick="playPrev(this,\''+id+'\')"><img src="https://img.youtube.com/vi/'+id+'/mqdefault.jpg" alt="preview"><span class="play">▶</span></div>'; }
 function playPrev(el,id){ el.outerHTML = '<div class="yt-embed"><iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>'; }
