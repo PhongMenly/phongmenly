@@ -1240,7 +1240,7 @@ function inappCopyLink(){
       <div class="order-info">
         <div class="order-divider"></div>
 
-        <div class="order-price-block">
+        <div class="order-price-block" style="display:none">
           <div class="order-launch-tag">🔥 Giá trước ra mắt — Ưu đãi có hạn</div>
           <div class="order-price">
             <span class="order-curr">đ</span>
@@ -1250,7 +1250,7 @@ function inappCopyLink(){
           <div class="order-after-launch">Sau khi ra mắt chính thức: <span>999.000đ</span></div>
         </div>
 
-        <a href="#" class="btn-buy" id="btn-buy-main" onclick="mmtdOpenCheckout();return false;" data-i18n="pr.btn">MỞ KHÓA NGAY</a>
+        <a href="#" class="btn-buy" id="btn-buy-main" onclick="location.href='hoc-vien.html';return false;" data-i18n="pr.btn">📖 Đọc Bản FULL</a>
         <p class="order-guar">🛡️ Cam kết hoàn tiền 100% trong 7 ngày · Không hỏi lý do</p>
       </div>
     </div>
@@ -1853,7 +1853,7 @@ const PM_TRANS = {
     'pr.desc':'Ebook · 5 chương đầy đủ · Cập nhật vĩnh viễn + 4 Bonus kèm theo',
     'pr.timer':'⏰ Giá ưu đãi ra mắt kết thúc sau',
     'pr.save':'✓ Tiết kiệm 313.000đ so với giá gốc',
-    'pr.btn':'MỞ KHÓA NGAY',
+    'pr.btn':'📖 Đọc Bản FULL',
     'pr.guar':'<strong>Cam kết hoàn tiền 100% trong 7 ngày</strong> — đọc xong mà thấy không xứng đáng, tôi hoàn lại toàn bộ tiền, không hỏi lý do.',
     'faq.lbl':'Câu Hỏi Thường Gặp','faq.h':'Bạn Đang Thắc Mắc?',
     'faq.1.q':'Tôi chưa biết gì về affiliate, có đọc được không?<span class="faq-arr">▾</span>',
@@ -1948,7 +1948,7 @@ const PM_TRANS = {
     'pr.desc':'Ebook · 5 complete chapters · Lifetime updates + 4 Bonuses included',
     'pr.timer':'⏰ Launch discount ends in',
     'pr.save':'✓ Save 313,000đ off the original price',
-    'pr.btn':'UNLOCK NOW',
+    'pr.btn':'📖 Read Full Book',
     'pr.guar':'<strong>100% money-back guarantee within 7 days</strong> — if after reading you don\'t feel it\'s worth it, I\'ll refund every penny, no questions asked.',
     'faq.lbl':'FAQ','faq.h':'Have Questions?',
     'faq.1.q':'I know nothing about affiliate — can I still read this?<span class="faq-arr">▾</span>',
@@ -2897,7 +2897,7 @@ window.rvSubmit=function(){
 
 <!-- FLOATING MOBILE CTA -->
 <div id="mob-cta" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;padding:12px 16px 20px;background:linear-gradient(180deg,rgba(10,10,10,0) 0%,rgba(10,10,10,.97) 30%);pointer-events:none">
-  <button id="mob-cta-btn" onclick="mmtdOpenCheckout()" style="pointer-events:all;width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:50px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 32px rgba(255,215,0,.4)">MỞ KHÓA NGAY — 686.000đ</button>
+  <button id="mob-cta-btn" onclick="location.href='hoc-vien.html'" style="pointer-events:all;width:100%;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border:none;border-radius:50px;padding:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 8px 32px rgba(255,215,0,.4)">📖 Đọc Bản FULL</button>
 </div>
 <style>
 @media(min-width:641px){#mob-cta{display:none!important}}

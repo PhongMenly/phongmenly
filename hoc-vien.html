@@ -717,7 +717,7 @@ function inappCopyLink(){
 <script>
 // ════ DỮ LIỆU KHÓA HỌC ════
 const COURSES = [
-  {id:'book', ch:'Sách', name:'Sách Mật Mã Tự Do', price:'686.000đ', img:'images/book-cover-1.png', book:true},
+  {id:'book', ch:'Sách', name:'Sách Mật Mã Tự Do', price:'686.000đ', priceUsd:'$25', img:'images/book-cover-1.png', book:true},
   {id:'c1', ch:'Chương 1', name:'Mật Mã Tư Duy', lessons:5, base:115000, price:'115.000đ', img:'images/bia-tu-duy.png'},
   {id:'c2', ch:'Chương 2', name:'Mật Mã Affiliate Marketing', lessons:6, base:189000, price:'189.000đ', img:'images/bia-affiliate-marketing.png'},
   {id:'c3', ch:'Chương 3', name:'Mật Mã Traffic', lessons:8, base:256000, price:'256.000đ', img:'images/bia-traffic.png'},
@@ -729,6 +729,7 @@ const COURSES = [
 // Cấu hình thanh toán
 const BANK = { bin:'970415', acc:'105887395942', name:'HO KINH DOANH LE DANG PHUONG' }; // VietinBank
 const MMTD_WEBHOOK = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training-webhook';
+const MMTD_PRICE = 686000; // Giá thật của Sách (không đổi) — hiển thị $25 chỉ là nhãn marketing
 const TIERS = [
   {code:'M', label:'1 Tháng',  add:0,      tag:''},
   {code:'Y', label:'1 Năm',    add:99000,  tag:'Phổ biến'},
@@ -750,7 +751,7 @@ function renderCourses(){
   const grid = document.getElementById('course-grid');
   grid.innerHTML = COURSES.map(c => {
     const open = c.special ? true : isCourseUnlocked(c.id);
-    const priceBadge = c.special ? '🎁 Tặng kèm sách' : (open ? '✓ Mở khóa thành công' : c.price);
+    const priceBadge = c.special ? '🎁 Tặng kèm sách' : (open ? '✓ Mở khóa thành công' : (c.book ? c.priceUsd : c.price));
     const statusPill = c.special ? 'Đặc biệt' : (open ? '✓ Đã mở' : '🔒 Khóa');
     const metaText = c.special ? '👑 Cộng đồng tinh hoa' : c.book ? '📖 Đọc sách' : (PLAY_SVG+' '+c.lessons+' bài học');
     let ctaTxt, attrs;
@@ -758,10 +759,10 @@ function renderCourses(){
       ctaTxt = 'Khám phá →';
       attrs = `href="${c.url}" target="_blank" rel="noopener"`;
     } else if(c.book){
-      ctaTxt = open ? '📖 Đọc sách' : '📕 Đặt sách';
+      ctaTxt = open ? '📖 Đọc sách' : '🔓 Mở khóa ngay';
       attrs = open
         ? `href="doc-sach.html"`                                      // đã mở khóa → đọc bản đầy đủ
-        : `href="index.html#pricing"`;                               // chưa có → đặt sách
+        : `href="javascript:void(0)" onclick="openBookPay()"`;        // chưa có → thanh toán ngay tại học viện
     } else {
       if(open && new Date() >= new Date('2026-07-01T00:00:00+07:00')){
         let lastL = 0;
@@ -794,6 +795,7 @@ function renderCourses(){
         <div class="pc-name">${c.name}</div>
         <div class="pc-meta"><span class="pc-lessons">${metaText}</span></div>
         ${progressBar}
+        ${c.book && !open ? '<div style="font-size:11px;color:#A1A1AA;margin-top:6px">Tiền Việt: 686k</div><div style="font-size:11px;color:#FFD700;margin-top:2px">🎁 Mở khóa sẽ tặng full combo 5 khóa học</div>' : ''}
         ${c.book ? '<div class="pc-rv-mini" id="book-rv-mini"></div>' : ''}
       </div>
     </a>`;
@@ -1258,6 +1260,34 @@ function showUnlockSuccess(cid){
 function payCopy(){ try{ navigator.clipboard.writeText(payContent || payCode); }catch(e){} }
 function payClose(e){ if(!e || e.target===document.getElementById('pay-modal')){ document.getElementById('pay-modal').classList.remove('show'); clearInterval(payPoll); } }
 
+// ════ MUA SÁCH — thanh toán ngay tại Học Viện (dùng chung modal QR + poll của giỏ hàng) ════
+function bookGenCode(name){
+  const ts = Date.now().toString(36).toUpperCase().slice(-4);
+  const nm = (name||'').trim().split(' ').pop().toUpperCase().replace(/[^A-Z]/g,'').slice(0,6);
+  return 'BOOK' + nm + ts;
+}
+async function openBookPay(){
+  if(!hvAuth || !hvAuth.currentUser){ pmOpenModal(); return; }
+  const user = hvAuth.currentUser;
+  const name = user.displayName || user.email.split('@')[0];
+  const payCode = bookGenCode(name);
+  const c = COURSES.find(x=>x.id==='book');
+  try{
+    await fetch(MMTD_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ action:'register', ref:payCode, product:'Mật Mã Tự Do',
+        pkg:'book', price:MMTD_PRICE, name, email:user.email, aff:getAff(), referrer:document.referrer||'' })
+    });
+  }catch(e){ /* không chặn — QR vẫn dùng được */ }
+  const tempItem = { cid:'book', tier:null, amount:MMTD_PRICE, payCode,
+    product:'Mật Mã Tự Do + 5 Khóa học', tierLabel:'Trọn đời — Sách + 5 Khóa học', img:(c&&c.img)||'' };
+  openCartPay(payCode, tempItem);
+}
+function grantBookUnlockQuiet(){
+  localStorage.setItem('kh_unlocked','1');
+  localStorage.setItem('book_unlocked','1');
+  applyState();
+}
+
 // ════ GIỎ HÀNG ════
 let cart = [];
 try{ cart = JSON.parse(localStorage.getItem('mmtd_cart')||'[]')||[]; }catch(e){ cart=[]; }
@@ -1576,6 +1606,9 @@ function startCpPoll(item){
         if(item.isGift){
           document.getElementById('cp-stt').innerHTML=`🎁 Đã gửi mã kích hoạt tới <b style="color:#FFD700">${item.recipientEmail}</b>!<br><br><span style="font-size:12px;color:#c4c4d4;line-height:1.7">Chúng tôi đã gửi email đến tri kỷ của bạn.<br>Để quà được gửi ngay, hãy xác nhận qua Zalo:</span><br><a href="https://zalo.me/0978076936" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:linear-gradient(135deg,#0068FF,#0052cc);color:#fff;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:800;text-decoration:none">🔵 Nhắn Zalo: 0978076936</a>`;
           document.getElementById('cp-stt').style.color='#4ADE80';
+        }else if(item.cid==='book'){
+          document.getElementById('cp-stt').textContent='✓ Đã nhận thanh toán — mở khóa!';
+          setTimeout(()=>{ closeCartPay(); grantBookUnlockQuiet(); }, 900);
         }else{
           document.getElementById('cp-stt').textContent='✓ Đã nhận thanh toán — mở khóa!';
           cart = cart.filter(x=>x.payCode!==code);
