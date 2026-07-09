@@ -94,6 +94,12 @@ nav{background:rgba(8,8,8,.96);backdrop-filter:blur(20px);border-bottom:1px soli
 .hb-center{z-index:2;flex-shrink:0;position:relative}
 .hb-center img{width:clamp(200px,28vw,320px);height:auto;filter:drop-shadow(0 30px 70px rgba(255,215,0,.18))}
 
+/* ── HERO VIDEO (thay cho ảnh bìa sách) ── */
+.hero-video-wrap{margin:28px auto 40px;max-width:760px;text-align:center}
+.hero-video-kicker{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.hero-video-frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--rl);overflow:hidden;border:1px solid rgba(255,215,0,.28);box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 60px rgba(255,215,0,.08)}
+.hero-video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
 /* ── KHÓA HỌC ── */
 .kh-sec{background:var(--bg-s);padding:80px 20px}
 .kh-hd{text-align:center;margin-bottom:52px}
@@ -733,16 +739,11 @@ function inappCopyLink(){
     </div>
 
 
-    <!-- Hero Images -->
-    <div class="hero-books">
-      <div class="hb-side hb-left">
-        <img src="images/book-cover-1.png" alt="Mật Mã Tự Do — Bìa Trước">
-      </div>
-      <div class="hb-center">
-        <img src="images/book-stacked.png" alt="Mật Mã Tự Do — Bộ Sách">
-      </div>
-      <div class="hb-side hb-right">
-        <img src="images/book-cover-2.png" alt="Mật Mã Tự Do — Bìa Sau">
+    <!-- Hero Video -->
+    <div class="hero-video-wrap">
+      <div class="hero-video-kicker">🎬 Xem Hành Trình Trước Khi Quyết Định</div>
+      <div class="hero-video-frame">
+        <iframe src="https://www.youtube.com/embed/SoZahRYSc_k" title="Hành trình Mật Mã Tự Do — Affiliate x AI" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
       </div>
     </div>
 
