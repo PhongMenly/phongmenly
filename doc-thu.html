@@ -1593,7 +1593,10 @@ function updateInfo(){
   navR.disabled = i>=t-1;        /* ở cuối → ẩn nút tiến */
 }
 
-pf.on('flip',()=>{playFlip();updateInfo();refreshLayout();onFlipForRead();});
+pf.on('flip',()=>{
+  playFlip();updateInfo();refreshLayout();onFlipForRead();
+  if(pf.getCurrentPageIndex() >= pf.getPageCount()-1) setTimeout(showTrialEndCTA, 700);
+});
 pf.on('init',()=>{updateInfo();refreshLayout();});
 
 /* ══════════════════════════════════════════
@@ -1904,6 +1907,30 @@ function toast(msg){
   t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>t.classList.remove('show'), 4200);
+}
+
+/* Đọc thử xong (chạm bìa sau) → gợi ý xem đầy đủ thông tin sách tại trang chủ */
+let trialEndShown = false;
+function showTrialEndCTA(){
+  if(trialEndShown) return;
+  trialEndShown = true;
+  let ov = document.getElementById('trial-end-ov');
+  if(!ov){
+    ov = document.createElement('div');
+    ov.id = 'trial-end-ov';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:6000;display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit';
+    ov.addEventListener('click', e=>{ if(e.target===ov) ov.style.display='none'; });
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div style="background:#111;border:1px solid rgba(255,215,0,.3);border-radius:20px;max-width:420px;width:100%;padding:30px 26px;text-align:center;position:relative">
+    <button onclick="document.getElementById('trial-end-ov').style.display='none'" style="position:absolute;top:12px;right:14px;background:none;border:none;color:#888;font-size:1.4rem;cursor:pointer;line-height:1">✕</button>
+    <div style="font-size:3rem;margin-bottom:10px">📖</div>
+    <h2 style="color:#fff;font-size:1.15rem;font-weight:900;margin-bottom:8px">Bạn vừa đọc xong bản thử!</h2>
+    <p style="color:#A1A1AA;font-size:.86rem;line-height:1.75;margin-bottom:20px">Đây mới chỉ là một phần nhỏ. Xem đầy đủ <b style="color:#FFD700">5 chương + 4 bonus</b> và ưu đãi ra mắt tại trang chủ.</p>
+    <a href="index.html#pricing" style="display:block;text-decoration:none;background:linear-gradient(135deg,#FFD700,#FF9500);color:#000;border-radius:12px;padding:14px;font-size:.95rem;font-weight:800;margin-bottom:10px">📘 Xem Sách Đầy Đủ</a>
+    <button onclick="document.getElementById('trial-end-ov').style.display='none'" style="width:100%;background:none;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px;color:#A1A1AA;font-size:.85rem;cursor:pointer;font-family:inherit">Đọc lại bản thử</button>
+  </div>`;
+  ov.style.display = 'flex';
 }
 
 if(SS_OK){ speechSynthesis.onvoiceschanged = ()=>{}; }
