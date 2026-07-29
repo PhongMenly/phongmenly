@@ -985,16 +985,33 @@ async function pmSignInGoogle(){
 // ════ CỔNG MẬT MÃ ════
 function khOpenGate(){ document.getElementById('kh-gate-modal').classList.add('show'); document.getElementById('kh-pw').focus(); document.getElementById('side').classList.remove('open'); document.getElementById('side-ov').classList.remove('open'); }
 function khCloseGate(e){ if(!e||e.target===document.getElementById('kh-gate-modal')) document.getElementById('kh-gate-modal').classList.remove('show'); }
-function khUnlock(){
-  const val=(document.getElementById('kh-pw').value||'').trim().toLowerCase();
-  if(val==='tudo'){
-    localStorage.setItem('kh_unlocked','1');
-    document.getElementById('gate-err').textContent='';
-    khCloseGate();
-    applyState();
-  }else{
-    document.getElementById('gate-err').textContent='Mật mã không đúng. Thử lại.';
-    document.getElementById('kh-pw').value=''; document.getElementById('kh-pw').focus();
+async function khUnlock(){
+  const val=(document.getElementById('kh-pw').value||'').trim();
+  const errEl=document.getElementById('gate-err');
+  const btn=document.querySelector('#kh-gate-modal .pm-btn-submit');
+  if(!val){ errEl.textContent='Nhập mã trước đã nhé.'; return; }
+  errEl.textContent='';
+  if(btn){ btn.disabled=true; btn.textContent='Đang kiểm tra...'; }
+  try{
+    const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
+    const r = await fetch(MMTD_WEBHOOK, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'redeem_code', code: val, email })
+    });
+    const d = await r.json();
+    if(d && d.success){
+      localStorage.setItem('kh_unlocked','1');
+      localStorage.setItem('book_unlocked','1');
+      khCloseGate();
+      applyState();
+    }else{
+      errEl.textContent = d && d.error==='used' ? 'Mã này đã được sử dụng.' : 'Mã không đúng. Thử lại.';
+      document.getElementById('kh-pw').value=''; document.getElementById('kh-pw').focus();
+    }
+  }catch(e){
+    errEl.textContent='Lỗi kết nối. Thử lại.';
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='Mở khóa'; }
   }
 }
 
@@ -1704,8 +1721,8 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
     <button class="pm-modal-close" onclick="khCloseGate()">✕</button>
     <div style="font-size:44px;text-align:center;margin-bottom:12px">🔓</div>
     <h3 class="pm-modal-title">Nhập mật mã</h3>
-    <p class="pm-modal-sub">Mật mã có trong sách Mật Mã Tự Do — nhập để mở trọn 5 combo.</p>
-    <input class="pm-input pm-pw-input" type="password" id="kh-pw" placeholder="Mật mã..." autocomplete="off" onkeydown="if(event.key==='Enter')khUnlock()">
+    <p class="pm-modal-sub">Nhập mã cá nhân được cấp (mỗi mã chỉ dùng được 1 lần) để mở trọn 5 combo.</p>
+    <input class="pm-input pm-pw-input" type="text" id="kh-pw" placeholder="Mã của bạn..." autocomplete="off" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')khUnlock()">
     <div class="pm-error" id="gate-err"></div>
     <button class="pm-btn-submit" onclick="khUnlock()">Mở khóa</button>
     <div class="pm-switch-link">Chưa có sách? <span onclick="location.href='index.html#pricing'">Đặt sách ngay</span></div>
