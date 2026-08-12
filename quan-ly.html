@@ -250,10 +250,10 @@ async function qlGrantAccess(){
     const r = await fetch(WH, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'grant_access', email, name: email.split('@')[0], admin_key:'mmtdAdm89SC6RIIMR1Z2L4O' })
+      body: JSON.stringify({ action:'grant_access', email: userEmail, target_email: email, target_name: email.split('@')[0] })
     });
     const d = await r.json();
-    if(d.ok){
+    if(d.success){
       res.innerHTML=`<span style="color:#4ADE80;font-weight:700">✅ Đã cấp quyền cho <b>${email}</b>.<br>Họ chỉ cần đăng nhập lại là vào được sách.</span>`;
       document.getElementById('ql-grant-email').value='';
     } else {

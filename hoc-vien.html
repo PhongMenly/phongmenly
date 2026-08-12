@@ -989,11 +989,17 @@ async function khUnlock(){
   const val=(document.getElementById('kh-pw').value||'').trim();
   const errEl=document.getElementById('gate-err');
   const btn=document.querySelector('#kh-gate-modal .pm-btn-submit');
+  const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
+  if(!email){
+    errEl.textContent='Cần đăng nhập trước khi nhập mã (để mở khóa được lưu lại vĩnh viễn, dùng được trên mọi thiết bị).';
+    khCloseGate();
+    pmOpenModal('welcome');
+    return;
+  }
   if(!val){ errEl.textContent='Nhập mã trước đã nhé.'; return; }
   errEl.textContent='';
   if(btn){ btn.disabled=true; btn.textContent='Đang kiểm tra...'; }
   try{
-    const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
     const r = await fetch(MMTD_WEBHOOK, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ action:'redeem_code', code: val, email })
