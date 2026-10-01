@@ -260,6 +260,12 @@ a{text-decoration:none;color:inherit}
 .gift-code-inp:focus{border-color:var(--gold)}
 .gift-act-btn-top{display:none;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,215,0,.35);border-radius:50px;padding:6px 14px;color:rgba(255,215,0,.8);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0}
 .gift-act-btn-top:hover{color:var(--gold);border-color:var(--gold);background:rgba(255,215,0,.05)}
+.admin-kolai-btn-top{display:none;align-items:center;gap:6px;background:transparent;border:1px solid rgba(74,222,128,.4);border-radius:50px;padding:6px 14px;color:rgba(74,222,128,.85);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0;position:relative}
+.admin-kolai-btn-top:hover{color:#4ADE80;border-color:#4ADE80;background:rgba(74,222,128,.06)}
+.admin-kolai-badge{display:none;background:#E53E3E;color:#fff;font-size:10px;font-weight:800;border-radius:50px;padding:1px 6px;margin-left:2px}
+.kolai-req-card{background:#161616;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 15px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.kolai-req-approve{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ADE80;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.kolai-req-reject{background:rgba(229,62,62,.12);border:1px solid rgba(229,62,62,.3);color:#E53E3E;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:8px}
 
 /* ── GIỎ HÀNG ── */
 .cart-btn{display:none;align-items:center;gap:8px;background:rgba(255,215,0,.1);border:1px solid var(--bdr);border-radius:50px;padding:8px 16px;color:var(--gold);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0}
@@ -510,6 +516,9 @@ function inappCopyLink(){
     <div class="side-sec">Tài khoản</div>
     <a class="side-link" onclick="khOpenGate()"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Nhập mật mã</a>
     <a class="side-link danger" id="btn-logout" onclick="hvSignOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Đăng xuất</a>
+
+    <div class="side-sec" id="side-sec-admin" style="display:none">Quản trị</div>
+    <a class="side-link" id="side-link-admin-kolai" style="display:none" onclick="openAdminKolaiModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Duyệt yêu cầu</a>
   </aside>
 
   <!-- ════ MAIN ════ -->
@@ -522,6 +531,7 @@ function inappCopyLink(){
         <a href="hoc-vien.html" class="active">Học viện</a>
         <a href="affiliate.html">Đối tác</a>
       </nav>
+      <button class="admin-kolai-btn-top" id="admin-kolai-btn-top" onclick="openAdminKolaiModal()">🛡️ Duyệt yêu cầu<span class="admin-kolai-badge" id="admin-kolai-badge">0</span></button>
       <button class="gift-act-btn-top" id="gift-act-btn-top" onclick="openGiftActModal()">🎁 Kích hoạt quà</button>
       <button class="cart-btn" id="cart-btn" onclick="openCart()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Giỏ hàng <span class="cart-badge" id="cart-badge">0</span></button>
       <div class="top-user" id="top-user">
@@ -916,6 +926,7 @@ function hvInit(){
         mmtdTrackReader(user.email, name);
         syncEntitlements(user.email);
         updateCartBtn();
+        hvSetAdminUI(HV_ADMINS.includes((user.email||'').toLowerCase()));
         if(cart.length) startCartPoll();
       } else {
         showGuest();
@@ -1072,6 +1083,100 @@ async function khRequestKolaiAccess(){
   }
 }
 
+// ════ ADMIN — DUYỆT YÊU CẦU KOL AI GO GLOBAL (hiện ngay trên trang Học Viện) ════
+const HV_ADMINS = ['phongconson@gmail.com', 'phongtyphu1995@gmail.com']; // phải khớp ADMINS trong sepay-training-webhook/index.ts
+
+function hvSetAdminUI(isAdmin){
+  const top   = document.getElementById('admin-kolai-btn-top');
+  const side  = document.getElementById('side-link-admin-kolai');
+  const sideS = document.getElementById('side-sec-admin');
+  if(top)   top.style.display  = isAdmin ? 'flex' : 'none';
+  if(side)  side.style.display = isAdmin ? 'flex' : 'none';
+  if(sideS) sideS.style.display= isAdmin ? 'block': 'none';
+  if(isAdmin) hvRefreshKolaiBadge();
+}
+
+async function hvRefreshKolaiBadge(){
+  const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
+  if(!email || !HV_ADMINS.includes(email.toLowerCase())) return;
+  try{
+    const r = await fetch(MMTD_WEBHOOK, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'list_kolai_requests', email })
+    });
+    const d = await r.json();
+    const n = d && d.success ? (d.requests||[]).filter(x=>x.status==='pending').length : 0;
+    const badge = document.getElementById('admin-kolai-badge');
+    if(badge){ badge.textContent = n; badge.style.display = n>0 ? 'inline-block' : 'none'; }
+  }catch(e){}
+}
+
+function openAdminKolaiModal(){
+  document.getElementById('kolai-admin-modal').classList.add('show');
+  document.getElementById('side').classList.remove('open');
+  document.getElementById('side-ov').classList.remove('open');
+  hvLoadKolaiRequests();
+}
+function closeAdminKolaiModal(e){ if(!e||e.target===document.getElementById('kolai-admin-modal')) document.getElementById('kolai-admin-modal').classList.remove('show'); }
+
+async function hvLoadKolaiRequests(){
+  const box = document.getElementById('admin-kolai-list');
+  const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
+  box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">⏳ Đang tải...</p>';
+  try{
+    const r = await fetch(MMTD_WEBHOOK, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'list_kolai_requests', email })
+    });
+    const d = await r.json();
+    if(!d.success){ box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${esc(d.error||'Lỗi')}</p>`; return; }
+    const pending = (d.requests||[]).filter(x=>x.status==='pending');
+    if(!pending.length){ box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>'; return; }
+    box.innerHTML = pending.map(req => `
+      <div class="kolai-req-card">
+        <div>
+          <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:2px">${esc(new Date(req.created_at).toLocaleString('vi-VN'))}</div>
+        </div>
+        <div>
+          <button class="kolai-req-approve" onclick="hvApproveKolai('${req.id}')">✅ Duyệt</button>
+          <button class="kolai-req-reject" onclick="hvRejectKolai('${req.id}')">✕ Từ chối</button>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ Lỗi kết nối: ${esc(e.message)}</p>`;
+  }
+}
+
+async function hvApproveKolai(id){
+  const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
+  if(!confirm('Duyệt yêu cầu này? Học viên sẽ được cấp quyền đọc sách + 5 combo.')) return;
+  try{
+    const r = await fetch(MMTD_WEBHOOK, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'approve_kolai_request', email, request_id: id })
+    });
+    const d = await r.json();
+    if(d.success){ hvLoadKolaiRequests(); hvRefreshKolaiBadge(); }
+    else alert('Lỗi: '+(d.error||'unknown'));
+  }catch(e){ alert('Lỗi kết nối: '+e.message); }
+}
+
+async function hvRejectKolai(id){
+  const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
+  if(!confirm('Từ chối yêu cầu này?')) return;
+  try{
+    const r = await fetch(MMTD_WEBHOOK, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'reject_kolai_request', email, request_id: id })
+    });
+    const d = await r.json();
+    if(d.success){ hvLoadKolaiRequests(); hvRefreshKolaiBadge(); }
+    else alert('Lỗi: '+(d.error||'unknown'));
+  }catch(e){ alert('Lỗi kết nối: '+e.message); }
+}
+
 function showUser(name, email, pic, vip){
   // sidebar
   document.getElementById('side-user').style.display = 'flex';
@@ -1114,6 +1219,7 @@ function showGuest(){
   document.getElementById('tu-meta').style.display='none';
   document.getElementById('tu-av').style.display='none';
   document.getElementById('tu-av-ph').style.display='none';
+  hvSetAdminUI(false);
 }
 
 function hvSignOut(){
@@ -1801,6 +1907,17 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
       <button class="pm-btn-submit" id="kolai-submit-btn" onclick="khRequestKolaiAccess()">Gửi yêu cầu duyệt</button>
       <p id="kolai-status" style="text-align:center;font-size:12.5px;margin-top:10px;min-height:18px;line-height:1.5;color:var(--dim)"></p>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: ADMIN — DUYỆT YÊU CẦU HỌC VIÊN KOL AI GO GLOBAL -->
+<div class="pm-modal-overlay" id="kolai-admin-modal" onclick="closeAdminKolaiModal(event)">
+  <div class="pm-modal-box pay-box">
+    <button class="pm-modal-close" onclick="closeAdminKolaiModal()">✕</button>
+    <div style="font-size:40px;text-align:center;margin-bottom:10px">🛡️</div>
+    <h3 class="pm-modal-title">Duyệt yêu cầu truy cập</h3>
+    <p class="pm-modal-sub">Học viên KOL AI GO GLOBAL đang chờ bạn duyệt.</p>
+    <div id="admin-kolai-list" style="max-height:50vh;overflow-y:auto">Đang tải...</div>
   </div>
 </div>
 
