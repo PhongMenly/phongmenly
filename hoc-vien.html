@@ -990,6 +990,9 @@ async function pmSignInGoogle(){
 // ════ CỔNG XIN CẤP QUYỀN (học viên) / DUYỆT (admin) ════
 const HV_ADMINS = ['phongconson@gmail.com', 'phongtyphu1995@gmail.com']; // phải khớp ADMINS trong sepay-training-webhook/index.ts
 
+window.addEventListener('error', e=>console.error('[hv-page-error]', e.message, e.filename, e.lineno));
+window.addEventListener('unhandledrejection', e=>console.error('[hv-unhandled-rejection]', e.reason));
+
 function hvFetchJSON(body, timeoutMs){
   timeoutMs = timeoutMs || 12000;
   const ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
@@ -1076,15 +1079,26 @@ async function hvRefreshKolaiBadge(){
   }catch(e){ console.warn('[hvRefreshKolaiBadge]', e); }
 }
 
+const RETRY_BTN = `<button onclick="hvLoadKolaiRequests()" style="display:block;margin:10px auto 0;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:var(--gold);padding:7px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Thử lại</button>`;
+
 async function hvLoadKolaiRequests(){
   const box = document.getElementById('admin-kolai-list');
   const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
-  box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">⏳ Đang tải...</p>';
+  let secs = 0;
+  box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">⏳ Đang tải... (<span id="kolai-load-secs">0</span>s)</p>';
+  const tick = setInterval(()=>{
+    secs++;
+    const s = document.getElementById('kolai-load-secs');
+    if(s) s.textContent = secs; else clearInterval(tick);
+  }, 1000);
+  console.log('[hvLoadKolaiRequests] bắt đầu gọi', MMTD_WEBHOOK, {email});
   try{
-    const d = await hvFetchJSON({ action:'list_kolai_requests', email });
-    if(!d.success){ box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${esc(d.error||'Lỗi')}</p>`; return; }
+    const d = await hvFetchJSON({ action:'list_kolai_requests', email }, 8000);
+    console.log('[hvLoadKolaiRequests] phản hồi:', d);
+    clearInterval(tick);
+    if(!d.success){ box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${esc(d.error||'Lỗi')}</p>${RETRY_BTN}`; return; }
     const pending = (d.requests||[]).filter(x=>x.status==='pending');
-    if(!pending.length){ box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>'; return; }
+    if(!pending.length){ box.innerHTML = `<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>${RETRY_BTN}`; return; }
     box.innerHTML = pending.map(req => `
       <div class="kolai-req-card">
         <div>
@@ -1096,10 +1110,12 @@ async function hvLoadKolaiRequests(){
           <button class="kolai-req-approve" onclick="hvApproveKolai('${req.id}')">✅ Duyệt</button>
           <button class="kolai-req-reject" onclick="hvRejectKolai('${req.id}')">✕ Từ chối</button>
         </div>
-      </div>`).join('');
+      </div>`).join('') + RETRY_BTN;
   }catch(e){
-    console.error('[hvLoadKolaiRequests]', e);
-    box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${e.name==='AbortError' ? 'Hết thời gian chờ server.' : 'Lỗi kết nối: '+esc(e.message)}</p>`;
+    clearInterval(tick);
+    console.error('[hvLoadKolaiRequests] lỗi:', e);
+    const msg = e.name==='AbortError' ? 'Hết thời gian chờ server (quá 8 giây).' : 'Lỗi kết nối: '+esc(e.message||String(e));
+    box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${msg}</p>${RETRY_BTN}`;
   }
 }
 
