@@ -186,6 +186,16 @@ function inappCopyLink(){
     <div id="ql-codes-result" style="display:none;margin-top:12px;background:#0d0d0d;border-radius:10px;padding:13px 16px"></div>
   </div>
 
+  <!-- ════ YÊU CẦU TRUY CẬP — HỌC VIÊN KOL AI GO GLOBAL ════ -->
+  <div style="background:#141416;border:1px solid rgba(255,215,0,.22);border-radius:14px;padding:20px 22px;margin-bottom:28px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px">
+      <h2 style="font-size:15px;font-weight:900;color:#FFD700">🎓 Yêu cầu truy cập — Học viên KOL AI GO GLOBAL</h2>
+      <button onclick="loadKolaiRequests()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#A1A1AA;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Tải lại</button>
+    </div>
+    <p style="font-size:12px;color:#A1A1AA;margin-bottom:14px;line-height:1.6">Học viên tích "Tôi là học viên KOL AI GO GLOBAL" trong Học Viện và điền Tên + SĐT Zalo. Duyệt ở đây để cấp quyền đọc sách + 5 combo.</p>
+    <div id="kolai-req-list" style="font-size:13px;color:#A1A1AA">Đang tải...</div>
+  </div>
+
   <div class="intro">
     📺 Cách dùng: mở 1 combo → dán <b>link YouTube (Unlisted)</b> vào ô của từng bài → bấm <b>Lưu combo này</b>. Học viên sẽ xem được ngay. Dán link kiểu nào cũng được (youtu.be/… hoặc youtube.com/watch?v=…).
   </div>
@@ -198,7 +208,7 @@ const WH = 'https://ryhogciybrffiumuawrk.supabase.co/functions/v1/sepay-training
 const SB = 'https://ryhogciybrffiumuawrk.supabase.co';
 const SK = 'sb_publishable_hnvPBAGee6uUavpo6PEmuQ_GdFc6prm';
 const SH = { 'apikey':SK, 'Authorization':'Bearer '+SK, 'Content-Type':'application/json' };
-const ADMIN_FALLBACK = 'phongconson@gmail.com'; // chỉ để hiện thông báo; quyền ghi do webhook kiểm tra
+const ADMINS = ['phongconson@gmail.com', 'phongtyphu1995@gmail.com']; // phải khớp ADMINS trong supabase/functions/sepay-training-webhook/index.ts
 
 /* ════ QUẢN LÝ QUYỀN SÁCH ════ */
 async function qlCheckAccess(){
@@ -296,6 +306,60 @@ function qlCopyCodes(btn){
   });
 }
 
+/* ════ YÊU CẦU TRUY CẬP — HỌC VIÊN KOL AI GO GLOBAL ════ */
+async function loadKolaiRequests(){
+  const box = document.getElementById('kolai-req-list');
+  box.innerHTML = '<span style="color:#A1A1AA">⏳ Đang tải...</span>';
+  try{
+    const r = await fetch(WH, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'list_kolai_requests', email: userEmail })
+    });
+    const d = await r.json();
+    if(!d.success){ box.innerHTML = `<span style="color:#f87171">❌ Lỗi: ${d.error||'unknown'}</span>`; return; }
+    const pending = (d.requests||[]).filter(x=>x.status==='pending');
+    if(!pending.length){ box.innerHTML = '<span style="color:#52525B">Không có yêu cầu nào đang chờ duyệt.</span>'; return; }
+    box.innerHTML = pending.map(req => `
+      <div style="background:#0d0d0d;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
+          <div style="font-size:12px;color:#A1A1AA;margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
+          <div style="font-size:11px;color:#52525B;margin-top:2px">${new Date(req.created_at).toLocaleString('vi-VN')}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="qlApproveKolai('${req.id}')" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ADE80;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✅ Duyệt</button>
+          <button onclick="qlRejectKolai('${req.id}')" style="background:rgba(229,62,62,.12);border:1px solid rgba(229,62,62,.3);color:#E53E3E;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✕ Từ chối</button>
+        </div>
+      </div>`).join('');
+  }catch(e){
+    box.innerHTML = `<span style="color:#f87171">❌ Lỗi kết nối: ${e.message}</span>`;
+  }
+}
+async function qlApproveKolai(id){
+  if(!confirm('Duyệt yêu cầu này? Học viên sẽ được cấp quyền đọc sách + 5 combo.')) return;
+  try{
+    const r = await fetch(WH, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'approve_kolai_request', email: userEmail, request_id: id })
+    });
+    const d = await r.json();
+    if(d.success) loadKolaiRequests();
+    else alert('Lỗi: '+(d.error||'unknown'));
+  }catch(e){ alert('Lỗi kết nối: '+e.message); }
+}
+async function qlRejectKolai(id){
+  if(!confirm('Từ chối yêu cầu này?')) return;
+  try{
+    const r = await fetch(WH, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'reject_kolai_request', email: userEmail, request_id: id })
+    });
+    const d = await r.json();
+    if(d.success) loadKolaiRequests();
+    else alert('Lỗi: '+(d.error||'unknown'));
+  }catch(e){ alert('Lỗi kết nối: '+e.message); }
+}
+
 function qlGenLink(){
   const ref = document.getElementById('ql-ref').value.trim().replace(/^SEVQR\s*/i,'');
   if(!ref){ alert('Nhập mã thanh toán'); return; }
@@ -368,8 +432,29 @@ function ytId(s){ if(!s) return ''; const m=String(s).match(/(?:youtu\.be\/|[?&]
 firebase.initializeApp({apiKey:"AIzaSyB5p0tjfsAVUaHzCrmFkAzMiwAsjiOwGc8",authDomain:"phongmenlyproduct-37e44.firebaseapp.com",projectId:"phongmenlyproduct-37e44",storageBucket:"phongmenlyproduct-37e44.firebasestorage.app",messagingSenderId:"322407876187",appId:"1:322407876187:web:fca389d542c409dbeca17e"});
 auth = firebase.auth();
 auth.onAuthStateChanged(u=>{
-  if(u){ userEmail=u.email; document.getElementById('who').textContent=u.email; document.getElementById('btn-out').classList.remove('hidden'); enterApp(); }
-  else { userEmail=null; document.getElementById('gate').classList.remove('hidden'); document.getElementById('app').classList.add('hidden'); document.getElementById('btn-out').classList.add('hidden'); document.getElementById('who').textContent=''; }
+  if(u && ADMINS.includes((u.email||'').toLowerCase())){
+    userEmail=u.email;
+    document.getElementById('who').textContent=u.email;
+    document.getElementById('btn-out').classList.remove('hidden');
+    enterApp();
+  } else if(u){
+    // Đăng nhập được nhưng không phải admin → không cho vào, không hiện bất kỳ nội dung quản trị nào.
+    userEmail=null;
+    document.getElementById('who').textContent=u.email;
+    document.getElementById('btn-out').classList.remove('hidden');
+    document.getElementById('gate').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('btn-login').classList.add('hidden');
+    document.getElementById('gate-msg').textContent = 'Tài khoản ' + u.email + ' không có quyền quản trị. Đăng xuất và đăng nhập bằng tài khoản admin.';
+  } else {
+    userEmail=null;
+    document.getElementById('gate').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('btn-out').classList.add('hidden');
+    document.getElementById('btn-login').classList.remove('hidden');
+    document.getElementById('gate-msg').textContent = 'Đăng nhập bằng tài khoản admin để quản lý video bài học.';
+    document.getElementById('who').textContent='';
+  }
 });
 function loginGoogle(){ var p=new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(p).catch(function(e){ if(e.code==='auth/popup-blocked') auth.signInWithRedirect(p); }); }
 function signOut(){ auth.signOut(); }
@@ -377,6 +462,7 @@ function signOut(){ auth.signOut(); }
 async function enterApp(){
   document.getElementById('gate').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  loadKolaiRequests();
   for(const cid of ORDER){ await loadCombo(cid); }
   render();
 }
