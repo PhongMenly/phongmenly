@@ -260,9 +260,7 @@ a{text-decoration:none;color:inherit}
 .gift-code-inp:focus{border-color:var(--gold)}
 .gift-act-btn-top{display:none;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,215,0,.35);border-radius:50px;padding:6px 14px;color:rgba(255,215,0,.8);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0}
 .gift-act-btn-top:hover{color:var(--gold);border-color:var(--gold);background:rgba(255,215,0,.05)}
-.admin-kolai-btn-top{display:none;align-items:center;gap:6px;background:transparent;border:1px solid rgba(74,222,128,.4);border-radius:50px;padding:6px 14px;color:rgba(74,222,128,.85);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;flex-shrink:0;position:relative}
-.admin-kolai-btn-top:hover{color:#4ADE80;border-color:#4ADE80;background:rgba(74,222,128,.06)}
-.admin-kolai-badge{display:none;background:#E53E3E;color:#fff;font-size:10px;font-weight:800;border-radius:50px;padding:1px 6px;margin-left:2px}
+.gate-badge{display:none;background:#E53E3E;color:#fff;font-size:10px;font-weight:800;border-radius:50px;padding:1px 6px;margin-left:4px;vertical-align:1px}
 .kolai-req-card{background:#161616;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 15px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .kolai-req-approve{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ADE80;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
 .kolai-req-reject{background:rgba(229,62,62,.12);border:1px solid rgba(229,62,62,.3);color:#E53E3E;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:8px}
@@ -329,10 +327,6 @@ a{text-decoration:none;color:inherit}
 .pm-switch-link{text-align:center;margin-top:18px;font-size:13px;color:var(--muted)}
 .pm-switch-link span{color:var(--gold);cursor:pointer;font-weight:700}
 .pm-switch-link span:hover{text-decoration:underline}
-.kh-gate-tabs{display:flex;gap:8px;margin-bottom:18px}
-.kh-gate-tab{flex:1;padding:10px 8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--muted);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.2s;text-align:center;line-height:1.3}
-.kh-gate-tab.active{background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.45);color:var(--gold)}
-.kh-gate-tab:hover{color:var(--txt)}
 .pm-pw-input{letter-spacing:3px;text-align:center}
 .pm-pw-input::placeholder{letter-spacing:0}
 /* ══ REVIEW SYSTEM ══ */
@@ -514,11 +508,8 @@ function inappCopyLink(){
     <div class="side-spacer"></div>
 
     <div class="side-sec">Tài khoản</div>
-    <a class="side-link" onclick="khOpenGate()"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Nhập mật mã</a>
+    <a class="side-link" id="side-link-gate" onclick="khOpenGate()"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> <span id="side-link-gate-txt">Xin cấp quyền</span><span class="gate-badge" id="side-gate-badge">0</span></a>
     <a class="side-link danger" id="btn-logout" onclick="hvSignOut()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Đăng xuất</a>
-
-    <div class="side-sec" id="side-sec-admin" style="display:none">Quản trị</div>
-    <a class="side-link" id="side-link-admin-kolai" style="display:none" onclick="openAdminKolaiModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Duyệt yêu cầu</a>
   </aside>
 
   <!-- ════ MAIN ════ -->
@@ -531,7 +522,6 @@ function inappCopyLink(){
         <a href="hoc-vien.html" class="active">Học viện</a>
         <a href="affiliate.html">Đối tác</a>
       </nav>
-      <button class="admin-kolai-btn-top" id="admin-kolai-btn-top" onclick="openAdminKolaiModal()">🛡️ Duyệt yêu cầu<span class="admin-kolai-badge" id="admin-kolai-badge">0</span></button>
       <button class="gift-act-btn-top" id="gift-act-btn-top" onclick="openGiftActModal()">🎁 Kích hoạt quà</button>
       <button class="cart-btn" id="cart-btn" onclick="openCart()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Giỏ hàng <span class="cart-badge" id="cart-badge">0</span></button>
       <div class="top-user" id="top-user">
@@ -548,7 +538,7 @@ function inappCopyLink(){
             <div class="tu-pop-email" id="tu-pop-email"></div>
             <span class="tu-pop-badge" id="tu-pop-badge"></span>
           </div>
-          <a class="tu-pop-link" onclick="closeUserPop();khOpenGate()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Nhập mật mã</a>
+          <a class="tu-pop-link" onclick="closeUserPop();khOpenGate()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> <span id="tu-pop-link-gate-txt">Xin cấp quyền</span><span class="gate-badge" id="tu-pop-gate-badge">0</span></a>
           <a class="tu-pop-link danger" onclick="closeUserPop();hvSignOut()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Đăng xuất</a>
         </div>
       </div>
@@ -567,9 +557,9 @@ function inappCopyLink(){
       </div>
 
       <div class="unlock-banner" id="unlock-banner" style="display:none">
-        <div class="ub-l">🔒 Bạn chưa mở khóa. <b>Đã có sách Mật Mã Tự Do?</b> Nhập mật mã để mở trọn 5 combo — hoặc đặt sách để nhận mã.</div>
+        <div class="ub-l">🔒 Bạn chưa mở khóa. <b>Là học viên KOL AI GO GLOBAL?</b> Gửi yêu cầu để admin duyệt mở trọn 5 combo — hoặc đặt sách để mở ngay.</div>
         <div class="ub-acts">
-          <button class="ub-btn solid" onclick="khOpenGate()">🔓 Nhập mật mã</button>
+          <button class="ub-btn solid" onclick="khOpenGate()">🎓 Xin cấp quyền</button>
           <button class="ub-btn line" onclick="location.href='index.html#pricing'">📕 Đặt sách</button>
         </div>
       </div>
@@ -997,52 +987,32 @@ async function pmSignInGoogle(){
   }
 }
 
-// ════ CỔNG MẬT MÃ ════
-function khOpenGate(){ document.getElementById('kh-gate-modal').classList.add('show'); khSwitchTab('code'); document.getElementById('side').classList.remove('open'); document.getElementById('side-ov').classList.remove('open'); }
-function khCloseGate(e){ if(!e||e.target===document.getElementById('kh-gate-modal')) document.getElementById('kh-gate-modal').classList.remove('show'); }
-function khSwitchTab(tab){
-  const isCode = tab==='code';
-  document.getElementById('kh-tab-code').classList.toggle('active', isCode);
-  document.getElementById('kh-tab-kolai').classList.toggle('active', !isCode);
-  document.getElementById('kh-pane-code').style.display = isCode ? 'block' : 'none';
-  document.getElementById('kh-pane-kolai').style.display = isCode ? 'none' : 'block';
-  if(isCode) document.getElementById('kh-pw').focus(); else document.getElementById('kolai-name').focus();
+// ════ CỔNG XIN CẤP QUYỀN (học viên) / DUYỆT (admin) ════
+const HV_ADMINS = ['phongconson@gmail.com', 'phongtyphu1995@gmail.com']; // phải khớp ADMINS trong sepay-training-webhook/index.ts
+
+function hvFetchJSON(body, timeoutMs){
+  timeoutMs = timeoutMs || 12000;
+  const ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+  const t = ctrl ? setTimeout(()=>ctrl.abort(), timeoutMs) : null;
+  return fetch(MMTD_WEBHOOK, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body),
+    signal: ctrl ? ctrl.signal : undefined,
+  }).then(r=>r.json()).finally(()=>{ if(t) clearTimeout(t); });
 }
-async function khUnlock(){
-  const val=(document.getElementById('kh-pw').value||'').trim();
-  const errEl=document.getElementById('gate-err');
-  const btn=document.querySelector('#kh-gate-modal .pm-btn-submit');
+
+function khOpenGate(){
+  document.getElementById('kh-gate-modal').classList.add('show');
+  document.getElementById('side').classList.remove('open');
+  document.getElementById('side-ov').classList.remove('open');
   const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
-  if(!email){
-    errEl.textContent='Cần đăng nhập trước khi nhập mã (để mở khóa được lưu lại vĩnh viễn, dùng được trên mọi thiết bị).';
-    khCloseGate();
-    pmOpenModal('welcome');
-    return;
-  }
-  if(!val){ errEl.textContent='Nhập mã trước đã nhé.'; return; }
-  errEl.textContent='';
-  if(btn){ btn.disabled=true; btn.textContent='Đang kiểm tra...'; }
-  try{
-    const r = await fetch(MMTD_WEBHOOK, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'redeem_code', code: val, email })
-    });
-    const d = await r.json();
-    if(d && d.success){
-      localStorage.setItem('kh_unlocked','1');
-      localStorage.setItem('book_unlocked','1');
-      khCloseGate();
-      applyState();
-    }else{
-      errEl.textContent = d && d.error==='used' ? 'Mã này đã được sử dụng.' : 'Mã không đúng. Thử lại.';
-      document.getElementById('kh-pw').value=''; document.getElementById('kh-pw').focus();
-    }
-  }catch(e){
-    errEl.textContent='Lỗi kết nối. Thử lại.';
-  }finally{
-    if(btn){ btn.disabled=false; btn.textContent='Mở khóa'; }
-  }
+  const isAdmin = !!(email && HV_ADMINS.includes(email.toLowerCase()));
+  document.getElementById('kh-pane-admin').style.display  = isAdmin ? 'block' : 'none';
+  document.getElementById('kh-pane-kolai').style.display  = isAdmin ? 'none'  : 'block';
+  if(isAdmin) hvLoadKolaiRequests();
+  else { const n = document.getElementById('kolai-name'); if(n) n.focus(); }
 }
+function khCloseGate(e){ if(!e||e.target===document.getElementById('kh-gate-modal')) document.getElementById('kh-gate-modal').classList.remove('show'); }
 
 async function khRequestKolaiAccess(){
   const name  = (document.getElementById('kolai-name').value||'').trim();
@@ -1062,11 +1032,7 @@ async function khRequestKolaiAccess(){
   if(!phone || phone.replace(/\D/g,'').length<9){ errEl.textContent='Nhập số điện thoại Zalo hợp lệ.'; return; }
   btn.disabled=true; btn.textContent='Đang gửi...';
   try{
-    const r = await fetch(MMTD_WEBHOOK, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'request_kolai_access', name, phone, email })
-    });
-    const d = await r.json();
+    const d = await hvFetchJSON({ action:'request_kolai_access', name, phone, email });
     if(d && d.success){
       sttEl.style.color='#4ADE80';
       sttEl.textContent = d.already_pending
@@ -1078,57 +1044,44 @@ async function khRequestKolaiAccess(){
       btn.disabled=false; btn.textContent='Gửi yêu cầu duyệt';
     }
   }catch(e){
-    errEl.textContent='Lỗi kết nối. Thử lại.';
+    errEl.textContent = e.name==='AbortError' ? 'Hết thời gian chờ. Thử lại.' : 'Lỗi kết nối. Thử lại.';
     btn.disabled=false; btn.textContent='Gửi yêu cầu duyệt';
   }
 }
 
-// ════ ADMIN — DUYỆT YÊU CẦU KOL AI GO GLOBAL (hiện ngay trên trang Học Viện) ════
-const HV_ADMINS = ['phongconson@gmail.com', 'phongtyphu1995@gmail.com']; // phải khớp ADMINS trong sepay-training-webhook/index.ts
-
+// ════ ADMIN — DUYỆT YÊU CẦU KOL AI GO GLOBAL (cùng chỗ "Xin cấp quyền") ════
 function hvSetAdminUI(isAdmin){
-  const top   = document.getElementById('admin-kolai-btn-top');
-  const side  = document.getElementById('side-link-admin-kolai');
-  const sideS = document.getElementById('side-sec-admin');
-  if(top)   top.style.display  = isAdmin ? 'flex' : 'none';
-  if(side)  side.style.display = isAdmin ? 'flex' : 'none';
-  if(sideS) sideS.style.display= isAdmin ? 'block': 'none';
+  const sideTxt = document.getElementById('side-link-gate-txt');
+  const popTxt  = document.getElementById('tu-pop-link-gate-txt');
+  if(sideTxt) sideTxt.textContent = isAdmin ? 'Duyệt yêu cầu' : 'Xin cấp quyền';
+  if(popTxt)  popTxt.textContent  = isAdmin ? 'Duyệt yêu cầu' : 'Xin cấp quyền';
   if(isAdmin) hvRefreshKolaiBadge();
+  else{
+    const b1=document.getElementById('side-gate-badge'), b2=document.getElementById('tu-pop-gate-badge');
+    if(b1) b1.style.display='none'; if(b2) b2.style.display='none';
+  }
 }
 
 async function hvRefreshKolaiBadge(){
   const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
   if(!email || !HV_ADMINS.includes(email.toLowerCase())) return;
   try{
-    const r = await fetch(MMTD_WEBHOOK, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'list_kolai_requests', email })
-    });
-    const d = await r.json();
+    const d = await hvFetchJSON({ action:'list_kolai_requests', email });
     const n = d && d.success ? (d.requests||[]).filter(x=>x.status==='pending').length : 0;
-    const badge = document.getElementById('admin-kolai-badge');
-    if(badge){ badge.textContent = n; badge.style.display = n>0 ? 'inline-block' : 'none'; }
-  }catch(e){}
+    [document.getElementById('side-gate-badge'), document.getElementById('tu-pop-gate-badge')].forEach(badge=>{
+      if(!badge) return;
+      badge.textContent = n;
+      badge.style.display = n>0 ? 'inline-block' : 'none';
+    });
+  }catch(e){ console.warn('[hvRefreshKolaiBadge]', e); }
 }
-
-function openAdminKolaiModal(){
-  document.getElementById('kolai-admin-modal').classList.add('show');
-  document.getElementById('side').classList.remove('open');
-  document.getElementById('side-ov').classList.remove('open');
-  hvLoadKolaiRequests();
-}
-function closeAdminKolaiModal(e){ if(!e||e.target===document.getElementById('kolai-admin-modal')) document.getElementById('kolai-admin-modal').classList.remove('show'); }
 
 async function hvLoadKolaiRequests(){
   const box = document.getElementById('admin-kolai-list');
   const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
   box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">⏳ Đang tải...</p>';
   try{
-    const r = await fetch(MMTD_WEBHOOK, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'list_kolai_requests', email })
-    });
-    const d = await r.json();
+    const d = await hvFetchJSON({ action:'list_kolai_requests', email });
     if(!d.success){ box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${esc(d.error||'Lỗi')}</p>`; return; }
     const pending = (d.requests||[]).filter(x=>x.status==='pending');
     if(!pending.length){ box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>'; return; }
@@ -1145,7 +1098,8 @@ async function hvLoadKolaiRequests(){
         </div>
       </div>`).join('');
   }catch(e){
-    box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ Lỗi kết nối: ${esc(e.message)}</p>`;
+    console.error('[hvLoadKolaiRequests]', e);
+    box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${e.name==='AbortError' ? 'Hết thời gian chờ server.' : 'Lỗi kết nối: '+esc(e.message)}</p>`;
   }
 }
 
@@ -1153,11 +1107,7 @@ async function hvApproveKolai(id){
   const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
   if(!confirm('Duyệt yêu cầu này? Học viên sẽ được cấp quyền đọc sách + 5 combo.')) return;
   try{
-    const r = await fetch(MMTD_WEBHOOK, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'approve_kolai_request', email, request_id: id })
-    });
-    const d = await r.json();
+    const d = await hvFetchJSON({ action:'approve_kolai_request', email, request_id: id });
     if(d.success){ hvLoadKolaiRequests(); hvRefreshKolaiBadge(); }
     else alert('Lỗi: '+(d.error||'unknown'));
   }catch(e){ alert('Lỗi kết nối: '+e.message); }
@@ -1167,11 +1117,7 @@ async function hvRejectKolai(id){
   const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
   if(!confirm('Từ chối yêu cầu này?')) return;
   try{
-    const r = await fetch(MMTD_WEBHOOK, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'reject_kolai_request', email, request_id: id })
-    });
-    const d = await r.json();
+    const d = await hvFetchJSON({ action:'reject_kolai_request', email, request_id: id });
     if(d.success){ hvLoadKolaiRequests(); hvRefreshKolaiBadge(); }
     else alert('Lỗi: '+(d.error||'unknown'));
   }catch(e){ alert('Lỗi kết nối: '+e.message); }
@@ -1882,23 +1828,10 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
 <div class="pm-modal-overlay" id="kh-gate-modal" onclick="khCloseGate(event)">
   <div class="pm-modal-box">
     <button class="pm-modal-close" onclick="khCloseGate()">✕</button>
-    <div style="font-size:44px;text-align:center;margin-bottom:12px">🔓</div>
 
-    <div class="kh-gate-tabs">
-      <button type="button" class="kh-gate-tab active" id="kh-tab-code" onclick="khSwitchTab('code')">🔑 Nhập mã</button>
-      <button type="button" class="kh-gate-tab" id="kh-tab-kolai" onclick="khSwitchTab('kolai')">🎓 Học viên KOL AI GO GLOBAL</button>
-    </div>
-
-    <div id="kh-pane-code">
-      <h3 class="pm-modal-title">Nhập mật mã</h3>
-      <p class="pm-modal-sub">Nhập mã cá nhân được cấp (mỗi mã chỉ dùng được 1 lần) để mở trọn 5 combo.</p>
-      <input class="pm-input pm-pw-input" type="text" id="kh-pw" placeholder="Mã của bạn..." autocomplete="off" style="text-transform:uppercase" onkeydown="if(event.key==='Enter')khUnlock()">
-      <div class="pm-error" id="gate-err"></div>
-      <button class="pm-btn-submit" onclick="khUnlock()">Mở khóa</button>
-      <div class="pm-switch-link">Chưa có sách? <span onclick="location.href='index.html#pricing'">Đặt sách ngay</span></div>
-    </div>
-
-    <div id="kh-pane-kolai" style="display:none">
+    <!-- Pane học viên: xin cấp quyền (admin sẽ không thấy pane này) -->
+    <div id="kh-pane-kolai">
+      <div style="font-size:44px;text-align:center;margin-bottom:12px">🎓</div>
       <h3 class="pm-modal-title">Học viên KOL AI GO GLOBAL</h3>
       <p class="pm-modal-sub">Điền thông tin — gửi yêu cầu rồi chờ admin duyệt. Khi được duyệt, tài khoản của bạn sẽ tự mở khóa trọn 5 combo.</p>
       <input class="pm-input" type="text" id="kolai-name" placeholder="Họ và tên..." autocomplete="off">
@@ -1907,17 +1840,14 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ pmCloseModal(); 
       <button class="pm-btn-submit" id="kolai-submit-btn" onclick="khRequestKolaiAccess()">Gửi yêu cầu duyệt</button>
       <p id="kolai-status" style="text-align:center;font-size:12.5px;margin-top:10px;min-height:18px;line-height:1.5;color:var(--dim)"></p>
     </div>
-  </div>
-</div>
 
-<!-- MODAL: ADMIN — DUYỆT YÊU CẦU HỌC VIÊN KOL AI GO GLOBAL -->
-<div class="pm-modal-overlay" id="kolai-admin-modal" onclick="closeAdminKolaiModal(event)">
-  <div class="pm-modal-box pay-box">
-    <button class="pm-modal-close" onclick="closeAdminKolaiModal()">✕</button>
-    <div style="font-size:40px;text-align:center;margin-bottom:10px">🛡️</div>
-    <h3 class="pm-modal-title">Duyệt yêu cầu truy cập</h3>
-    <p class="pm-modal-sub">Học viên KOL AI GO GLOBAL đang chờ bạn duyệt.</p>
-    <div id="admin-kolai-list" style="max-height:50vh;overflow-y:auto">Đang tải...</div>
+    <!-- Pane admin: duyệt yêu cầu (thay cho pane học viên, cùng 1 chỗ bấm "Xin cấp quyền") -->
+    <div id="kh-pane-admin" style="display:none">
+      <div style="font-size:40px;text-align:center;margin-bottom:10px">🛡️</div>
+      <h3 class="pm-modal-title">Duyệt yêu cầu truy cập</h3>
+      <p class="pm-modal-sub">Học viên KOL AI GO GLOBAL đang chờ bạn duyệt.</p>
+      <div id="admin-kolai-list" style="max-height:50vh;overflow-y:auto">Đang tải...</div>
+    </div>
   </div>
 </div>
 
