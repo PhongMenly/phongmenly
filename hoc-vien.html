@@ -1012,7 +1012,12 @@ function khOpenGate(){
   const isAdmin = !!(email && HV_ADMINS.includes(email.toLowerCase()));
   document.getElementById('kh-pane-admin').style.display  = isAdmin ? 'block' : 'none';
   document.getElementById('kh-pane-kolai').style.display  = isAdmin ? 'none'  : 'block';
-  if(isAdmin) hvLoadKolaiRequests();
+  if(isAdmin){
+    // Hiện ngay dữ liệu đã có sẵn từ lần tải badge lúc đăng nhập (không cần chờ gọi lại) —
+    // rồi vẫn âm thầm gọi lại phía dưới để lấy bản mới nhất.
+    if(hvKolaiCache) hvRenderKolaiList(hvKolaiCache);
+    hvLoadKolaiRequests(!!hvKolaiCache);
+  }
   else { const n = document.getElementById('kolai-name'); if(n) n.focus(); }
 }
 function khCloseGate(e){ if(!e||e.target===document.getElementById('kh-gate-modal')) document.getElementById('kh-gate-modal').classList.remove('show'); }
@@ -1053,6 +1058,28 @@ async function khRequestKolaiAccess(){
 }
 
 // ════ ADMIN — DUYỆT YÊU CẦU KOL AI GO GLOBAL (cùng chỗ "Xin cấp quyền") ════
+let hvKolaiCache = null; // mảng yêu cầu pending gần nhất — lấy từ lần hvRefreshKolaiBadge() chạy lúc đăng nhập
+
+const RETRY_BTN = `<button onclick="hvLoadKolaiRequests()" style="display:block;margin:10px auto 0;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:var(--gold);padding:7px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Thử lại</button>`;
+
+function hvRenderKolaiList(pending){
+  const box = document.getElementById('admin-kolai-list');
+  if(!box) return;
+  if(!pending.length){ box.innerHTML = `<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>${RETRY_BTN}`; return; }
+  box.innerHTML = pending.map(req => `
+      <div class="kolai-req-card">
+        <div>
+          <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:2px">${esc(new Date(req.created_at).toLocaleString('vi-VN'))}</div>
+        </div>
+        <div>
+          <button class="kolai-req-approve" onclick="hvApproveKolai('${req.id}')">✅ Duyệt</button>
+          <button class="kolai-req-reject" onclick="hvRejectKolai('${req.id}')">✕ Từ chối</button>
+        </div>
+      </div>`).join('') + RETRY_BTN;
+}
+
 function hvSetAdminUI(isAdmin){
   const sideTxt = document.getElementById('side-link-gate-txt');
   const popTxt  = document.getElementById('tu-pop-link-gate-txt');
@@ -1070,7 +1097,8 @@ async function hvRefreshKolaiBadge(){
   if(!email || !HV_ADMINS.includes(email.toLowerCase())) return;
   try{
     const d = await hvFetchJSON({ action:'list_kolai_requests', email });
-    const n = d && d.success ? (d.requests||[]).filter(x=>x.status==='pending').length : 0;
+    if(d && d.success) hvKolaiCache = (d.requests||[]).filter(x=>x.status==='pending');
+    const n = hvKolaiCache ? hvKolaiCache.length : 0;
     [document.getElementById('side-gate-badge'), document.getElementById('tu-pop-gate-badge')].forEach(badge=>{
       if(!badge) return;
       badge.textContent = n;
@@ -1079,41 +1107,33 @@ async function hvRefreshKolaiBadge(){
   }catch(e){ console.warn('[hvRefreshKolaiBadge]', e); }
 }
 
-const RETRY_BTN = `<button onclick="hvLoadKolaiRequests()" style="display:block;margin:10px auto 0;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:var(--gold);padding:7px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Thử lại</button>`;
-
-async function hvLoadKolaiRequests(){
+// silent=true: đã có cache hiển thị sẵn rồi, lần gọi này chỉ âm thầm làm mới,
+// không ghi đè ô danh sách bằng "Đang tải..." và không hiện lỗi nếu thất bại.
+async function hvLoadKolaiRequests(silent){
   const box = document.getElementById('admin-kolai-list');
   const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
-  let secs = 0;
-  box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">⏳ Đang tải... (<span id="kolai-load-secs">0</span>s)</p>';
-  const tick = setInterval(()=>{
-    secs++;
-    const s = document.getElementById('kolai-load-secs');
-    if(s) s.textContent = secs; else clearInterval(tick);
-  }, 1000);
-  console.log('[hvLoadKolaiRequests] bắt đầu gọi', MMTD_WEBHOOK, {email});
+  let secs = 0, tick = null;
+  if(!silent){
+    box.innerHTML = '<p style="text-align:center;color:var(--dim);font-size:13px">⏳ Đang tải... (<span id="kolai-load-secs">0</span>s)</p>';
+    tick = setInterval(()=>{
+      secs++;
+      const s = document.getElementById('kolai-load-secs');
+      if(s) s.textContent = secs; else clearInterval(tick);
+    }, 1000);
+  }
+  console.log('[hvLoadKolaiRequests] bắt đầu gọi', MMTD_WEBHOOK, {email, silent});
   try{
     const d = await hvFetchJSON({ action:'list_kolai_requests', email }, 8000);
     console.log('[hvLoadKolaiRequests] phản hồi:', d);
-    clearInterval(tick);
-    if(!d.success){ box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${esc(d.error||'Lỗi')}</p>${RETRY_BTN}`; return; }
+    if(tick) clearInterval(tick);
+    if(!d.success){ if(!silent) box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${esc(d.error||'Lỗi')}</p>${RETRY_BTN}`; return; }
     const pending = (d.requests||[]).filter(x=>x.status==='pending');
-    if(!pending.length){ box.innerHTML = `<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>${RETRY_BTN}`; return; }
-    box.innerHTML = pending.map(req => `
-      <div class="kolai-req-card">
-        <div>
-          <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
-          <div style="font-size:11px;color:var(--dim);margin-top:2px">${esc(new Date(req.created_at).toLocaleString('vi-VN'))}</div>
-        </div>
-        <div>
-          <button class="kolai-req-approve" onclick="hvApproveKolai('${req.id}')">✅ Duyệt</button>
-          <button class="kolai-req-reject" onclick="hvRejectKolai('${req.id}')">✕ Từ chối</button>
-        </div>
-      </div>`).join('') + RETRY_BTN;
+    hvKolaiCache = pending;
+    hvRenderKolaiList(pending);
   }catch(e){
-    clearInterval(tick);
+    if(tick) clearInterval(tick);
     console.error('[hvLoadKolaiRequests] lỗi:', e);
+    if(silent) return; // đã có cache hiển thị sẵn, không ghi đè bằng lỗi
     const msg = e.name==='AbortError' ? 'Hết thời gian chờ server (quá 8 giây).' : 'Lỗi kết nối: '+esc(e.message||String(e));
     box.innerHTML = `<p style="text-align:center;color:#E53E3E;font-size:13px">❌ ${msg}</p>${RETRY_BTN}`;
   }
