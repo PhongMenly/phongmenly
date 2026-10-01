@@ -153,6 +153,8 @@ const SH = { 'apikey':SK, 'Authorization':'Bearer '+SK, 'Content-Type':'applicat
 const ADMINS = ['phongconson@gmail.com', 'phongtyphu1995@gmail.com']; // phải khớp ADMINS trong supabase/functions/sepay-training-webhook/index.ts
 
 /* ════ YÊU CẦU TRUY CẬP — HỌC VIÊN KOL AI GO GLOBAL ════ */
+let kolaiSelected = new Set();
+
 async function loadKolaiRequests(){
   const box = document.getElementById('kolai-req-list');
   box.innerHTML = '<span style="color:#A1A1AA">⏳ Đang tải...</span>';
@@ -163,47 +165,99 @@ async function loadKolaiRequests(){
     });
     const d = await r.json();
     if(!d.success){ box.innerHTML = `<span style="color:#f87171">❌ Lỗi: ${d.error||'unknown'}</span>`; return; }
-    const pending = (d.requests||[]).filter(x=>x.status==='pending');
-    if(!pending.length){ box.innerHTML = '<span style="color:#52525B">Không có yêu cầu nào đang chờ duyệt.</span>'; return; }
-    box.innerHTML = pending.map(req => `
-      <div style="background:#0d0d0d;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
-        <div>
-          <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
-          <div style="font-size:12px;color:#A1A1AA;margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
-          <div style="font-size:11px;color:#52525B;margin-top:2px">${new Date(req.created_at).toLocaleString('vi-VN')}</div>
+    kolaiSelected = new Set();
+    renderKolaiList((d.requests||[]).filter(x=>x.status==='pending'));
+  }catch(e){
+    box.innerHTML = `<span style="color:#f87171">❌ Lỗi kết nối: ${e.message}</span>`;
+  }
+}
+
+function renderKolaiList(pending){
+  const box = document.getElementById('kolai-req-list');
+  if(!pending.length){ box.innerHTML = '<span style="color:#52525B">Không có yêu cầu nào đang chờ duyệt.</span>'; return; }
+  const bar = `<div id="kolai-bulk-bar" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;background:#0d0d0d;border-radius:9px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:#A1A1AA;cursor:pointer">
+        <input type="checkbox" id="kolai-select-all" onchange="toggleKolaiSelectAll(this.checked)"> Chọn tất cả
+      </label>
+      <button onclick="bulkActionKolai('approve')" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ADE80;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✅ Duyệt đã chọn (<span id="kolai-sel-count">0</span>)</button>
+      <button onclick="bulkActionKolai('reject')" style="background:rgba(229,62,62,.12);border:1px solid rgba(229,62,62,.3);color:#E53E3E;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✕ Từ chối đã chọn</button>
+    </div>`;
+  const cards = pending.map(req => `
+      <div class="kolai-row" data-id="${req.id}" style="background:#0d0d0d;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          <input type="checkbox" class="kolai-chk" data-id="${req.id}" onchange="toggleKolaiSelect('${req.id}', this.checked)">
+          <div>
+            <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
+            <div style="font-size:12px;color:#A1A1AA;margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
+            <div style="font-size:11px;color:#52525B;margin-top:2px">${new Date(req.created_at).toLocaleString('vi-VN')}</div>
+          </div>
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="qlApproveKolai('${req.id}')" style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);color:#4ADE80;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✅ Duyệt</button>
           <button onclick="qlRejectKolai('${req.id}')" style="background:rgba(229,62,62,.12);border:1px solid rgba(229,62,62,.3);color:#E53E3E;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">✕ Từ chối</button>
         </div>
       </div>`).join('');
-  }catch(e){
-    box.innerHTML = `<span style="color:#f87171">❌ Lỗi kết nối: ${e.message}</span>`;
+  box.innerHTML = bar + cards;
+}
+
+function toggleKolaiSelect(id, checked){
+  if(checked) kolaiSelected.add(id); else kolaiSelected.delete(id);
+  const c = document.getElementById('kolai-sel-count'); if(c) c.textContent = kolaiSelected.size;
+}
+function toggleKolaiSelectAll(checked){
+  document.querySelectorAll('.kolai-chk').forEach(cb=>{ cb.checked = checked; toggleKolaiSelect(cb.dataset.id, checked); });
+}
+
+// Gỡ 1 dòng khỏi danh sách ngay tại chỗ — không gọi lại toàn bộ danh sách nên không phải chờ "Đang tải..." lần nữa.
+function removeKolaiRow(id){
+  kolaiSelected.delete(id);
+  const row = document.querySelector(`.kolai-row[data-id="${id}"]`);
+  if(row) row.remove();
+  const c = document.getElementById('kolai-sel-count'); if(c) c.textContent = kolaiSelected.size;
+  if(!document.querySelector('.kolai-row')){
+    document.getElementById('kolai-req-list').innerHTML = '<span style="color:#52525B">Không có yêu cầu nào đang chờ duyệt.</span>';
   }
 }
+
+async function kolaiCall(action, id){
+  const r = await fetch(WH, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action, email: userEmail, request_id: id })
+  });
+  return r.json();
+}
+
 async function qlApproveKolai(id){
   if(!confirm('Duyệt yêu cầu này? Học viên sẽ được cấp quyền đọc sách + 5 combo.')) return;
   try{
-    const r = await fetch(WH, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'approve_kolai_request', email: userEmail, request_id: id })
-    });
-    const d = await r.json();
-    if(d.success) loadKolaiRequests();
+    const d = await kolaiCall('approve_kolai_request', id);
+    if(d.success) removeKolaiRow(id);
     else alert('Lỗi: '+(d.error||'unknown'));
   }catch(e){ alert('Lỗi kết nối: '+e.message); }
 }
 async function qlRejectKolai(id){
   if(!confirm('Từ chối yêu cầu này?')) return;
   try{
-    const r = await fetch(WH, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'reject_kolai_request', email: userEmail, request_id: id })
-    });
-    const d = await r.json();
-    if(d.success) loadKolaiRequests();
+    const d = await kolaiCall('reject_kolai_request', id);
+    if(d.success) removeKolaiRow(id);
     else alert('Lỗi: '+(d.error||'unknown'));
   }catch(e){ alert('Lỗi kết nối: '+e.message); }
+}
+
+// Duyệt/từ chối hàng loạt — gửi song song (Promise.all), không chờ lần lượt từng cái.
+async function bulkActionKolai(kind){
+  if(!kolaiSelected.size){ alert('Chưa chọn yêu cầu nào.'); return; }
+  const n = kolaiSelected.size;
+  const label = kind==='approve' ? 'Duyệt' : 'Từ chối';
+  if(!confirm(`${label} ${n} yêu cầu đã chọn?`)) return;
+  const action = kind==='approve' ? 'approve_kolai_request' : 'reject_kolai_request';
+  const ids = [...kolaiSelected];
+  const results = await Promise.all(ids.map(id =>
+    kolaiCall(action, id).then(d=>({id, ok: !!d.success, error: d.error})).catch(e=>({id, ok:false, error:e.message}))
+  ));
+  results.forEach(res => { if(res.ok) removeKolaiRow(res.id); });
+  const failed = results.filter(r=>!r.ok);
+  if(failed.length) alert(`${failed.length}/${n} yêu cầu lỗi: ` + failed.map(f=>f.error||'unknown').join(', '));
 }
 
 // Khung bài mặc định (để bạn điền link) — khớp 5 combo

@@ -1062,22 +1062,59 @@ let hvKolaiCache = null; // mảng yêu cầu pending gần nhất — lấy t�
 
 const RETRY_BTN = `<button onclick="hvLoadKolaiRequests()" style="display:block;margin:10px auto 0;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.35);color:var(--gold);padding:7px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Thử lại</button>`;
 
+let hvKolaiSelected = new Set();
+
 function hvRenderKolaiList(pending){
   const box = document.getElementById('admin-kolai-list');
   if(!box) return;
   if(!pending.length){ box.innerHTML = `<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>${RETRY_BTN}`; return; }
-  box.innerHTML = pending.map(req => `
-      <div class="kolai-req-card">
-        <div>
-          <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
-          <div style="font-size:11px;color:var(--dim);margin-top:2px">${esc(new Date(req.created_at).toLocaleString('vi-VN'))}</div>
+  const bar = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;background:rgba(255,255,255,.04);border-radius:9px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" id="hv-kolai-select-all" onchange="hvToggleSelectAll(this.checked)"> Chọn tất cả
+      </label>
+      <button onclick="hvBulkAction('approve')" class="kolai-req-approve">✅ Duyệt đã chọn (<span id="hv-kolai-sel-count">0</span>)</button>
+      <button onclick="hvBulkAction('reject')" class="kolai-req-reject">✕ Từ chối đã chọn</button>
+    </div>`;
+  const cards = pending.map(req => `
+      <div class="kolai-req-card" data-id="${req.id}">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          <input type="checkbox" class="hv-kolai-chk" data-id="${req.id}" onchange="hvToggleSelect('${req.id}', this.checked)">
+          <div>
+            <div style="font-weight:800;color:#fff;font-size:13.5px">${esc(req.name)}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">📱 ${esc(req.phone)} · ✉️ ${esc(req.email)}</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px">${esc(new Date(req.created_at).toLocaleString('vi-VN'))}</div>
+          </div>
         </div>
         <div>
           <button class="kolai-req-approve" onclick="hvApproveKolai('${req.id}')">✅ Duyệt</button>
           <button class="kolai-req-reject" onclick="hvRejectKolai('${req.id}')">✕ Từ chối</button>
         </div>
-      </div>`).join('') + RETRY_BTN;
+      </div>`).join('');
+  box.innerHTML = bar + cards + RETRY_BTN;
+}
+
+function hvToggleSelect(id, checked){
+  if(checked) hvKolaiSelected.add(id); else hvKolaiSelected.delete(id);
+  const c = document.getElementById('hv-kolai-sel-count'); if(c) c.textContent = hvKolaiSelected.size;
+}
+function hvToggleSelectAll(checked){
+  document.querySelectorAll('.hv-kolai-chk').forEach(cb=>{ cb.checked = checked; hvToggleSelect(cb.dataset.id, checked); });
+}
+
+// Gỡ 1 dòng tại chỗ — không gọi lại toàn bộ danh sách nên không phải chờ "Đang tải..." lần nữa.
+function hvRemoveKolaiRow(id){
+  hvKolaiSelected.delete(id);
+  if(hvKolaiCache) hvKolaiCache = hvKolaiCache.filter(r=>r.id!==id);
+  const row = document.querySelector(`.kolai-req-card[data-id="${id}"]`);
+  if(row) row.remove();
+  const c = document.getElementById('hv-kolai-sel-count'); if(c) c.textContent = hvKolaiSelected.size;
+  if(!document.querySelector('.kolai-req-card')){
+    const box = document.getElementById('admin-kolai-list');
+    if(box) box.innerHTML = `<p style="text-align:center;color:var(--dim);font-size:13px">Không có yêu cầu nào đang chờ duyệt.</p>${RETRY_BTN}`;
+  }
+  const badge1=document.getElementById('side-gate-badge'), badge2=document.getElementById('tu-pop-gate-badge');
+  const n = hvKolaiCache ? hvKolaiCache.length : 0;
+  [badge1, badge2].forEach(b=>{ if(!b) return; b.textContent=n; b.style.display = n>0 ? 'inline-block' : 'none'; });
 }
 
 function hvSetAdminUI(isAdmin){
@@ -1144,7 +1181,7 @@ async function hvApproveKolai(id){
   if(!confirm('Duyệt yêu cầu này? Học viên sẽ được cấp quyền đọc sách + 5 combo.')) return;
   try{
     const d = await hvFetchJSON({ action:'approve_kolai_request', email, request_id: id });
-    if(d.success){ hvLoadKolaiRequests(); hvRefreshKolaiBadge(); }
+    if(d.success) hvRemoveKolaiRow(id);
     else alert('Lỗi: '+(d.error||'unknown'));
   }catch(e){ alert('Lỗi kết nối: '+e.message); }
 }
@@ -1154,9 +1191,28 @@ async function hvRejectKolai(id){
   if(!confirm('Từ chối yêu cầu này?')) return;
   try{
     const d = await hvFetchJSON({ action:'reject_kolai_request', email, request_id: id });
-    if(d.success){ hvLoadKolaiRequests(); hvRefreshKolaiBadge(); }
+    if(d.success) hvRemoveKolaiRow(id);
     else alert('Lỗi: '+(d.error||'unknown'));
   }catch(e){ alert('Lỗi kết nối: '+e.message); }
+}
+
+// Duyệt/từ chối hàng loạt — gửi song song (Promise.all), không chờ lần lượt từng cái.
+async function hvBulkAction(kind){
+  const email = (hvAuth && hvAuth.currentUser && hvAuth.currentUser.email) || null;
+  if(!hvKolaiSelected.size){ alert('Chưa chọn yêu cầu nào.'); return; }
+  const n = hvKolaiSelected.size;
+  const label = kind==='approve' ? 'Duyệt' : 'Từ chối';
+  if(!confirm(`${label} ${n} yêu cầu đã chọn?`)) return;
+  const action = kind==='approve' ? 'approve_kolai_request' : 'reject_kolai_request';
+  const ids = [...hvKolaiSelected];
+  const results = await Promise.all(ids.map(id =>
+    hvFetchJSON({ action, email, request_id: id })
+      .then(d=>({id, ok: !!d.success, error: d.error}))
+      .catch(e=>({id, ok:false, error:e.message}))
+  ));
+  results.forEach(res => { if(res.ok) hvRemoveKolaiRow(res.id); });
+  const failed = results.filter(r=>!r.ok);
+  if(failed.length) alert(`${failed.length}/${n} yêu cầu lỗi: ` + failed.map(f=>f.error||'unknown').join(', '));
 }
 
 function showUser(name, email, pic, vip){
