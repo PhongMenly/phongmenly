@@ -2824,11 +2824,20 @@ function toggleLang(){
 }
 
 (function initLang(){
+  const btn = document.getElementById('btn-lang');
+  const total = document.querySelectorAll('[data-tr]').length;
+  const done  = Object.keys(window.BOOK_EN || {}).length;
+
+  /* Chỉ hiện nút EN khi đã dịch xong (>=98%). Dịch dở mà cho bấm thì khách
+     sẽ thấy sách nửa Anh nửa Việt — nút tự hiện khi bản dịch hoàn tất. */
+  const ready = total > 0 && done >= total * 0.98;
+  if(btn) btn.style.display = ready ? '' : 'none';
+  if(!ready){ applyLang('vi'); return; }
+
   let saved = 'vi';
   try{ saved = localStorage.getItem('book_lang') || 'vi'; }catch(e){}
-  const btn = document.getElementById('btn-lang');
   if(btn) btn.addEventListener('click', toggleLang);
-  if(saved === 'en') applyLang('en'); else applyLang('vi');
+  applyLang(saved === 'en' ? 'en' : 'vi');
 })();
 
 /* ══════════════════════════════════════════
@@ -3061,18 +3070,44 @@ function normalizeVi(t){
 }
 
 /* Cắt đoạn dài thành mẩu ≤ ~190 ký tự, ưu tiên ranh giới câu */
+/* Cắt đoạn dài thành mẩu ≤190 ký tự để gửi sang TTS.
+   Thứ tự ưu tiên khi cắt: hết CÂU → hết MỆNH ĐỀ (, ; : – —) → ranh giới TỪ.
+   Tuyệt đối không cắt giữa từ: mỗi mẩu được đọc thành một lượt riêng,
+   cắt cứng giữa chữ làm câu văn gãy đôi, nghe rời rạc như máy hỏng. */
 function splitChunks(text){
-  const parts = text.match(/[^.!?…\n]+[.!?…]*\s*/g) || [text];
-  const out = []; let cur = '';
-  for(let p of parts){
+  const LIMIT = 190;
+  const sentences = text.match(/[^.!?…\n]+[.!?…]*\s*/g) || [text];
+  const out = [];
+  let cur = '';
+  const flush = ()=>{ if(cur.trim()) out.push(cur.trim()); cur = ''; };
+
+  /* Câu dài hơn giới hạn: cắt theo mệnh đề, hết mệnh đề thì lùi về khoảng trắng */
+  const splitLong = (s)=>{
+    const pieces = [];
+    let rest = s.trim();
+    while(rest.length > LIMIT){
+      let cut = -1;
+      const clause = /[,;:–—]\s/g;
+      let m;
+      while((m = clause.exec(rest)) !== null){
+        if(m.index + 1 <= LIMIT) cut = m.index + 1; else break;
+      }
+      if(cut < 0) cut = rest.lastIndexOf(' ', LIMIT);   /* không có mệnh đề → cắt ở khoảng trắng */
+      if(cut <= 0) cut = LIMIT;                         /* chuỗi dài liền không dấu cách (hiếm) */
+      pieces.push(rest.slice(0, cut).trim());
+      rest = rest.slice(cut).trim();
+    }
+    if(rest) pieces.push(rest);
+    return pieces;
+  };
+
+  for(let p of sentences){
     p = p.trim(); if(!p) continue;
-    if((cur ? cur+' '+p : p).length > 190){
-      if(cur){ out.push(cur); cur=''; }
-      if(p.length > 190){ for(let k=0;k<p.length;k+=190) out.push(p.slice(k,k+190)); }
-      else cur = p;
-    } else cur = cur ? cur+' '+p : p;
+    if(p.length > LIMIT){ flush(); splitLong(p).forEach(x=>out.push(x)); continue; }
+    if((cur ? cur + ' ' + p : p).length > LIMIT) flush();
+    cur = cur ? cur + ' ' + p : p;
   }
-  if(cur) out.push(cur);
+  flush();
   return out;
 }
 
@@ -3122,7 +3157,12 @@ function speakBlock(){
 /* Phát 1 MẨU của đoạn hiện tại */
 function playChunk(){
   if(!reading || paused) return;
-  if(ci >= chunks.length){ bi++; return speakBlock(); }   /* hết đoạn → đoạn sau */
+  /* Hết đoạn → nghỉ một nhịp ngắn rồi mới sang đoạn sau.
+     Đọc liền mạch không nghỉ khiến các đoạn dính vào nhau, nghe hụt hơi. */
+  if(ci >= chunks.length){
+    bi++;
+    return setTimeout(()=>{ if(reading && !paused) speakBlock(); }, 420);
+  }
   if(useGoogle){
     const a = ensureAudio();
     clearLoadTimer();
