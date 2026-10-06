@@ -369,6 +369,8 @@ a{text-decoration:none;color:inherit}
 .rv-txt-clamp.expanded{display:block;-webkit-line-clamp:unset;overflow:visible;}
 .rv-toggle{background:none;border:none;color:#FFD700;font-size:12px;cursor:pointer;padding:5px 0 0;text-decoration:underline;display:block;font-family:inherit;text-align:left;}
 .rv-toggle:hover{color:#FFA500;}
+.rv-more-btn{display:block;width:100%;margin-top:4px;background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.28);color:#FFD700;font-size:13px;font-weight:700;font-family:inherit;padding:12px;border-radius:12px;cursor:pointer;transition:.18s}
+.rv-more-btn:hover{background:rgba(255,215,0,.13);border-color:rgba(255,215,0,.5)}
 .rv-nm{font-size:14px;font-weight:700;line-height:1.2;cursor:pointer;transition:color .15s;}
 .rv-nm:hover{color:#FFD700;}
 .rv-av-wrap{cursor:pointer;}
@@ -2087,11 +2089,41 @@ function summaryHTML(revs){
     +'<div class="rv-big-cnt">'+n+' đánh giá</div></div>'
     +'<div class="rv-bars">'+bars+'</div>';
 }
+var RV_PREVIEW=3;      /* số đánh giá hiện lúc đầu */
+var _rvExpanded=false; /* đã bấm "Xem thêm" chưa */
+
+/* Chọn 3 đánh giá ĐÁNG ĐỌC NHẤT để hiện trước: nhiều chữ xếp lên đầu.
+   Đánh giá chỉ có sao, không có chữ thì không nói lên điều gì, để phía sau. */
+function rvPickTop(list,n){
+  return list.slice().sort(function(a,b){
+    return String(b.content||'').length - String(a.content||'').length;
+  }).slice(0,n);
+}
+
 function renderList(el,revs,myUid){
   var flt=_filter==='all'?revs:revs.filter(function(r){return r.rating===parseInt(_filter);});
-  el.innerHTML=flt.length?flt.map(function(r){return cardHTML(r,myUid);}).join('')
-    :'<div class="rv-empty" style="padding:40px 20px"><div style="font-size:36px;margin-bottom:10px">📝</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">Chưa có đánh giá nào</div><div style="font-size:13px;color:rgba(255,255,255,.4)">Người đọc đầu tiên — hãy chia sẻ cảm nhận của bạn!</div></div>';
+  if(!flt.length){
+    el.innerHTML='<div class="rv-empty" style="padding:40px 20px"><div style="font-size:36px;margin-bottom:10px">📝</div><div style="font-size:15px;font-weight:700;margin-bottom:6px">Chưa có đánh giá nào</div><div style="font-size:13px;color:rgba(255,255,255,.4)">Người đọc đầu tiên — hãy chia sẻ cảm nhận của bạn!</div></div>';
+    return;
+  }
+  var show=(_rvExpanded||flt.length<=RV_PREVIEW)?flt:rvPickTop(flt,RV_PREVIEW);
+  var html=show.map(function(r){return cardHTML(r,myUid);}).join('');
+  if(flt.length>RV_PREVIEW){
+    html+=_rvExpanded
+      ? '<button class="rv-more-btn" onclick="rvShowAll(false)">Thu gọn ↑</button>'
+      : '<button class="rv-more-btn" onclick="rvShowAll(true)">Xem thêm '+(flt.length-RV_PREVIEW)+' đánh giá ↓</button>';
+  }
+  el.innerHTML=html;
 }
+
+window.rvShowAll=function(on){
+  _rvExpanded=!!on;
+  var el=document.getElementById('hv-rv-list');
+  if(el){
+    renderList(el,_all,_user&&_user.uid);
+    if(!on) try{ el.scrollIntoView({block:'start',behavior:'smooth'}); }catch(e){}
+  }
+};
 function sortDesc(arr){return arr.slice().sort(function(a,b){var ta=a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0,tb=b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0;return tb-ta;});}
 function loadAll(){
   var q=db().collection(RV_COL).where('product','==',RV_PROD);
@@ -2128,6 +2160,7 @@ window.rvInit=function(authRef,opts){
 };
 window.rvSetFilter=function(f,listElId){
   _filter=f;
+  _rvExpanded=false;            /* đổi bộ lọc thì thu gọn lại từ đầu */
   var el=document.getElementById(listElId);
   if(el)renderList(el,_all,_user&&_user.uid);
   document.querySelectorAll('.rv-fi').forEach(function(b){b.classList.toggle('on',b.dataset.f===f);});
