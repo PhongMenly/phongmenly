@@ -637,5 +637,25 @@ window.BOOK_EN = {
   631: "From <b>one</b> to <b>number one</b>",
   632: "Phong Menly",
   633: " ← Academy ",
-  634: "Cover"
+  634: "Cover",
+
+  635: "Use what's free to build an entire career.",
+  636: "You can be anyone — it comes down to the model you choose.",
+  637: "▶ Click here to unlock the practice",
+  638: "▶ Click here to unlock",
+  639: "A GIFT + THE RIGHT MOMENT",
+  640: "Just dare to do it, follow the steps, and do it believing — and everything you doubted will turn into results.",
+  641: "Think big — but start at $2.",
+  642: "▶ Enter the course now",
+  643: "Falling isn't the dangerous part. <b>Being about to fall and not knowing it</b> — that's the dangerous part.",
+  644: "Inside, they're full of resentment about something. If they weren't suffering, how could they say things like that? They're suffering enormously.",
+  645: "By now I've stayed up many nights to finish writing all this down.",
+  646: "Whoever holds the money holds the decision.",
+  647: "Before you sell the product — sell the image first.",
+  648: "▶ Click here to put it into action",
+  649: "Some people make money right at tier 7 — but my friend, when you're new, don't rush to climb that high.",
+  650: "This programme isn't free — but you won't find a more worthwhile investment in your own career.",
+  651: "Nobody chooses the road fewer people take. That's why you can be working all the time — and still never find freedom.",
+  652: "Don't look down on what's already working — it is the formula. The more you repeat it, the more you get out of the resources you already have.",
+  653: "One honest confession —"
 };
